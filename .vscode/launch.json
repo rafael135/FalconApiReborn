@@ -1,0 +1,45 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "API (Backend)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/src/Falcon.Api/bin/Debug/net10.0/Falcon.Api.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/Falcon.Api",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+                "uriFormat": "%s/scalar/v1"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            }
+        },
+        {
+            "name": "Worker (Judge)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/src/Falcon.Worker/bin/Debug/net10.0/Falcon.Worker.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/Falcon.Worker",
+            "console": "integratedTerminal",
+            "env": {
+                "DOTNET_ENVIRONMENT": "Development"
+            }
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Falcon Full Stack (API + Worker)",
+            "configurations": ["API (Backend)", "Worker (Judge)"]
+        }
+    ]
+}
