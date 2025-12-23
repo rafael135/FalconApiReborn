@@ -1,3 +1,5 @@
+using Falcon.Core.Domain.Shared;
+
 namespace Falcon.Core;
 
 public abstract class Entity
@@ -39,5 +41,13 @@ public abstract class Entity
     public override int GetHashCode()
     {
         return (GetType().ToString() + Id).GetHashCode();
+    }
+
+    protected static void CheckRule(IBusinessRule rule)
+    {
+        if (rule.IsBroken())
+        {
+            throw new BusinessRuleValidationException(rule);
+        }
     }
 }

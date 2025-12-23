@@ -1,0 +1,25 @@
+using Falcon.Core.Domain.Users;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Falcon.Infrastructure.Database.Configurations;
+
+public class UserConfiguration : IEntityTypeConfiguration<User>
+{
+    public void Configure(EntityTypeBuilder<User> builder)
+    {
+        builder.Property(u => u.Name).HasMaxLength(255).IsRequired();
+
+        builder.Property(u => u.RA).HasMaxLength(15).IsRequired();
+
+        builder.HasIndex(u => u.RA).IsUnique();
+
+        builder.Property(u => u.Department).HasMaxLength(100);
+
+        builder
+            .HasOne(u => u.Group)
+            .WithMany(g => g.Users)
+            .HasForeignKey(u => u.GroupId)
+            .OnDelete(DeleteBehavior.SetNull);
+    }
+}
