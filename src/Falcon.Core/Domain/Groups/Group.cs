@@ -15,6 +15,9 @@ public class Group : Entity
     private readonly List<User> _users = new();
     public virtual IReadOnlyCollection<User> Users => _users.AsReadOnly();
 
+    private readonly List<GroupInvite> _invites = new();
+    public virtual IReadOnlyCollection<GroupInvite> Invites => _invites.AsReadOnly();
+
     protected Group() { }
 
     public Group(string name, User leader)
