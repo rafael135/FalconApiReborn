@@ -1,8 +1,11 @@
 using System.Reflection;
+using Falcon.Api.Infrastructure;
 using Falcon.Infrastructure;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddMemoryCache();
 
 // Add infrastructure services
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -16,10 +19,15 @@ builder.Services.AddMediatR(cfg =>
 
 builder.Services.AddControllers();
 
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

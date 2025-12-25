@@ -1,4 +1,6 @@
 using Falcon.Core.Domain.Users;
+using Falcon.Core.Interfaces;
+using Falcon.Infrastructure.Auth;
 using Falcon.Infrastructure.Database;
 using MassTransit;
 using Microsoft.AspNetCore.Identity;
@@ -15,24 +17,35 @@ public static class DependencyInjection
         IConfiguration configuration
     )
     {
-        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        string? connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        services.AddDbContext<FalconDbContext>(options => options.UseSqlServer(connectionString));
+        services.AddDbContext<FalconDbContext>(options =>
+            options.UseSqlServer(
+                connectionString,
+                options =>
+                {
+                    options.EnableRetryOnFailure(
+                        maxRetryCount: 5,
+                        maxRetryDelay: TimeSpan.FromSeconds(30),
+                        errorNumbersToAdd: null
+                    );
+                }
+            )
+        );
 
         services
             .AddIdentityCore<User>(options =>
             {
-                // Configurações opcionais de senha/usuario
                 options.Password.RequireDigit = false;
-                options.Password.RequiredLength = 6;
+                options.Password.RequiredLength = 8;
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireUppercase = false;
                 options.Password.RequireLowercase = false;
                 options.User.RequireUniqueEmail = true;
             })
-            .AddRoles<IdentityRole>() // Se for usar Roles
-            .AddEntityFrameworkStores<FalconDbContext>() // Conecta o Identity ao seu DbContext
-            .AddSignInManager<SignInManager<User>>() // Necessário para injeção de SignInManager
+            .AddRoles<IdentityRole>()
+            .AddEntityFrameworkStores<FalconDbContext>()
+            .AddSignInManager<SignInManager<User>>()
             .AddDefaultTokenProviders();
 
         services.AddMassTransit(bus =>
@@ -56,6 +69,8 @@ public static class DependencyInjection
                 }
             );
         });
+
+        services.AddScoped<ITokenService, TokenService>();
 
         return services;
     }

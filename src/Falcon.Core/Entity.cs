@@ -1,4 +1,5 @@
 using Falcon.Core.Domain.Shared;
+using Falcon.Core.Domain.Shared.Exceptions;
 
 namespace Falcon.Core;
 
@@ -47,7 +48,7 @@ public abstract class Entity
     {
         if (rule.IsBroken())
         {
-            throw new BusinessRuleValidationException(rule);
+            throw new BusinessRuleException(rule);
         }
     }
 }

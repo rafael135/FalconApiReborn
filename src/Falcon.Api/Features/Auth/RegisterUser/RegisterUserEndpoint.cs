@@ -1,11 +1,11 @@
-using Falcon.Api.Features.Auth.RegisterUser;
+using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Falcon.Api.Features.Auth.RegisterUser;
 
 [ApiController]
-[Route("api/auth")] // Mantendo a rota original
+[Route("api/Auth")]
 public class RegisterUserEndpoint : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -22,22 +22,9 @@ public class RegisterUserEndpoint : ControllerBase
         var result = await _mediator.Send(command);
 
         // 2. Lógica de Apresentação (Cookies) fica aqui, pois é HTTP puro
-        SetAuthCookie(result.Token);
+        this.SetAuthCookie(result.Token);
 
         // 3. Retorna o JSON
         return Ok(new { user = result, token = result.Token });
-    }
-
-    private void SetAuthCookie(string token)
-    {
-        var cookieOptions = new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            Expires = DateTime.UtcNow.AddDays(1),
-            SameSite = SameSiteMode.Lax,
-            Path = "/",
-        };
-        Response.Cookies.Append("CompetitionAuthToken", token, cookieOptions);
     }
 }

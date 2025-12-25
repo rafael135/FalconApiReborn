@@ -1,10 +1,10 @@
-namespace Falcon.Core.Domain.Shared;
+namespace Falcon.Core.Domain.Shared.Exceptions;
 
-public class BusinessRuleValidationException : Exception
+public class BusinessRuleException : DomainException
 {
     public IBusinessRule BrokenRule { get; }
 
-    public BusinessRuleValidationException(IBusinessRule brokenRule)
+    public BusinessRuleException(IBusinessRule brokenRule)
         : base(brokenRule.Message)
     {
         BrokenRule = brokenRule;
