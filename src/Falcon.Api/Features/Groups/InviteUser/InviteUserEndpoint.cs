@@ -12,9 +12,8 @@ public class InviteUserEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("api/Group/{groupId}/invite", [Authorize] async (IMediator mediator, Guid groupId, [FromBody] InviteUserCommand command) =>
+        app.MapPost("api/Group/invite", [Authorize] async (IMediator mediator, [FromBody] InviteUserCommand command) =>
         {
-            if (groupId != command.GroupId) return Results.BadRequest("O ID da rota não corresponde ao ID do comando");
             var result = await mediator.Send(command);
             return Results.Ok(result);
         })

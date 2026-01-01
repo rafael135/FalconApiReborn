@@ -7,4 +7,5 @@ namespace Falcon.Api.Features.Groups.UpdateGroup;
 /// </summary>
 /// <param name="GroupId">The unique identifier of the group to update.</param>
 /// <param name="Name">The new name for the group.</param>
-public record UpdateGroupCommand(Guid GroupId, string Name) : IRequest<UpdateGroupResult>;
+/// <param name="MembersToRemove">List of user RAs to remove from the group.</param>
+public record UpdateGroupCommand(Guid GroupId, string Name, ICollection<string>? MembersToRemove = null) : IRequest<UpdateGroupResult>;

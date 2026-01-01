@@ -8,6 +8,7 @@ public record RegisterUserCommand(
     string Email,
     string Role,
     string Password,
+    string? Department = null,
     string? AccessCode = null,
     int? joinYear = null
 ) : IRequest<RegisterUserResult>;

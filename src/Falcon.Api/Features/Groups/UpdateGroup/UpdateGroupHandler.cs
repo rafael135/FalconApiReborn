@@ -66,6 +66,26 @@ public class UpdateGroupHandler : IRequestHandler<UpdateGroupCommand, UpdateGrou
         // Update group name
         group.Rename(request.Name);
 
+        // Remove members if requested
+        if (request.MembersToRemove != null && request.MembersToRemove.Any())
+        {
+            var membersToRemove = group.Users
+                .Where(u => request.MembersToRemove.Contains(u.RA))
+                .ToList();
+
+            foreach (var member in membersToRemove)
+            {
+                // Cannot remove leader via this method (usually)
+                if (member.Id == group.LeaderId)
+                {
+                    // Skip or throw? Let's skip.
+                    continue;
+                }
+                
+                group.RemoveMember(member);
+            }
+        }
+
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Group {GroupId} renamed to {GroupName} by user {UserId}", 

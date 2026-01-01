@@ -56,14 +56,14 @@ public class InviteUserHandler : IRequestHandler<InviteUserCommand, InviteUserRe
             throw new UnauthorizedAccessException("Apenas o líder do grupo pode convidar usuários");
         }
 
-        // Get target user
+        // Get target user by RA
         var targetUser = await _userManager.Users
             .Include(u => u.Group)
-            .FirstOrDefaultAsync(u => u.Id == request.UserId, cancellationToken);
+            .FirstOrDefaultAsync(u => u.RA == request.RA, cancellationToken);
 
         if (targetUser == null)
         {
-            var errors = new Dictionary<string, string> { { "userId", "Usuário não encontrado" } };
+            var errors = new Dictionary<string, string> { { "ra", "Usuário não encontrado com este RA" } };
             throw new FormException(errors);
         }
 
@@ -72,18 +72,18 @@ public class InviteUserHandler : IRequestHandler<InviteUserCommand, InviteUserRe
         {
             var errors = new Dictionary<string, string> 
             { 
-                { "userId", "Usuário já está em um grupo" } 
+                { "ra", "Usuário já está em um grupo" } 
             };
             throw new FormException(errors);
         }
 
         // Check if user already has a pending invite for this group
-        var existingInvite = group.Invites.FirstOrDefault(i => i.UserId == request.UserId && !i.Accepted);
+        var existingInvite = group.Invites.FirstOrDefault(i => i.UserId == targetUser.Id && !i.Accepted);
         if (existingInvite != null)
         {
             var errors = new Dictionary<string, string> 
             { 
-                { "userId", "Usuário já tem um convite pendente para este grupo" } 
+                { "ra", "Usuário já tem um convite pendente para este grupo" } 
             };
             throw new FormException(errors);
         }
@@ -108,7 +108,7 @@ public class InviteUserHandler : IRequestHandler<InviteUserCommand, InviteUserRe
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("User {UserId} invited to group {GroupId} by {LeaderId}", 
-            request.UserId, request.GroupId, currentUserId);
+            targetUser.Id, request.GroupId, currentUserId);
 
         var inviteDto = new GroupInviteDto(
             invite.Id,

@@ -68,6 +68,31 @@ public class CreateGroupHandler : IRequestHandler<CreateGroupCommand, CreateGrou
         // Create group with user as leader
         var group = new Group(request.Name, user);
 
+        // Add other members if provided
+        if (request.UserRAs != null && request.UserRAs.Any())
+        {
+            var usersToAdd = await _userManager.Users
+                .Where(u => request.UserRAs.Contains(u.RA))
+                .ToListAsync(cancellationToken);
+
+            foreach (var member in usersToAdd)
+            {
+                // Skip if it's the leader (already added)
+                if (member.Id == user.Id) continue;
+
+                // Check if member is already in a group
+                if (member.GroupId != null)
+                {
+                    // We might want to warn or skip, but for now let's just skip or throw?
+                    // Old behavior: likely threw error or ignored.
+                    // Let's ignore for now to avoid partial failure, or we could validate all first.
+                    continue; 
+                }
+
+                group.AddMember(member);
+            }
+        }
+
         await _dbContext.Groups.AddAsync(group, cancellationToken);
 
         // Create log entry

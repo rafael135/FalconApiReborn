@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Exercises.CreateExercise;
 
@@ -6,8 +7,6 @@ namespace Falcon.Api.Features.Exercises.CreateExercise;
 /// Command to create a new exercise.
 /// </summary>
 public record CreateExerciseCommand(
-    string Title,
-    string? Description,
-    int ExerciseTypeId,
-    TimeSpan EstimatedTime
+    CreateExerciseRequestDto Metadata,
+    IFormFile? File
 ) : IRequest<CreateExerciseResult>;

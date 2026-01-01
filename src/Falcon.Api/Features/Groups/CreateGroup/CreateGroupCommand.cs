@@ -6,4 +6,5 @@ namespace Falcon.Api.Features.Groups.CreateGroup;
 /// Command to create a new group.
 /// </summary>
 /// <param name="Name">The name of the group to create.</param>
-public record CreateGroupCommand(string Name) : IRequest<CreateGroupResult>;
+/// <param name="UserRAs">List of user RAs to add to the group.</param>
+public record CreateGroupCommand(string Name, ICollection<string>? UserRAs = null) : IRequest<CreateGroupResult>;
