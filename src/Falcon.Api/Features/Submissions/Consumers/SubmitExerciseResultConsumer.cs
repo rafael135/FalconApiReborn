@@ -1,10 +1,10 @@
 using Falcon.Api.Features.Submissions.Shared;
-using Falcon.Api.Hubs;
+using Falcon.Api.Features.Competitions.Hubs;
 using Falcon.Core.Messages;
 using MassTransit;
 using Microsoft.AspNetCore.SignalR;
 
-namespace Falcon.Api.Consumers;
+namespace Falcon.Api.Features.Submissions.Consumers;
 
 /// <summary>
 /// Consumes exercise submission results from Worker and sends back to client via SignalR.

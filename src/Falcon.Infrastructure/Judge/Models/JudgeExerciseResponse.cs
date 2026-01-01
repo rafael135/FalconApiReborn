@@ -1,12 +1,15 @@
 using System.Text.Json.Serialization;
 
-namespace Falcon.Core.Judge;
+namespace Falcon.Infrastructure.Judge.Models;
 
 /// <summary>
-/// Request to create an exercise in Judge API.
+/// Response from Judge API when creating/getting an exercise.
 /// </summary>
-public class CreateJudgeExerciseRequest
+public class JudgeExerciseResponse
 {
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = string.Empty;
+
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
 

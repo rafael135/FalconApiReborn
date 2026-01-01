@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Falcon.Api.Hubs;
+namespace Falcon.Api.Features.Competitions.Hubs;
 
 /// <summary>
 /// SignalR hub for real-time competition operations.

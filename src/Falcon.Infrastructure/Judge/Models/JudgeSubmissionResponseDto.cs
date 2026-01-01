@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Falcon.Core.Judge;
+namespace Falcon.Infrastructure.Judge.Models;
 
 /// <summary>
 /// Response from Judge API after submission.

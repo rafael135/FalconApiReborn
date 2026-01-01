@@ -1,7 +1,7 @@
 using System.Reflection;
-using Falcon.Api.Consumers;
+using Falcon.Api.Features.Submissions.Consumers;
 using Falcon.Api.Extensions;
-using Falcon.Api.Hubs;
+using Falcon.Api.Features.Competitions.Hubs;
 using Falcon.Api.Infrastructure;
 using Falcon.Infrastructure;
 using Scalar.AspNetCore;

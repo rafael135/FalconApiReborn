@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Falcon.Core.Domain.Shared.Enums;
 using Falcon.Core.Interfaces;
-using Falcon.Core.Judge;
+using Falcon.Infrastructure.Judge.Models;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
