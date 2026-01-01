@@ -1,0 +1,88 @@
+using Falcon.Core.Domain.Auditing;
+using Falcon.Core.Domain.Shared.Enums;
+using Falcon.Core.Domain.Shared.Exceptions;
+using Falcon.Core.Domain.Files;
+using Falcon.Core.Interfaces;
+using Falcon.Infrastructure.Database;
+using MediatR;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Falcon.Core.Domain.Users;
+
+namespace Falcon.Api.Features.Files.DownloadFile;
+
+/// <summary>
+/// Handler for downloading files.
+/// </summary>
+public class DownloadFileHandler : IRequestHandler<DownloadFileQuery, DownloadFileResult>
+{
+    private readonly FalconDbContext _context;
+    private readonly IFileStorageService _fileStorage;
+    private readonly UserManager<User> _userManager;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ILogger<DownloadFileHandler> _logger;
+
+    public DownloadFileHandler(
+        FalconDbContext context,
+        IFileStorageService fileStorage,
+        UserManager<User> userManager,
+        IHttpContextAccessor httpContextAccessor,
+        ILogger<DownloadFileHandler> logger)
+    {
+        _context = context;
+        _fileStorage = fileStorage;
+        _userManager = userManager;
+        _httpContextAccessor = httpContextAccessor;
+        _logger = logger;
+    }
+
+    public async Task<DownloadFileResult> Handle(DownloadFileQuery request, CancellationToken cancellationToken)
+    {
+        // Get file metadata
+        var attachedFile = await _context.AttachedFiles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(f => f.Id == request.FileId, cancellationToken);
+
+        if (attachedFile == null)
+        {
+            throw new NotFoundException(nameof(AttachedFile), request.FileId);
+        }
+
+        // Check if file exists in storage
+        var fileExists = await _fileStorage.FileExistsAsync(attachedFile.FilePath, cancellationToken);
+        if (!fileExists)
+        {
+            throw new FileNotFoundException($"Physical file not found: {attachedFile.FilePath}");
+        }
+
+        // Get file stream
+        var fileStream = await _fileStorage.GetFileAsync(attachedFile.FilePath, cancellationToken);
+
+        // Create log entry
+        var httpContext = _httpContextAccessor.HttpContext;
+        var userIdClaim = httpContext?.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        
+        if (!string.IsNullOrEmpty(userIdClaim))
+        {
+            var user = await _userManager.FindByIdAsync(userIdClaim);
+            if (user != null)
+            {
+                var ipAddress = httpContext?.Connection?.RemoteIpAddress?.ToString() ?? "unknown";
+                var log = new Log(
+                    LogType.DownloadFile,
+                    ipAddress,
+                    user,
+                    user.Group,
+                    null // Competition is null for generic file downloads
+                );
+
+                _context.Logs.Add(log);
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+        }
+
+        _logger.LogInformation("File {FileId} ({FileName}) downloaded", attachedFile.Id, attachedFile.Name);
+
+        return new DownloadFileResult(fileStream, attachedFile.Type, attachedFile.Name);
+    }
+}

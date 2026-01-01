@@ -2,7 +2,9 @@ using Falcon.Core.Domain.Users;
 using Falcon.Core.Interfaces;
 using Falcon.Infrastructure.Auth;
 using Falcon.Infrastructure.Database;
+using Falcon.Infrastructure.Storage;
 using MassTransit;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -72,6 +74,7 @@ public static class DependencyInjection
 
         services.AddScoped<ITokenService, TokenService>();
         services.AddSingleton<IJudgeService, Judge.MockJudgeService>();
+        services.AddSingleton<IFileStorageService, LocalFileStorageService>();
 
         services.AddHttpContextAccessor();
 

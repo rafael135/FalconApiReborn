@@ -1,5 +1,6 @@
 using System.Reflection;
 using Falcon.Api.Consumers;
+using Falcon.Api.Extensions;
 using Falcon.Api.Hubs;
 using Falcon.Api.Infrastructure;
 using Falcon.Infrastructure;
@@ -74,5 +75,8 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<CompetitionHub>("/hubs/competition");
+
+// Map all endpoints
+app.MapAllEndpoints();
 
 app.Run();
