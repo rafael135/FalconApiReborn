@@ -9,5 +9,7 @@ public enum JudgeSubmissionResponse
     MemoryLimitExceeded = 4,
     RuntimeError = 5,
     CompilationError = 6,
-    InternalError = 7
+    InternalError = 7,
+    PresentationError = 8,
+    SecurityError = 9
 }

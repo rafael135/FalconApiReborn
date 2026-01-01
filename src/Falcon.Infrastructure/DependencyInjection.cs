@@ -2,6 +2,7 @@ using Falcon.Core.Domain.Users;
 using Falcon.Core.Interfaces;
 using Falcon.Infrastructure.Auth;
 using Falcon.Infrastructure.Database;
+using Falcon.Infrastructure.Judge;
 using Falcon.Infrastructure.Storage;
 using MassTransit;
 using Microsoft.AspNetCore.Hosting;
@@ -72,8 +73,23 @@ public static class DependencyInjection
             );
         });
 
+        // Configure HttpClient for Judge API
+        var judgeApiUrl = configuration["JudgeApi:Url"];
+        if (!string.IsNullOrEmpty(judgeApiUrl))
+        {
+            services.AddHttpClient("JudgeAPI", client =>
+            {
+                client.BaseAddress = new Uri(judgeApiUrl);
+                client.Timeout = TimeSpan.FromSeconds(30);
+            })
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) => true
+            });
+        }
+
         services.AddScoped<ITokenService, TokenService>();
-        services.AddSingleton<IJudgeService, Judge.MockJudgeService>();
+        services.AddScoped<IJudgeService, JudgeService>();
         services.AddSingleton<IFileStorageService, LocalFileStorageService>();
 
         services.AddHttpContextAccessor();
