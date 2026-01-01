@@ -36,6 +36,8 @@ public static class DependencyInjection
             )
         );
 
+        services.AddDataProtection();
+
         services
             .AddIdentityCore<User>(options =>
             {
@@ -50,28 +52,6 @@ public static class DependencyInjection
             .AddEntityFrameworkStores<FalconDbContext>()
             .AddSignInManager<SignInManager<User>>()
             .AddDefaultTokenProviders();
-
-        services.AddMassTransit(bus =>
-        {
-            bus.SetKebabCaseEndpointNameFormatter();
-
-            bus.UsingRabbitMq(
-                (context, cfg) =>
-                {
-                    cfg.Host(
-                        "localhost",
-                        "/",
-                        h =>
-                        {
-                            h.Username("guest");
-                            h.Password("guest");
-                        }
-                    );
-
-                    cfg.ConfigureEndpoints(context);
-                }
-            );
-        });
 
         // Configure HttpClient for Judge API
         var judgeApiUrl = configuration["JudgeApi:Url"];
