@@ -77,4 +77,32 @@ public static class DependencyInjection
 
         return services;
     }
+
+    /// <summary>
+    /// Adds MassTransit configuration for API with consumers.
+    /// </summary>
+    public static IServiceCollection AddApiMassTransit(
+        this IServiceCollection services,
+        Action<IRegistrationConfigurator> configureConsumers)
+    {
+        services.AddMassTransit(bus =>
+        {
+            bus.SetKebabCaseEndpointNameFormatter();
+
+            configureConsumers(bus);
+
+            bus.UsingRabbitMq((context, cfg) =>
+            {
+                cfg.Host("localhost", "/", h =>
+                {
+                    h.Username("guest");
+                    h.Password("guest");
+                });
+
+                cfg.ConfigureEndpoints(context);
+            });
+        });
+
+        return services;
+    }
 }

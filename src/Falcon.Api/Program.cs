@@ -1,4 +1,5 @@
 using System.Reflection;
+using Falcon.Api.Consumers;
 using Falcon.Api.Hubs;
 using Falcon.Api.Infrastructure;
 using Falcon.Infrastructure;
@@ -10,6 +11,12 @@ builder.Services.AddMemoryCache();
 
 // Add infrastructure services
 builder.Services.AddInfrastructure(builder.Configuration);
+
+// Add MassTransit with API-specific consumers
+builder.Services.AddApiMassTransit(x =>
+{
+    x.AddConsumer<SubmitExerciseResultConsumer>();
+});
 
 // Add MediatR services - Searchs for handlers in the current assembly
 builder.Services.AddMediatR(cfg =>
