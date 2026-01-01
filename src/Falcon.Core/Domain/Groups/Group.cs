@@ -77,4 +77,14 @@ public class Group : Entity
 
         _users.Add(user);
     }
+
+    public void RemoveMember(User user)
+    {
+        if (user == null)
+        {
+            throw new ArgumentNullException(nameof(user));
+        }
+
+        _users.Remove(user);
+    }
 }

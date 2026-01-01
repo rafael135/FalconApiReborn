@@ -64,4 +64,10 @@ public class User : IdentityUser
         Group = group;
         GroupId = group.Id;
     }
+
+    public void LeaveGroup()
+    {
+        Group = null;
+        GroupId = null;
+    }
 }
