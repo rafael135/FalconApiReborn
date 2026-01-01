@@ -71,6 +71,7 @@ public static class DependencyInjection
         });
 
         services.AddScoped<ITokenService, TokenService>();
+        services.AddSingleton<IJudgeService, Judge.MockJudgeService>();
 
         services.AddHttpContextAccessor();
 
