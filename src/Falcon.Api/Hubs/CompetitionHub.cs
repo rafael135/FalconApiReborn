@@ -1,5 +1,9 @@
 using Falcon.Api.Features.Competitions.Shared;
 using Falcon.Api.Features.Exercises.Shared;
+using Falcon.Api.Features.Questions.Shared;
+using Falcon.Core.Domain.Auditing;
+using Falcon.Core.Domain.Exercises;
+using Falcon.Core.Domain.Shared.Enums;
 using Falcon.Core.Domain.Users;
 using Falcon.Core.Messages;
 using Falcon.Infrastructure.Database;
@@ -245,5 +249,287 @@ public class CompetitionHub : Hub
     public async Task Ping()
     {
         await Clients.Caller.SendAsync("Pong", new { message = "Pong", timestamp = DateTime.UtcNow });
+    }
+
+    /// <summary>
+    /// Asks a question in the competition (Students only).
+    /// </summary>
+    [Authorize(Roles = "Student")]
+    public async Task AskQuestion(Guid competitionId, Guid? exerciseId, string content, int questionType)
+    {
+        var userName = Context.User?.Identity?.Name;
+        if (string.IsNullOrEmpty(userName))
+        {
+            await Clients.Caller.SendAsync("ReceiveQuestionError", 
+                new { message = "Usuário não autenticado" });
+            return;
+        }
+
+        var user = await _userManager.Users
+            .Include(u => u.Group)
+            .FirstOrDefaultAsync(u => u.UserName == userName);
+
+        if (user?.GroupId == null)
+        {
+            await Clients.Caller.SendAsync("ReceiveQuestionError", 
+                new { message = "Você deve estar em um grupo para fazer perguntas" });
+            return;
+        }
+
+        var competition = await _dbContext.Competitions
+            .FirstOrDefaultAsync(c => c.Id == competitionId);
+
+        if (competition == null)
+        {
+            await Clients.Caller.SendAsync("ReceiveQuestionError", 
+                new { message = "Competição não encontrada" });
+            return;
+        }
+
+        Exercise? exercise = null;
+        if (exerciseId.HasValue)
+        {
+            exercise = await _dbContext.Exercises
+                .FirstOrDefaultAsync(e => e.Id == exerciseId.Value);
+        }
+
+        var question = new Question(
+            competition,
+            user,
+            content,
+            (QuestionType)questionType,
+            exercise
+        );
+
+        await _dbContext.Questions.AddAsync(question);
+
+        // Create log
+        var ipAddress = Context.GetHttpContext()?.Connection?.RemoteIpAddress?.ToString() ?? "unknown";
+        var log = new Log(LogType.QuestionSent, ipAddress, user, user.Group, competition);
+        await _dbContext.Logs.AddAsync(log);
+
+        await _dbContext.SaveChangesAsync();
+
+        _logger.LogInformation("Question {QuestionId} created by user {UserId} in competition {CompetitionId}", 
+            question.Id, user.Id, competitionId);
+
+        var questionDto = new QuestionDto(
+            question.Id,
+            question.CompetitionId,
+            question.ExerciseId,
+            user.Id,
+            user.Name,
+            user.GroupId,
+            user.Group?.Name,
+            question.Content,
+            question.QuestionType,
+            question.CreatedAt,
+            null
+        );
+
+        // Send to caller
+        await Clients.Caller.SendAsync("ReceiveQuestionCreated", questionDto);
+
+        // Broadcast to Teachers and Admins
+        await Clients.Group("Teachers").SendAsync("ReceiveNewQuestion", questionDto);
+        await Clients.Group("Admins").SendAsync("ReceiveNewQuestion", questionDto);
+    }
+
+    /// <summary>
+    /// Answers a question (Teachers/Admins only).
+    /// </summary>
+    [Authorize(Roles = "Teacher,Admin")]
+    public async Task AnswerQuestion(Guid questionId, string content)
+    {
+        var userName = Context.User?.Identity?.Name;
+        if (string.IsNullOrEmpty(userName))
+        {
+            await Clients.Caller.SendAsync("ReceiveAnswerError", 
+                new { message = "Usuário não autenticado" });
+            return;
+        }
+
+        var user = await _userManager.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.UserName == userName);
+
+        if (user == null)
+        {
+            await Clients.Caller.SendAsync("ReceiveAnswerError", 
+                new { message = "Usuário não encontrado" });
+            return;
+        }
+
+        var question = await _dbContext.Questions
+            .Include(q => q.User)
+                .ThenInclude(u => u.Group)
+            .Include(q => q.Competition)
+            .FirstOrDefaultAsync(q => q.Id == questionId);
+
+        if (question == null)
+        {
+            await Clients.Caller.SendAsync("ReceiveAnswerError", 
+                new { message = "Pergunta não encontrada" });
+            return;
+        }
+
+        if (question.Answer != null)
+        {
+            await Clients.Caller.SendAsync("ReceiveAnswerError", 
+                new { message = "Pergunta já foi respondida" });
+            return;
+        }
+
+        var answer = new Answer(user, content);
+        await _dbContext.Answers.AddAsync(answer);
+        
+        question.SetAnswer(answer);
+
+        // Create log
+        var ipAddress = Context.GetHttpContext()?.Connection?.RemoteIpAddress?.ToString() ?? "unknown";
+        var log = new Log(LogType.AnswerGiven, ipAddress, user, null, question.Competition);
+        await _dbContext.Logs.AddAsync(log);
+
+        await _dbContext.SaveChangesAsync();
+
+        _logger.LogInformation("Answer {AnswerId} created for question {QuestionId} by user {UserId}", 
+            answer.Id, questionId, user.Id);
+
+        var answerDto = new AnswerDto(
+            answer.Id,
+            answer.Content,
+            user.Id,
+            user.Name,
+            answer.CreatedAt
+        );
+
+        var questionDto = new QuestionDto(
+            question.Id,
+            question.CompetitionId,
+            question.ExerciseId,
+            question.User.Id,
+            question.User.Name,
+            question.User.GroupId,
+            question.User.Group?.Name,
+            question.Content,
+            question.QuestionType,
+            question.CreatedAt,
+            answerDto
+        );
+
+        // Send to caller
+        await Clients.Caller.SendAsync("ReceiveAnswerCreated", questionDto);
+
+        // Broadcast to all connected clients
+        await Clients.All.SendAsync("ReceiveQuestionAnswered", questionDto);
+
+        // Notify the question author's group
+        if (question.User.GroupId.HasValue)
+        {
+            await Clients.Group($"Group:{question.User.GroupId.Value}")
+                .SendAsync("ReceiveYourQuestionAnswered", questionDto);
+        }
+    }
+
+    /// <summary>
+    /// Updates an existing answer (Teachers/Admins only).
+    /// </summary>
+    [Authorize(Roles = "Teacher,Admin")]
+    public async Task UpdateAnswer(Guid answerId, string content)
+    {
+        var userName = Context.User?.Identity?.Name;
+        if (string.IsNullOrEmpty(userName))
+        {
+            await Clients.Caller.SendAsync("ReceiveAnswerUpdateError", 
+                new { message = "Usuário não autenticado" });
+            return;
+        }
+
+        var answer = await _dbContext.Answers
+            .Include(a => a.User)
+            .Include(a => a.Question)
+                .ThenInclude(q => q!.User)
+                    .ThenInclude(u => u.Group)
+            .Include(a => a.Question)
+                .ThenInclude(q => q!.Competition)
+            .FirstOrDefaultAsync(a => a.Id == answerId);
+
+        if (answer == null)
+        {
+            await Clients.Caller.SendAsync("ReceiveAnswerUpdateError", 
+                new { message = "Resposta não encontrada" });
+            return;
+        }
+
+        answer.UpdateContent(content);
+        await _dbContext.SaveChangesAsync();
+
+        _logger.LogInformation("Answer {AnswerId} updated by user {UserId}", answerId, userName);
+
+        var answerDto = new AnswerDto(
+            answer.Id,
+            answer.Content,
+            answer.User.Id,
+            answer.User.Name,
+            answer.CreatedAt
+        );
+
+        var questionDto = new QuestionDto(
+            answer.Question!.Id,
+            answer.Question.CompetitionId,
+            answer.Question.ExerciseId,
+            answer.Question.User.Id,
+            answer.Question.User.Name,
+            answer.Question.User.GroupId,
+            answer.Question.User.Group?.Name,
+            answer.Question.Content,
+            answer.Question.QuestionType,
+            answer.Question.CreatedAt,
+            answerDto
+        );
+
+        // Send to caller
+        await Clients.Caller.SendAsync("ReceiveAnswerUpdated", questionDto);
+
+        // Broadcast update to all clients
+        await Clients.All.SendAsync("ReceiveQuestionAnswered", questionDto);
+    }
+
+    /// <summary>
+    /// Gets all questions for the current competition.
+    /// </summary>
+    [Authorize]
+    public async Task GetAllQuestions(Guid competitionId)
+    {
+        var questions = await _dbContext.Questions
+            .AsNoTracking()
+            .Include(q => q.User)
+                .ThenInclude(u => u.Group)
+            .Include(q => q.Answer)
+                .ThenInclude(a => a!.User)
+            .Where(q => q.CompetitionId == competitionId)
+            .OrderByDescending(q => q.CreatedAt)
+            .Select(q => new QuestionDto(
+                q.Id,
+                q.CompetitionId,
+                q.ExerciseId,
+                q.User.Id,
+                q.User.Name,
+                q.User.GroupId,
+                q.User.Group != null ? q.User.Group.Name : null,
+                q.Content,
+                q.QuestionType,
+                q.CreatedAt,
+                q.Answer != null ? new AnswerDto(
+                    q.Answer.Id,
+                    q.Answer.Content,
+                    q.Answer.User.Id,
+                    q.Answer.User.Name,
+                    q.Answer.CreatedAt
+                ) : null
+            ))
+            .ToListAsync();
+
+        await Clients.Caller.SendAsync("ReceiveAllQuestions", questions);
     }
 }

@@ -12,5 +12,7 @@ public enum LogType
     LeaveGroup = 8,
     ViewRanking = 9,
     ViewExercise = 10,
-    DownloadFile = 11
+    DownloadFile = 11,
+    QuestionSent = 12,
+    AnswerGiven = 13
 }
