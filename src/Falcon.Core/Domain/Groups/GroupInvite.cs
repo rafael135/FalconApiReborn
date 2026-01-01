@@ -11,22 +11,21 @@ public class GroupInvite : Entity
 
     public bool Accepted { get; private set; }
 
+#pragma warning disable CS8618
     protected GroupInvite() { }
+#pragma warning restore CS8618
 
-    public GroupInvite(Group group, string inviteCode, DateTime expirationDate)
+    public GroupInvite(Group group, User user)
     {
         if (group == null)
-        {
             throw new ArgumentNullException(nameof(group));
-        }
-
-        if (string.IsNullOrWhiteSpace(inviteCode))
-        {
-            throw new ArgumentException("Invite code is required");
-        }
+        if (user == null)
+            throw new ArgumentNullException(nameof(user));
 
         Group = group;
         GroupId = group.Id;
+        User = user;
+        UserId = user.Id;
         Accepted = false;
     }
 

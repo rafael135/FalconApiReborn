@@ -9,6 +9,9 @@ public class Exercise : Entity
     public int ExerciseTypeId { get; private set; }
     public ExerciseType ExerciseType { get; private set; }
 
+    public Guid? AttachedFileId { get; private set; }
+    public virtual Files.AttachedFile? AttachedFile { get; private set; }
+
     public DateTime CreatedAt { get; private set; }
 
     private readonly List<ExerciseInput> _inputs = new();
@@ -16,6 +19,12 @@ public class Exercise : Entity
 
     private readonly List<ExerciseOutput> _outputs = new();
     public virtual IReadOnlyCollection<ExerciseOutput> Outputs => _outputs.AsReadOnly();
+
+    private readonly List<Question> _questions = new();
+    public virtual IReadOnlyCollection<Question> Questions => _questions.AsReadOnly();
+
+    private readonly List<GroupExerciseAttempt> _attempts = new();
+    public virtual IReadOnlyCollection<GroupExerciseAttempt> Attempts => _attempts.AsReadOnly();
 
     protected Exercise() { }
 

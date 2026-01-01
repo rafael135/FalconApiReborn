@@ -7,9 +7,11 @@ public class ExerciseInput : Entity
 
     public Guid ExerciseId { get; private set; }
 
-    public virtual ExerciseOutput Output { get; private set; }
+    public virtual ExerciseOutput? Output { get; private set; }
 
+#pragma warning disable CS8618
     protected ExerciseInput() { }
+#pragma warning restore CS8618
 
     public ExerciseInput(string inputContent)
     {

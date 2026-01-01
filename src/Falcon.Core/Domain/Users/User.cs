@@ -16,6 +16,15 @@ public class User : IdentityUser
     public Guid? GroupId { get; private set; }
     public virtual Group? Group { get; private set; }
 
+    private readonly List<Exercises.Question> _questions = new();
+    public virtual IReadOnlyCollection<Exercises.Question> Questions => _questions.AsReadOnly();
+
+    private readonly List<Exercises.Answer> _answers = new();
+    public virtual IReadOnlyCollection<Exercises.Answer> Answers => _answers.AsReadOnly();
+
+    private readonly List<Auditing.Log> _logs = new();
+    public virtual IReadOnlyCollection<Auditing.Log> Logs => _logs.AsReadOnly();
+
     public User() { }
 
     public User(

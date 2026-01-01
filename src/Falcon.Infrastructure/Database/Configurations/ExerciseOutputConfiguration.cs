@@ -8,13 +8,34 @@ public class ExerciseOutputConfiguration : IEntityTypeConfiguration<ExerciseOutp
 {
     public void Configure(EntityTypeBuilder<ExerciseOutput> builder)
     {
-        builder.HasKey(e => e.Id);
+        builder.ToTable("ExerciseOutputs");
 
-        builder.Property(e => e.ExerciseId).IsRequired(true);
-        builder.Property(e => e.ExerciseInputId).IsRequired(true);
-        builder.Property(e => e.OutputContent).IsRequired(true);
-        builder.Property(e => e.JudgeUuid).IsRequired(true);
+        builder.HasKey(eo => eo.Id);
 
-        builder.HasOne(e => e.Exercise).WithMany(ex => ex.Outputs).HasForeignKey(e => e.ExerciseId).OnDelete(DeleteBehavior.NoAction);
+        builder.Property(eo => eo.Id)
+            .ValueGeneratedOnAdd();
+
+        builder.Property(eo => eo.ExerciseId)
+            .IsRequired();
+
+        builder.Property(eo => eo.ExerciseInputId)
+            .IsRequired();
+
+        builder.Property(eo => eo.OutputContent)
+            .IsRequired()
+            .HasColumnType("nvarchar(max)");
+
+        builder.Property(eo => eo.JudgeUuid)
+            .HasMaxLength(36);
+
+        builder.HasOne(eo => eo.Exercise)
+            .WithMany(e => e.Outputs)
+            .HasForeignKey(eo => eo.ExerciseId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(eo => eo.ExerciseInput)
+            .WithOne(ei => ei.Output)
+            .HasForeignKey<ExerciseOutput>(eo => eo.ExerciseInputId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

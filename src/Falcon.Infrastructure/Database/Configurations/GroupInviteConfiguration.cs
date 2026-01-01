@@ -8,20 +8,35 @@ public class GroupInviteConfiguration : IEntityTypeConfiguration<GroupInvite>
 {
     public void Configure(EntityTypeBuilder<GroupInvite> builder)
     {
-        builder.HasKey(g => g.Id);
+        builder.ToTable("GroupInvites");
 
-        builder.Property(g => g.Accepted).IsRequired(true).HasDefaultValue(false);
+        builder.HasKey(gi => gi.Id);
+
+        builder.Property(gi => gi.Id)
+            .ValueGeneratedOnAdd();
+
+        builder.Property(gi => gi.Accepted)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(gi => gi.UserId)
+            .IsRequired()
+            .HasMaxLength(450);
 
         builder
-            .HasOne(g => g.Group)
-            .WithMany()
-            .HasForeignKey(g => g.GroupId)
+            .HasOne(gi => gi.Group)
+            .WithMany(g => g.Invites)
+            .HasForeignKey(gi => gi.GroupId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder
-            .HasOne(g => g.User)
+            .HasOne(gi => gi.User)
             .WithMany()
-            .HasForeignKey(g => g.UserId)
+            .HasForeignKey(gi => gi.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Índice único para evitar convites duplicados
+        builder.HasIndex(gi => new { gi.GroupId, gi.UserId })
+            .IsUnique();
     }
 }

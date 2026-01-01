@@ -8,9 +8,15 @@ public class ExerciseTypeConfiguration : IEntityTypeConfiguration<ExerciseType>
 {
     public void Configure(EntityTypeBuilder<ExerciseType> builder)
     {
-        builder.HasKey(e => e.Id);
+        builder.ToTable("ExerciseTypes");
 
-        builder.Property(e => e.Id).ValueGeneratedNever();
-        builder.Property(e => e.Label).HasMaxLength(100).IsRequired(true);
+        builder.HasKey(et => et.Id);
+
+        builder.Property(et => et.Id)
+            .ValueGeneratedNever();
+
+        builder.Property(et => et.Label)
+            .HasMaxLength(100)
+            .IsRequired();
     }
 }

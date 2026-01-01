@@ -8,13 +8,20 @@ public class ExerciseInCompetitionConfiguration : IEntityTypeConfiguration<Exerc
 {
     public void Configure(EntityTypeBuilder<ExerciseInCompetition> builder)
     {
-        builder.HasKey(e => new { e.CompetitionId, e.ExerciseId });
+        builder.ToTable("ExercisesInCompetitions");
+
+        builder.HasKey(eic => new { eic.CompetitionId, eic.ExerciseId });
 
         builder
-            .HasOne(e => e.Competition)
+            .HasOne(eic => eic.Competition)
             .WithMany(c => c.ExercisesInCompetition)
-            .HasForeignKey(e => e.CompetitionId);
+            .HasForeignKey(eic => eic.CompetitionId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(e => e.Exercise).WithMany().HasForeignKey(e => e.ExerciseId);
+        builder
+            .HasOne(eic => eic.Exercise)
+            .WithMany()
+            .HasForeignKey(eic => eic.ExerciseId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

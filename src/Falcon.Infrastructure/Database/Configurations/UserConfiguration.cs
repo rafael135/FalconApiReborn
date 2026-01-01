@@ -8,13 +8,27 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {
-        builder.Property(u => u.Name).HasMaxLength(255).IsRequired();
+        builder.ToTable("AspNetUsers");
 
-        builder.Property(u => u.RA).HasMaxLength(15).IsRequired();
+        builder.Property(u => u.Name)
+            .HasMaxLength(255)
+            .IsRequired();
 
-        builder.HasIndex(u => u.RA).IsUnique();
+        builder.Property(u => u.RA)
+            .HasMaxLength(15)
+            .IsRequired();
 
-        builder.Property(u => u.Department).HasMaxLength(100);
+        builder.HasIndex(u => u.RA)
+            .IsUnique();
+
+        builder.HasIndex(u => u.Email)
+            .IsUnique();
+
+        builder.Property(u => u.Department)
+            .HasMaxLength(100);
+
+        builder.Property(u => u.CreatedAt)
+            .IsRequired();
 
         builder
             .HasOne(u => u.Group)

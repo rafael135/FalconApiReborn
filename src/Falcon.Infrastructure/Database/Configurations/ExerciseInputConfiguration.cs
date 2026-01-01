@@ -8,16 +8,23 @@ public class ExerciseInputConfiguration : IEntityTypeConfiguration<ExerciseInput
 {
     public void Configure(EntityTypeBuilder<ExerciseInput> builder)
     {
-        builder.HasKey(e => e.Id);
+        builder.ToTable("ExerciseInputs");
 
-        builder.Property(e => e.ExerciseId).IsRequired(true);
-        builder.Property(e => e.InputContent).IsRequired(true);
-        builder.Property(e => e.JudgeUuid).IsRequired(true);
+        builder.HasKey(ei => ei.Id);
 
-        builder
-            .HasOne(e => e.Output)
-            .WithOne()
-            .HasForeignKey<ExerciseOutput>(o => o.ExerciseInputId)
-            .OnDelete(DeleteBehavior.Cascade);
+        builder.Property(ei => ei.Id)
+            .ValueGeneratedOnAdd();
+
+        builder.Property(ei => ei.ExerciseId)
+            .IsRequired();
+
+        builder.Property(ei => ei.InputContent)
+            .IsRequired()
+            .HasColumnType("nvarchar(max)");
+
+        builder.Property(ei => ei.JudgeUuid)
+            .HasMaxLength(36);
+
+        // Relacionamento 1:1 configurado no ExerciseOutputConfiguration
     }
 }

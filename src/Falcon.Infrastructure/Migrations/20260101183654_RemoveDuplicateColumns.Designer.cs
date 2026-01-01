@@ -4,6 +4,7 @@ using Falcon.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Falcon.Infrastructure.Migrations
 {
     [DbContext(typeof(FalconDbContext))]
-    partial class FalconDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260101183654_RemoveDuplicateColumns")]
+    partial class RemoveDuplicateColumns
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,46 +24,6 @@ namespace Falcon.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("Falcon.Core.Domain.Auditing.Log", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("ActionTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("ActionType")
-                        .HasColumnType("int");
-
-                    b.Property<Guid?>("CompetitionId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("GroupId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("IpAddress")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<string>("UserId")
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ActionTime");
-
-                    b.HasIndex("CompetitionId");
-
-                    b.HasIndex("GroupId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Logs", (string)null);
-                });
 
             modelBuilder.Entity("Falcon.Core.Domain.Competitions.Competition", b =>
                 {
@@ -430,38 +393,6 @@ namespace Falcon.Infrastructure.Migrations
                     b.ToTable("Questions", (string)null);
                 });
 
-            modelBuilder.Entity("Falcon.Core.Domain.Files.AttachedFile", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("FilePath")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<long>("Size")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("AttachedFiles", (string)null);
-                });
-
             modelBuilder.Entity("Falcon.Core.Domain.Groups.Group", b =>
                 {
                     b.Property<Guid>("Id")
@@ -515,6 +446,78 @@ namespace Falcon.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("GroupInvites", (string)null);
+                });
+
+            modelBuilder.Entity("Falcon.Core.Domain.Shared.AttachedFile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<long>("Size")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AttachedFiles", (string)null);
+                });
+
+            modelBuilder.Entity("Falcon.Core.Domain.Shared.Log", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("ActionTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ActionType")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("CompetitionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("GroupId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("IpAddress")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("UserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActionTime");
+
+                    b.HasIndex("CompetitionId");
+
+                    b.HasIndex("GroupId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Logs", (string)null);
                 });
 
             modelBuilder.Entity("Falcon.Core.Domain.Users.User", b =>
@@ -750,30 +753,6 @@ namespace Falcon.Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Falcon.Core.Domain.Auditing.Log", b =>
-                {
-                    b.HasOne("Falcon.Core.Domain.Competitions.Competition", "Competition")
-                        .WithMany("Logs")
-                        .HasForeignKey("CompetitionId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("Falcon.Core.Domain.Groups.Group", "Group")
-                        .WithMany("Logs")
-                        .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("Falcon.Core.Domain.Users.User", "User")
-                        .WithMany("Logs")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Competition");
-
-                    b.Navigation("Group");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Falcon.Core.Domain.Competitions.Competition", b =>
                 {
                     b.HasOne("Falcon.Core.Domain.Groups.Group", null)
@@ -851,7 +830,7 @@ namespace Falcon.Infrastructure.Migrations
 
             modelBuilder.Entity("Falcon.Core.Domain.Exercises.Exercise", b =>
                 {
-                    b.HasOne("Falcon.Core.Domain.Files.AttachedFile", "AttachedFile")
+                    b.HasOne("Falcon.Core.Domain.Shared.AttachedFile", "AttachedFile")
                         .WithMany("Exercises")
                         .HasForeignKey("AttachedFileId")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -974,6 +953,30 @@ namespace Falcon.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Falcon.Core.Domain.Shared.Log", b =>
+                {
+                    b.HasOne("Falcon.Core.Domain.Competitions.Competition", "Competition")
+                        .WithMany("Logs")
+                        .HasForeignKey("CompetitionId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Falcon.Core.Domain.Groups.Group", "Group")
+                        .WithMany("Logs")
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Falcon.Core.Domain.Users.User", "User")
+                        .WithMany("Logs")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Competition");
+
+                    b.Navigation("Group");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Falcon.Core.Domain.Users.User", b =>
                 {
                     b.HasOne("Falcon.Core.Domain.Groups.Group", "Group")
@@ -1076,11 +1079,6 @@ namespace Falcon.Infrastructure.Migrations
                     b.Navigation("Exercises");
                 });
 
-            modelBuilder.Entity("Falcon.Core.Domain.Files.AttachedFile", b =>
-                {
-                    b.Navigation("Exercises");
-                });
-
             modelBuilder.Entity("Falcon.Core.Domain.Groups.Group", b =>
                 {
                     b.Navigation("Attempts");
@@ -1096,6 +1094,11 @@ namespace Falcon.Infrastructure.Migrations
                     b.Navigation("Rankings");
 
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("Falcon.Core.Domain.Shared.AttachedFile", b =>
+                {
+                    b.Navigation("Exercises");
                 });
 
             modelBuilder.Entity("Falcon.Core.Domain.Users.User", b =>
