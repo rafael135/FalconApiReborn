@@ -26,7 +26,7 @@ builder.Services.AddMediatR(cfg =>
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddEndpoints(Assembly.GetExecutingAssembly());
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
@@ -64,6 +64,8 @@ if (app.Environment.IsDevelopment())
         options.WithTheme(ScalarTheme.Purple);
         options.WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
     });
+
+    app.MapGet("/", () => Results.Redirect("/scalar/v1")).ExcludeFromDescription();
 }
 
 app.UseHttpsRedirection();
@@ -73,10 +75,10 @@ app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
 app.MapHub<CompetitionHub>("/hubs/competition");
 
 // Map all endpoints
-app.MapAllEndpoints();
+// app.MapAllEndpoints();
+app.MapEndpoints();
 
 app.Run();

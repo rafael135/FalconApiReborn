@@ -53,10 +53,9 @@ public class LoginUserHandler : IRequestHandler<LoginUserCommand, LoginUserResul
             );
         }
 
-        SignInResult result = await this._signInManager.PasswordSignInAsync(
+        SignInResult result = await this._signInManager.CheckPasswordSignInAsync(
             existentUser,
             request.Password,
-            false,
             false
         );
 

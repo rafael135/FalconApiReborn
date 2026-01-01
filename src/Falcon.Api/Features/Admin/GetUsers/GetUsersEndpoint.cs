@@ -1,3 +1,4 @@
+using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 
@@ -6,9 +7,9 @@ namespace Falcon.Api.Features.Admin.GetUsers;
 /// <summary>
 /// Endpoint for getting all users (Admin only).
 /// </summary>
-public static class GetUsersEndpoint
+public class GetUsersEndpoint : IEndpoint
 {
-    public static IEndpointRouteBuilder MapGetUsers(this IEndpointRouteBuilder app)
+    public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("/api/Admin/users", [Authorize(Roles = "Admin")] async (
             IMediator mediator,
@@ -23,7 +24,5 @@ public static class GetUsersEndpoint
         .WithName("GetUsers")
         .WithTags("Admin")
         .Produces<GetUsersResult>();
-
-        return app;
     }
 }

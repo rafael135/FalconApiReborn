@@ -1,3 +1,4 @@
+using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 
@@ -6,9 +7,9 @@ namespace Falcon.Api.Features.Admin.GetStatistics;
 /// <summary>
 /// Endpoint for getting system statistics (Admin only).
 /// </summary>
-public static class GetStatisticsEndpoint
+public class GetStatisticsEndpoint : IEndpoint
 {
-    public static IEndpointRouteBuilder MapGetStatistics(this IEndpointRouteBuilder app)
+    public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("/api/Admin/stats", [Authorize(Roles = "Admin")] async (
             IMediator mediator) =>
@@ -20,7 +21,5 @@ public static class GetStatisticsEndpoint
         .WithName("GetStatistics")
         .WithTags("Admin")
         .Produces<GetStatisticsResult>();
-
-        return app;
     }
 }

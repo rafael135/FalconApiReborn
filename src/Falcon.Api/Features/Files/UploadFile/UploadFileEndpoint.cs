@@ -1,3 +1,4 @@
+using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 
@@ -6,13 +7,11 @@ namespace Falcon.Api.Features.Files.UploadFile;
 /// <summary>
 /// Endpoint for uploading files (Teacher/Admin only).
 /// </summary>
-public static class UploadFileEndpoint
+public class UploadFileEndpoint : IEndpoint
 {
-    public static IEndpointRouteBuilder MapUploadFile(this IEndpointRouteBuilder app)
+    public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/File", [Authorize(Roles = "Teacher,Admin")] async (
-            IMediator mediator,
-            IFormFile file) =>
+        app.MapPost("api/File", [Authorize(Roles = "Teacher,Admin")] async (IMediator mediator, IFormFile file) =>
         {
             var command = new UploadFileCommand(file);
             var result = await mediator.Send(command);
@@ -22,8 +21,6 @@ public static class UploadFileEndpoint
         .WithTags("Files")
         .Accepts<IFormFile>("multipart/form-data")
         .Produces<UploadFileResult>()
-        .DisableAntiforgery(); // Disable antiforgery for file upload
-
-        return app;
+        .DisableAntiforgery();
     }
 }

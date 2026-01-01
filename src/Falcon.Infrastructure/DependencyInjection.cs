@@ -2,6 +2,7 @@ using Falcon.Core.Domain.Users;
 using Falcon.Core.Interfaces;
 using Falcon.Infrastructure.Auth;
 using Falcon.Infrastructure.Database;
+using Falcon.Infrastructure.Files;
 using Falcon.Infrastructure.Judge;
 using Falcon.Infrastructure.Storage;
 using MassTransit;
@@ -53,6 +54,8 @@ public static class DependencyInjection
             .AddSignInManager<SignInManager<User>>()
             .AddDefaultTokenProviders();
 
+        services.AddAuthentication();
+
         // Configure HttpClient for Judge API
         var judgeApiUrl = configuration["JudgeApi:Url"];
         if (!string.IsNullOrEmpty(judgeApiUrl))
@@ -71,6 +74,7 @@ public static class DependencyInjection
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IJudgeService, JudgeService>();
         services.AddSingleton<IFileStorageService, LocalFileStorageService>();
+        services.AddScoped<IAttachedFileService, AttachedFileService>();
 
         services.AddHttpContextAccessor();
 

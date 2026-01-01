@@ -1,26 +1,22 @@
+using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Falcon.Api.Features.Exercises.AddTestCase;
 
-[ApiController]
-[Route("api/Exercise")]
-public class AddTestCaseEndpoint : ControllerBase
+public class AddTestCaseEndpoint : IEndpoint
 {
-    private readonly IMediator _mediator;
-
-    public AddTestCaseEndpoint(IMediator mediator) => _mediator = mediator;
-
-    [HttpPost("{id}/testcase")]
-    [Authorize(Roles = "Teacher,Admin")]
-    [ProducesResponseType(typeof(AddTestCaseResult), StatusCodes.Status200OK)]
-    public async Task<IActionResult> AddTestCase([FromRoute] Guid id, [FromBody] AddTestCaseCommand command)
+    public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        if (command.ExerciseId != id)
-            return BadRequest(new { error = "Route ID does not match command ExerciseId" });
-
-        var result = await _mediator.Send(command);
-        return Ok(result);
+        app.MapPost("api/Exercise/{id}/testcase", [Authorize(Roles = "Teacher,Admin")] async (IMediator mediator, Guid id, [FromBody] AddTestCaseCommand command) =>
+        {
+            if (command.ExerciseId != id) return Results.BadRequest(new { error = "Route ID does not match command ExerciseId" });
+            var result = await mediator.Send(command);
+            return Results.Ok(result);
+        })
+        .WithName("AddTestCase")
+        .WithTags("Exercises")
+        .Produces<AddTestCaseResult>();
     }
 }

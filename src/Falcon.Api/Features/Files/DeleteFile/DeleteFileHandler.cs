@@ -13,16 +13,16 @@ namespace Falcon.Api.Features.Files.DeleteFile;
 public class DeleteFileHandler : IRequestHandler<DeleteFileCommand, DeleteFileResult>
 {
     private readonly FalconDbContext _context;
-    private readonly IFileStorageService _fileStorage;
+    private readonly IAttachedFileService _attachedFileService;
     private readonly ILogger<DeleteFileHandler> _logger;
 
     public DeleteFileHandler(
         FalconDbContext context,
-        IFileStorageService fileStorage,
+        IAttachedFileService attachedFileService,
         ILogger<DeleteFileHandler> logger)
     {
         _context = context;
-        _fileStorage = fileStorage;
+        _attachedFileService = attachedFileService;
         _logger = logger;
     }
 
@@ -45,12 +45,8 @@ public class DeleteFileHandler : IRequestHandler<DeleteFileCommand, DeleteFileRe
                 $"Cannot delete file '{attachedFile.Name}' because it is attached to {attachedFile.Exercises.Count} exercise(s)");
         }
 
-        // Delete physical file
-        await _fileStorage.DeleteFileAsync(attachedFile.FilePath, cancellationToken);
-
-        // Delete database record
-        _context.AttachedFiles.Remove(attachedFile);
-        await _context.SaveChangesAsync(cancellationToken);
+        // Delete using service
+        await _attachedFileService.DeleteAttachedFileAsync(attachedFile, cancellationToken);
 
         _logger.LogInformation("File {FileId} ({FileName}) deleted", attachedFile.Id, attachedFile.Name);
 

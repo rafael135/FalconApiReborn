@@ -1,24 +1,29 @@
+using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Falcon.Api.Features.Competitions.GetAttempts;
 
-[ApiController]
-[Route("api/Competition")]
-public class GetAttemptsEndpoint : ControllerBase
+/// <summary>
+/// Endpoint for getting attempts of a competition (Teacher/Admin only).
+/// </summary>
+public class GetAttemptsEndpoint : IEndpoint
 {
-    private readonly IMediator _mediator;
-
-    public GetAttemptsEndpoint(IMediator mediator) => _mediator = mediator;
-
-    [HttpGet("{id}/attempts")]
-    [Authorize(Roles = "Teacher,Admin")]
-    [ProducesResponseType(typeof(GetAttemptsResult), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAttempts([FromRoute] Guid id, [FromQuery] int skip = 0, [FromQuery] int take = 10)
+    public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        var query = new GetAttemptsQuery(id, skip, take);
-        var result = await _mediator.Send(query);
-        return Ok(result);
+        app.MapGet("api/Competition/{id}/attempts", [Authorize(Roles = "Teacher,Admin")] async (
+            IMediator mediator,
+            Guid id,
+            int skip = 0,
+            int take = 10) =>
+        {
+            var query = new GetAttemptsQuery(id, skip, take);
+            var result = await mediator.Send(query);
+            return Results.Ok(result);
+        })
+        .WithName("GetAllAttempts")
+        .WithTags("Competitions")
+        .Produces<GetAttemptsResult>();
     }
 }

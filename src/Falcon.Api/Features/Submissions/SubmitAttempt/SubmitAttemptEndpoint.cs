@@ -1,23 +1,26 @@
+using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Falcon.Api.Features.Submissions.SubmitAttempt;
 
-[ApiController]
-[Route("api/Submission")]
-public class SubmitAttemptEndpoint : ControllerBase
+/// <summary>
+/// Endpoint for submitting an exercise attempt.
+/// </summary>
+public class SubmitAttemptEndpoint : IEndpoint
 {
-    private readonly IMediator _mediator;
-
-    public SubmitAttemptEndpoint(IMediator mediator) => _mediator = mediator;
-
-    [HttpPost]
-    [Authorize]
-    [ProducesResponseType(typeof(SubmitAttemptResult), StatusCodes.Status200OK)]
-    public async Task<IActionResult> SubmitAttempt([FromBody] SubmitAttemptCommand command)
+    public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        var result = await _mediator.Send(command);
-        return Ok(result);
+        app.MapPost("api/Submission", [Authorize] async (
+            IMediator mediator,
+            [FromBody] SubmitAttemptCommand command) =>
+        {
+            var result = await mediator.Send(command);
+            return Results.Ok(result);
+        })
+        .WithName("SubmitAttempt")
+        .WithTags("Submissions")
+        .Produces<SubmitAttemptResult>();
     }
 }

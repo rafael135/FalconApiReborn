@@ -1,3 +1,4 @@
+using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 
@@ -6,11 +7,11 @@ namespace Falcon.Api.Features.Logs.GetLogs;
 /// <summary>
 /// Endpoint for getting system logs (Teacher/Admin only).
 /// </summary>
-public static class GetLogsEndpoint
+public class GetLogsEndpoint : IEndpoint
 {
-    public static IEndpointRouteBuilder MapGetLogs(this IEndpointRouteBuilder app)
+    public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/Log", [Authorize(Roles = "Teacher,Admin")] async (
+        app.MapGet("api/Log", [Authorize(Roles = "Teacher,Admin")] async (
             IMediator mediator,
             string? userId,
             Guid? groupId,
@@ -28,7 +29,5 @@ public static class GetLogsEndpoint
         .WithName("GetLogs")
         .WithTags("Logs")
         .Produces<GetLogsResult>();
-
-        return app;
     }
 }

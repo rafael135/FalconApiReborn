@@ -10,20 +10,17 @@ namespace Falcon.Api.Features.Files.UploadFile;
 /// </summary>
 public class UploadFileHandler : IRequestHandler<UploadFileCommand, UploadFileResult>
 {
-    private readonly FalconDbContext _context;
-    private readonly IFileStorageService _fileStorage;
+    private readonly IAttachedFileService _attachedFileService;
     private readonly ILogger<UploadFileHandler> _logger;
 
     private static readonly string[] AllowedExtensions = { ".pdf", ".zip", ".txt", ".md", ".jpg", ".png" };
     private const long MaxFileSize = 10 * 1024 * 1024; // 10 MB
 
     public UploadFileHandler(
-        FalconDbContext context,
-        IFileStorageService fileStorage,
+        IAttachedFileService attachedFileService,
         ILogger<UploadFileHandler> logger)
     {
-        _context = context;
-        _fileStorage = fileStorage;
+        _attachedFileService = attachedFileService;
         _logger = logger;
     }
 
@@ -50,23 +47,14 @@ public class UploadFileHandler : IRequestHandler<UploadFileCommand, UploadFileRe
             throw new ArgumentException($"File size exceeds maximum allowed size of {MaxFileSize / (1024 * 1024)} MB");
         }
 
-        // Save file to storage
-        string filePath;
-        using (var stream = file.OpenReadStream())
-        {
-            filePath = await _fileStorage.SaveFileAsync(stream, file.FileName, cancellationToken);
-        }
-
-        // Create AttachedFile entity
-        var attachedFile = new AttachedFile(
+        // Save file using service
+        var attachedFile = await _attachedFileService.CreateAttachedFileAsync(
+            file.OpenReadStream(),
             file.FileName,
             file.ContentType,
             file.Length,
-            filePath
+            cancellationToken
         );
-
-        _context.AttachedFiles.Add(attachedFile);
-        await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("File {FileName} uploaded with ID {FileId}", file.FileName, attachedFile.Id);
 

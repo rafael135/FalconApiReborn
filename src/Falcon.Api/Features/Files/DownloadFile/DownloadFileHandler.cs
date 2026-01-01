@@ -17,20 +17,20 @@ namespace Falcon.Api.Features.Files.DownloadFile;
 public class DownloadFileHandler : IRequestHandler<DownloadFileQuery, DownloadFileResult>
 {
     private readonly FalconDbContext _context;
-    private readonly IFileStorageService _fileStorage;
+    private readonly IAttachedFileService _attachedFileService;
     private readonly UserManager<User> _userManager;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ILogger<DownloadFileHandler> _logger;
 
     public DownloadFileHandler(
         FalconDbContext context,
-        IFileStorageService fileStorage,
+        IAttachedFileService attachedFileService,
         UserManager<User> userManager,
         IHttpContextAccessor httpContextAccessor,
         ILogger<DownloadFileHandler> logger)
     {
         _context = context;
-        _fileStorage = fileStorage;
+        _attachedFileService = attachedFileService;
         _userManager = userManager;
         _httpContextAccessor = httpContextAccessor;
         _logger = logger;
@@ -48,15 +48,8 @@ public class DownloadFileHandler : IRequestHandler<DownloadFileQuery, DownloadFi
             throw new NotFoundException(nameof(AttachedFile), request.FileId);
         }
 
-        // Check if file exists in storage
-        var fileExists = await _fileStorage.FileExistsAsync(attachedFile.FilePath, cancellationToken);
-        if (!fileExists)
-        {
-            throw new FileNotFoundException($"Physical file not found: {attachedFile.FilePath}");
-        }
-
-        // Get file stream
-        var fileStream = await _fileStorage.GetFileAsync(attachedFile.FilePath, cancellationToken);
+        // Get file stream using service
+        var fileStream = await _attachedFileService.GetFileStreamAsync(attachedFile, cancellationToken);
 
         // Create log entry
         var httpContext = _httpContextAccessor.HttpContext;

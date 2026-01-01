@@ -1,3 +1,4 @@
+using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 
@@ -6,9 +7,9 @@ namespace Falcon.Api.Features.Admin.GenerateTeacherToken;
 /// <summary>
 /// Endpoint for generating teacher registration tokens (Admin only).
 /// </summary>
-public static class GenerateTeacherTokenEndpoint
+public class GenerateTeacherTokenEndpoint : IEndpoint
 {
-    public static IEndpointRouteBuilder MapGenerateTeacherToken(this IEndpointRouteBuilder app)
+    public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("/api/Admin/teacher-token", [Authorize(Roles = "Admin")] async (
             IMediator mediator,
@@ -21,7 +22,5 @@ public static class GenerateTeacherTokenEndpoint
         .WithName("GenerateTeacherToken")
         .WithTags("Admin")
         .Produces<GenerateTeacherTokenResult>();
-
-        return app;
     }
 }

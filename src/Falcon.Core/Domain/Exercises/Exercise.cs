@@ -51,6 +51,12 @@ public class Exercise : Entity
         _outputs.Add(output);
     }
 
+    public void ClearTestCases()
+    {
+        _inputs.Clear();
+        _outputs.Clear();
+    }
+
     public void SetJudgeUuid(string judgeUuid)
     {
         if (string.IsNullOrWhiteSpace(judgeUuid))
@@ -61,7 +67,7 @@ public class Exercise : Entity
         JudgeUuid = judgeUuid;
     }
 
-    public void UpdateDetauls(string title, string? description, int exerciseTypeId)
+    public void UpdateDetails(string title, string? description, int exerciseTypeId)
     {
         if (string.IsNullOrWhiteSpace(title))
         {
@@ -71,5 +77,11 @@ public class Exercise : Entity
         Title = title;
         Description = description;
         ExerciseTypeId = exerciseTypeId;
+    }
+
+    public void SetAttachedFile(Files.AttachedFile file)
+    {
+        AttachedFile = file;
+        AttachedFileId = file.Id;
     }
 }

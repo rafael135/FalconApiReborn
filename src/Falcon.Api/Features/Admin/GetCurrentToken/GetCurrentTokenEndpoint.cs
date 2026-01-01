@@ -1,3 +1,4 @@
+using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 
@@ -6,9 +7,9 @@ namespace Falcon.Api.Features.Admin.GetCurrentToken;
 /// <summary>
 /// Endpoint for getting current teacher registration token (Admin only).
 /// </summary>
-public static class GetCurrentTokenEndpoint
+public class GetCurrentTokenEndpoint : IEndpoint
 {
-    public static IEndpointRouteBuilder MapGetCurrentToken(this IEndpointRouteBuilder app)
+    public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("/api/Admin/teacher-token", [Authorize(Roles = "Admin")] async (
             IMediator mediator) =>
@@ -20,7 +21,5 @@ public static class GetCurrentTokenEndpoint
         .WithName("GetCurrentToken")
         .WithTags("Admin")
         .Produces<GetCurrentTokenResult>();
-
-        return app;
     }
 }

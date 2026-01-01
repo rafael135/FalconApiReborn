@@ -4,27 +4,27 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Falcon.Api.Features.Auth.LoginUser;
 
-[ApiController]
-[Route("api/Auth")]
-public class LoginUserEndpoint : ControllerBase
+public class LoginUserEndpoint : IEndpoint
 {
-    private readonly IMediator _mediator;
-
-    public LoginUserEndpoint(IMediator mediator)
+    public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _mediator = mediator;
-    }
+        app.MapPost("api/Auth/login", async (IMediator mediator, HttpContext httpContext, [FromBody] LoginUserCommand command) =>
+        {
+            var result = await mediator.Send(command);
 
-    [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginUserCommand command)
-    {
-        // 1. O Controller delega tudo para o Handler
-        var result = await _mediator.Send(command);
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                Expires = DateTime.UtcNow.AddDays(1),
+                SameSite = SameSiteMode.Lax,
+                Path = "/",
+            };
+            httpContext.Response.Cookies.Append("CompetitionAuthToken", result.Token, cookieOptions);
 
-        // 2. Lógica de Apresentação (Cookies) fica aqui, pois é HTTP puro
-        this.SetAuthCookie(result.Token);
-
-        // 3. Retorna o JSON
-        return Ok(new { user = result, token = result.Token });
+            return Results.Ok(new { user = result, token = result.Token });
+        })
+        .WithName("LoginUser")
+        .WithTags("Auth");
     }
 }

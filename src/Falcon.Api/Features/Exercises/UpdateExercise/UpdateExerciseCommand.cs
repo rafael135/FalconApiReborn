@@ -1,10 +1,10 @@
 using MediatR;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Exercises.UpdateExercise;
 
 public record UpdateExerciseCommand(
     Guid ExerciseId,
-    string? Title,
-    string? Description,
-    int? ExerciseTypeId
+    UpdateExerciseRequestDto Metadata,
+    IFormFile? File
 ) : IRequest<UpdateExerciseResult>;
