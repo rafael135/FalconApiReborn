@@ -1,4 +1,5 @@
 using System.Reflection;
+using Falcon.Api.Hubs;
 using Falcon.Api.Infrastructure;
 using Falcon.Infrastructure;
 using Scalar.AspNetCore;
@@ -22,6 +23,21 @@ builder.Services.AddControllers();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
+// SignalR
+builder.Services.AddSignalR();
+
+// CORS for SignalR
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000", "http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
@@ -44,8 +60,12 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseCors("AllowFrontend");
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<CompetitionHub>("/hubs/competition");
 
 app.Run();
