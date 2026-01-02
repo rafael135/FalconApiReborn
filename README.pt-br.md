@@ -387,7 +387,8 @@ FalconApiReborn/
    
    Isso inicia:
    - RabbitMQ em `localhost:5672` (UI de gerenciamento: `localhost:15672`)
-   - SQL Server em `localhost:1433`
+   
+   **Nota**: SQL Server **não está incluído** no docker-compose.yml. Você precisa instalá-lo separadamente ou descomentar o serviço SQL Server no arquivo.
 
 3. **Configure a connection string** em `src/Falcon.Api/appsettings.Development.json`:
    ```json
@@ -414,8 +415,8 @@ FalconApiReborn/
    ```
 
 7. **Acesse a API**:
-   - Documentação Scalar: https://localhost:7163/scalar/v1
-   - URL Base da API: https://localhost:7163
+   - Documentação Scalar: https://localhost:7155/scalar/v1
+   - URL Base da API: https://localhost:7155
 
 ### Desenvolvimento Local sem Docker
 
@@ -447,12 +448,22 @@ FalconApiReborn/
 
 **Sempre use os scripts PowerShell fornecidos** (eles lidam corretamente com os caminhos dos projetos):
 
+**Windows (PowerShell):**
 ```powershell
 # Criar nova migration
 .\add-migration.ps1
 
 # Aplicar migrations no banco
 .\update-db.ps1
+```
+
+**Linux/Mac (Bash):**
+```bash
+# Criar nova migration
+./add-migration.sh
+
+# Aplicar migrations no banco
+./update-db.sh
 ```
 
 Ou manualmente:
@@ -543,7 +554,7 @@ dotnet ef database update --project src/Falcon.Infrastructure --startup-project 
 
 A API usa **Scalar** (alternativa moderna ao Swagger) com tema roxo:
 
-- **URL**: https://localhost:7163/scalar/v1
+- **URL**: https://localhost:7155/scalar/v1
 - **Funcionalidades**:
   - Teste interativo da API
   - Exemplos de Request/Response
@@ -742,6 +753,17 @@ tests/
 }
 ```
 
+### Configuração da Judge API
+
+A Judge API é um serviço externo que executa e avalia submissões de código. É necessária para que o sistema de competições funcione.
+
+**Projeto Parceiro**: A Judge API foi desenvolvida por um grupo parceiro de TCC como parte de um esforço colaborativo. Eles ficaram responsáveis pelo motor de execução de código enquanto este projeto cuida do sistema de gerenciamento de competições.
+
+- **Repositório**: [tcc_api por GuilhermeZanetti](https://github.com/GuilhermeZanetti/tcc_api)
+- **URL**: Configure a URL base da sua instância da Judge API em `appsettings.json`
+- **SecurityKey**: Chave de autenticação para requisições à Judge API
+- **Configuração**: Siga as instruções no repositório da Judge API para configurar sua própria instância
+
 ### Variáveis de Ambiente (Produção)
 
 ```bash
@@ -753,7 +775,54 @@ Cors__FrontendURL=https://seu-frontend.com
 
 ---
 
-## 🚢 Deploy
+## � Solução de Problemas
+
+### Problemas Comuns
+
+**Falha na Conexão com RabbitMQ**
+```
+Solução: Certifique-se de que o RabbitMQ está rodando via docker-compose up -d
+Verifique: http://localhost:15672 (guest/guest)
+```
+
+**Falha na Conexão com Banco de Dados**
+```
+Solução: Verifique se o SQL Server está rodando e a connection string está correta
+Verifique: SQL Server deve estar em localhost:1433 com credenciais do appsettings.json
+```
+
+**Erros de CORS no SignalR**
+```
+Solução: Certifique-se de que a URL do frontend está listada na configuração CORS (Program.cs)
+Origens padrão permitidas: http://localhost:3000, http://localhost:5173
+```
+
+**Erros de Migration**
+```bash
+# Sempre use os scripts fornecidos:
+.\add-migration.ps1    # Windows
+./add-migration.sh     # Linux/Mac
+
+# Se a migration manual falhar, certifique-se de que:
+# 1. Você está no diretório raiz do projeto
+# 2. Ambos os projetos existem: Falcon.Infrastructure (migrations) e Falcon.Api (startup)
+```
+
+**Worker Não Processa Submissões**
+```
+Solução: Certifique-se de que API e Worker estão rodando simultaneamente
+Verifique logs do Worker para erros de conexão RabbitMQ e Judge API
+```
+
+**Judge API Não Encontrada**
+```
+Solução: Configure JudgeApi:Url em appsettings.Development.json
+Nota: Judge API é um serviço separado e não está incluída neste repositório
+```
+
+---
+
+## �🚢 Deploy
 
 ### Docker Compose (Recomendado)
 
@@ -870,29 +939,26 @@ Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE.txt](
 
 ---
 
-## 👥 Autor
+## 👥 Contribuidores
 
-**Desenvolvimento Backend** (Original & Reborn)
+**Este Projeto - Backend & Gerenciamento de Competições** (Original & Reborn)
 - Arquitetura e implementação da API
 - Redesign com Clean Architecture + DDD
+- Sistema de competições, grupos e funcionalidades em tempo real
 
 **Desenvolvimento Frontend** (Projeto original)
 - Aplicação React e interface de usuário
+
+**Grupo Parceiro de TCC - Judge API** ([Repositório](https://github.com/GuilhermeZanetti/tcc_api))
+- Motor de execução de código
+- Suporte a múltiplas linguagens de programação
+- Segurança e sandboxing
 
 ---
 
 ## 🙏 Agradecimentos
 
+- **Grupo Parceiro de TCC** ([GuilhermeZanetti/tcc_api](https://github.com/GuilhermeZanetti/tcc_api)) por desenvolver o motor de execução de código da Judge API
 - **Comunidade .NET** pela excelente documentação e bibliotecas
 - Comunidades **Clean Architecture** e **DDD** pela orientação arquitetural
 - Times **MassTransit** e **SignalR** pelos frameworks poderosos
-
----
-
-<div align="center">
-
-**Construído com ❤️ usando Clean Architecture, DDD e .NET 10**
-
-[Reportar Bug](https://github.com/FalconCompetitions/FalconApiReborn/issues) · [Solicitar Feature](https://github.com/FalconCompetitions/FalconApiReborn/issues)
-
-</div>

@@ -387,7 +387,8 @@ FalconApiReborn/
    
    This starts:
    - RabbitMQ on `localhost:5672` (management UI: `localhost:15672`)
-   - SQL Server on `localhost:1433`
+   
+   **Note**: SQL Server is **not included** in docker-compose.yml. You need to install it separately or uncomment the SQL Server service in the file.
 
 3. **Configure connection string** in `src/Falcon.Api/appsettings.Development.json`:
    ```json
@@ -414,8 +415,8 @@ FalconApiReborn/
    ```
 
 7. **Access the API**:
-   - Scalar Documentation: https://localhost:7163/scalar/v1
-   - API Base URL: https://localhost:7163
+   - Scalar Documentation: https://localhost:7155/scalar/v1
+   - API Base URL: https://localhost:7155
 
 ### Local Development without Docker
 
@@ -447,7 +448,7 @@ FalconApiReborn/
 
 The API uses **Scalar** (modern alternative to Swagger) with a purple theme:
 
-- **URL**: https://localhost:7163/scalar/v1
+- **URL**: https://localhost:7155/scalar/v1
 - **Features**:
   - Interactive API testing
   - Request/Response examples
@@ -646,6 +647,18 @@ tests/
 }
 ```
 
+### Judge API Configuration
+
+The Judge API is an external service that executes and evaluates code submissions. It's required for the competition system to work.
+
+**Partner Project**: The Judge API was developed by a partner undergraduate thesis group as part of a collaborative effort. They were responsible for the code execution engine while this project handles the competition management system.
+
+- **Repository**: [tcc_api by GuilhermeZanetti](https://github.com/GuilhermeZanetti/tcc_api)
+- **URL**: Configure the base URL of your Judge API instance in `appsettings.json`
+- **SecurityKey**: Authentication key for Judge API requests
+- **Setup**: Follow the instructions in the Judge API repository to set up your own instance
+```
+
 ### Environment Variables (Production)
 
 ```bash
@@ -657,7 +670,54 @@ Cors__FrontendURL=https://your-frontend.com
 
 ---
 
-## 🚢 Deployment
+## � Troubleshooting
+
+### Common Issues
+
+**RabbitMQ Connection Failed**
+```
+Solution: Ensure RabbitMQ is running via docker-compose up -d
+Check: http://localhost:15672 (guest/guest)
+```
+
+**Database Connection Failed**
+```
+Solution: Verify SQL Server is running and connection string is correct
+Check: SQL Server should be on localhost:1433 with credentials from appsettings.json
+```
+
+**SignalR CORS Errors**
+```
+Solution: Ensure frontend URL is listed in CORS configuration (Program.cs)
+Default allowed origins: http://localhost:3000, http://localhost:5173
+```
+
+**Migration Errors**
+```bash
+# Always use the provided scripts:
+.\add-migration.ps1    # Windows
+./add-migration.sh     # Linux/Mac
+
+# If manual migration fails, ensure:
+# 1. You're in the project root directory
+# 2. Both projects exist: Falcon.Infrastructure (migrations) and Falcon.Api (startup)
+```
+
+**Worker Not Processing Submissions**
+```
+Solution: Ensure both API and Worker are running simultaneously
+Check Worker logs for RabbitMQ connection and Judge API errors
+```
+
+**Judge API Not Found**
+```
+Solution: Configure JudgeApi:Url in appsettings.Development.json
+Note: Judge API is a separate service and not included in this repository
+```
+
+---
+
+## �🚢 Deployment
 
 ### Docker Compose (Recommended)
 
@@ -768,21 +828,26 @@ This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.t
 
 ---
 
-## 👥 Author
+## 👥 Contributors
 
-**Backend Development** (Original & Reborn)
+**This Project - Backend & Competition Management** (Original & Reborn)
 - API architecture and implementation
 - Clean Architecture + DDD redesign
+- Competition system, groups, and real-time features
 
 **Frontend Development** (Original project)
 - React application and user interface
+
+**Partner TCC Group - Judge API** ([Repository](https://github.com/GuilhermeZanetti/tcc_api))
+- Code execution engine
+- Programming language support
+- Security and sandboxing
 
 ---
 
 ## 🙏 Acknowledgments
 
+- **Partner TCC Group** ([GuilhermeZanetti/tcc_api](https://github.com/GuilhermeZanetti/tcc_api)) for developing the Judge API code execution engine
 - **.NET Community** for excellent documentation and libraries
 - **Clean Architecture** and **DDD** communities for architectural guidance
 - **MassTransit** and **SignalR** teams for powerful frameworks
-
----
