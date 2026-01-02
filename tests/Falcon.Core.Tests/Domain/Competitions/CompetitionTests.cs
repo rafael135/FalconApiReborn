@@ -1,4 +1,5 @@
 using Falcon.Core.Domain.Competitions;
+using Falcon.Core.Domain.Exercises;
 using Falcon.Core.Domain.Shared.Exceptions;
 using FluentAssertions;
 using Xunit;
@@ -122,6 +123,108 @@ public class CompetitionTests
             .WithMessage("*competições modelo*");
     }
 
+    [Fact]
+    public void OpenInscriptions_Should_ChangeStatusToOpenInscriptions()
+    {
+        // Arrange
+        var competition = CreateTestCompetition();
+        competition.PromoteToCompetition(3, 3, 1024, TimeSpan.FromHours(2), TimeSpan.Zero, TimeSpan.Zero, TimeSpan.FromMinutes(10));
+
+        // Act
+        competition.OpenInscriptions();
+
+        // Assert
+        competition.Status.Should().Be(CompetitionStatus.OpenInscriptions);
+    }
+
+    [Fact]
+    public void OpenInscriptions_Should_ThrowException_WhenNotPending()
+    {
+        // Arrange
+        var competition = CreateTestCompetition(); // Status is ModelTemplate
+
+        // Act
+        Action act = () => competition.OpenInscriptions();
+
+        // Assert
+        act.Should().Throw<BusinessRuleException>()
+            .WithMessage("*Pendente*");
+    }
+
+    [Fact]
+    public void Start_Should_ChangeStatusToOngoing()
+    {
+        // Arrange
+        var competition = CreateTestCompetition();
+        competition.PromoteToCompetition(3, 3, 1024, TimeSpan.FromHours(2), TimeSpan.Zero, TimeSpan.Zero, TimeSpan.FromMinutes(10));
+
+        // Act
+        competition.Start();
+
+        // Assert
+        competition.Status.Should().Be(CompetitionStatus.Ongoing);
+    }
+
+    [Fact]
+    public void Finish_Should_ChangeStatusToFinished()
+    {
+        // Arrange
+        var competition = CreateTestCompetition();
+        competition.PromoteToCompetition(3, 3, 1024, TimeSpan.FromHours(2), TimeSpan.Zero, TimeSpan.Zero, TimeSpan.FromMinutes(10));
+
+        // Act
+        competition.Finish();
+
+        // Assert
+        competition.Status.Should().Be(CompetitionStatus.Finished);
+    }
+
+    [Fact]
+    public void AddExercise_Should_AddExerciseToCompetition()
+    {
+        // Arrange
+        var competition = CreateTestCompetition();
+        var exercise = CreateTestExercise();
+
+        // Act
+        competition.AddExercise(exercise);
+
+        // Assert
+        competition.ExercisesInCompetition.Should().HaveCount(1);
+        competition.ExercisesInCompetition.First().ExerciseId.Should().Be(exercise.Id);
+    }
+
+    [Fact]
+    public void AddExercise_Should_ThrowException_WhenExerciseAlreadyAdded()
+    {
+        // Arrange
+        var competition = CreateTestCompetition();
+        var exercise = CreateTestExercise();
+        competition.AddExercise(exercise);
+
+        // Act
+        Action act = () => competition.AddExercise(exercise);
+
+        // Assert
+        act.Should().Throw<BusinessRuleException>()
+            .WithMessage("*já foi adicionado*");
+    }
+
+    [Fact]
+    public void AddExercise_Should_IncrementExerciseCount()
+    {
+        // Arrange
+        var competition = CreateTestCompetition();
+        var exercise = CreateTestExercise();
+
+        // Act
+        competition.PromoteToCompetition(3, 3, 1024, TimeSpan.FromHours(2), TimeSpan.Zero, TimeSpan.Zero, TimeSpan.FromMinutes(10));
+        competition.AddExercise(exercise);
+
+        // Assert
+        competition.ExercisesInCompetition.Should().HaveCount(1);
+    }
+
     // Helper methods
     private static Competition CreateTestCompetition()
     {
@@ -136,5 +239,14 @@ public class CompetitionTests
             endInscriptions,
             startTime
         );
+    }
+
+    private static Exercise CreateTestExercise()
+    {
+        return new Exercise(
+            "Test Exercise",
+            "Description",
+            1,
+            TimeSpan.FromMinutes(30));
     }
 }

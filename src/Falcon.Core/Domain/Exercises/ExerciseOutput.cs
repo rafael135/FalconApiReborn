@@ -20,6 +20,11 @@ public class ExerciseOutput : Entity
             throw new ArgumentException("Conteúdo da saída é obrigatório");
         }
 
+        if (exercise == null)
+        {
+            throw new ArgumentNullException(nameof(exercise));
+        }
+
         OutputContent = outputContent;
         Exercise = exercise;
         ExerciseId = exercise.Id;
