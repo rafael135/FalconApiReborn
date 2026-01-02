@@ -17,7 +17,7 @@ public class ExerciseOutput : Entity
     {
         if (string.IsNullOrWhiteSpace(outputContent))
         {
-            throw new ArgumentException("Output content is required");
+            throw new ArgumentException("Conteúdo da saída é obrigatório");
         }
 
         OutputContent = outputContent;

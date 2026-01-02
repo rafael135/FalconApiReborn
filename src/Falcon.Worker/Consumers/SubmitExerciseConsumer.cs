@@ -128,7 +128,7 @@ public class SubmitExerciseConsumer : IConsumer<ISubmitExerciseCommand>
 
                 if (!alreadySolved)
                 {
-                    ranking.UpdatePoints(ranking.Points + 100);
+                    ranking.UpdatePoints(ranking.Points + 1);
 
                     // Add penalty if after BlockSubmissions
                     if (competition.BlockSubmissions.HasValue && DateTime.UtcNow > competition.BlockSubmissions.Value 

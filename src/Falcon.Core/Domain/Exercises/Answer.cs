@@ -22,7 +22,7 @@ public class Answer : Entity
         if (user == null)
             throw new ArgumentNullException(nameof(user));
         if (string.IsNullOrWhiteSpace(content))
-            throw new ArgumentException("Answer content cannot be empty");
+            throw new ArgumentException("O conteúdo da resposta não pode estar vazio");
 
         User = user;
         UserId = user.Id;
@@ -33,7 +33,7 @@ public class Answer : Entity
     public void UpdateContent(string content)
     {
         if (string.IsNullOrWhiteSpace(content))
-            throw new ArgumentException("Answer content cannot be empty");
+            throw new ArgumentException("O conteúdo da resposta não pode estar vazio");
 
         Content = content;
     }

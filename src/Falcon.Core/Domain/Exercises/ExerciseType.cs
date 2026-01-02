@@ -16,7 +16,7 @@ public class ExerciseType
     {
         if (string.IsNullOrWhiteSpace(label))
         {
-            throw new ArgumentException("Label is required");
+            throw new ArgumentException("Rótulo é obrigatório");
         }
 
         Id = id;

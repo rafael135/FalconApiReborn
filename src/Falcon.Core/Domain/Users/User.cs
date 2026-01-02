@@ -36,9 +36,9 @@ public class User : IdentityUser
     )
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Name invalid");
+            throw new ArgumentException("Nome inválido");
         if (string.IsNullOrWhiteSpace(ra))
-            throw new ArgumentException("RA invalid");
+            throw new ArgumentException("RA inválido");
 
         Name = name;
         Email = email;

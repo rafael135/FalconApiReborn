@@ -33,7 +33,7 @@ public class Log : Entity
         Competitions.Competition? competition = null)
     {
         if (string.IsNullOrWhiteSpace(ipAddress))
-            throw new ArgumentException("IP address is required");
+            throw new ArgumentException("Endereço IP é obrigatório");
 
         ActionType = actionType;
         ActionTime = DateTime.UtcNow;

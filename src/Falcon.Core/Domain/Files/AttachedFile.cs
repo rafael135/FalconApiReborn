@@ -21,13 +21,13 @@ public class AttachedFile : Entity
     public AttachedFile(string name, string type, long size, string filePath)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("File name is required");
+            throw new ArgumentException("Nome do arquivo é obrigatório");
         if (string.IsNullOrWhiteSpace(type))
-            throw new ArgumentException("File type is required");
+            throw new ArgumentException("Tipo do arquivo é obrigatório");
         if (size <= 0)
-            throw new ArgumentException("File size must be greater than 0");
+            throw new ArgumentException("Tamanho do arquivo deve ser maior que 0");
         if (string.IsNullOrWhiteSpace(filePath))
-            throw new ArgumentException("File path is required");
+            throw new ArgumentException("Caminho do arquivo é obrigatório");
 
         Name = name;
         Type = type;

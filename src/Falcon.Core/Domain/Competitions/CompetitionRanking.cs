@@ -1,3 +1,5 @@
+using Falcon.Core.Domain.Competitions.Rules;
+
 namespace Falcon.Core.Domain.Competitions;
 
 /// <summary>
@@ -38,24 +40,21 @@ public class CompetitionRanking : Entity
 
     public void UpdatePoints(double points)
     {
-        if (points < 0)
-            throw new ArgumentException("Points cannot be negative");
+        CheckRule(new PointsCannotBeNegativeRule(points));
         
         Points = points;
     }
 
     public void AddPenalty(double penalty)
     {
-        if (penalty < 0)
-            throw new ArgumentException("Penalty cannot be negative");
+        CheckRule(new PenaltyCannotBeNegativeRule(penalty));
         
         Penalty += penalty;
     }
 
     public void UpdateRankOrder(int order)
     {
-        if (order < 1)
-            throw new ArgumentException("Rank order must be greater than 0");
+        CheckRule(new RankOrderMustBePositiveRule(order));
         
         RankOrder = order;
     }

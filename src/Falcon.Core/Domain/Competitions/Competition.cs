@@ -1,3 +1,4 @@
+using Falcon.Core.Domain.Competitions.Rules;
 using Falcon.Core.Domain.Exercises;
 using Falcon.Core.Domain.Groups;
 using Falcon.Core.Domain.Shared.Exceptions;
@@ -57,9 +58,10 @@ public class Competition : Entity
         DateTime startTime
     )
     {
-        if (endInscriptions < startInscriptions)
+        // Validate business rule before creating instance
+        if (new EndInscriptionsCannotBeBeforeStartRule(startInscriptions, endInscriptions).IsBroken())
         {
-            throw new DomainException("End of inscriptions cannot be before start of inscriptions");
+            throw new BusinessRuleException(new EndInscriptionsCannotBeBeforeStartRule(startInscriptions, endInscriptions));
         }
 
         return new Competition
@@ -88,12 +90,7 @@ public class Competition : Entity
         TimeSpan penalty
     )
     {
-        if (Status != CompetitionStatus.ModelTemplate)
-        {
-            throw new DomainException(
-                "Only template competitions can be promoted to active competitions"
-            );
-        }
+        CheckRule(new OnlyTemplateCanBePromotedRule(Status));
 
         MaxMembers = maxMembers;
         MaxExercises = maxExercises;
@@ -114,8 +111,7 @@ public class Competition : Entity
     // Comportamentos de Ciclo de Vida
     public void OpenInscriptions()
     {
-        if (Status != CompetitionStatus.Pending)
-            throw new DomainException("Competition not ready.");
+        CheckRule(new CompetitionMustBePendingToOpenInscriptionsRule(Status));
         Status = CompetitionStatus.OpenInscriptions;
     }
 
@@ -131,10 +127,8 @@ public class Competition : Entity
 
     public void AddExercise(Exercise exercise)
     {
-        if (ExercisesInCompetition.Any(e => e.ExerciseId == exercise.Id))
-        {
-            throw new DomainException("Exercise already added to competition.");
-        }
+        bool isAlreadyAdded = ExercisesInCompetition.Any(e => e.ExerciseId == exercise.Id);
+        CheckRule(new ExerciseCannotBeAddedTwiceRule(isAlreadyAdded));
 
         ExerciseInCompetition exerciseInCompetition = new ExerciseInCompetition(this, exercise);
         _exercisesInCompetition.Add(exerciseInCompetition);

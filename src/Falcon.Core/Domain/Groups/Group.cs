@@ -41,7 +41,7 @@ public class Group : Entity
     public Group(string name, User leader)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Group name is required");
+            throw new ArgumentException("Nome do grupo é obrigatório");
         if (leader == null)
             throw new ArgumentNullException(nameof(leader));
 
@@ -56,7 +56,7 @@ public class Group : Entity
     {
         if (string.IsNullOrWhiteSpace(newName))
         {
-            throw new ArgumentException("Group name is required");
+            throw new ArgumentException("Nome do grupo é obrigatório");
         }
         Name = newName;
     }

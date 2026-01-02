@@ -137,7 +137,7 @@ public class SubmitAttemptHandler : IRequestHandler<SubmitAttemptCommand, Submit
 
             if (!alreadySolved)
             {
-                ranking.UpdatePoints(ranking.Points + 100);
+                ranking.UpdatePoints(ranking.Points + 1);
 
                 if (competition.BlockSubmissions.HasValue && DateTime.UtcNow > competition.BlockSubmissions.Value 
                     && competition.StopRanking.HasValue && DateTime.UtcNow < competition.StopRanking.Value)

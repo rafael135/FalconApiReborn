@@ -40,7 +40,7 @@ public class Question : Entity
         if (user == null)
             throw new ArgumentNullException(nameof(user));
         if (string.IsNullOrWhiteSpace(content))
-            throw new ArgumentException("Question content cannot be empty");
+            throw new ArgumentException("O conteúdo da questão não pode estar vazio");
 
         Competition = competition;
         CompetitionId = competition.Id;

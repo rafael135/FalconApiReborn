@@ -41,7 +41,7 @@ public class GroupExerciseAttempt : Entity
         if (competition == null)
             throw new ArgumentNullException(nameof(competition));
         if (string.IsNullOrWhiteSpace(code))
-            throw new ArgumentException("Code cannot be empty");
+            throw new ArgumentException("O código não pode estar vazio");
 
         Exercise = exercise;
         ExerciseId = exercise.Id;

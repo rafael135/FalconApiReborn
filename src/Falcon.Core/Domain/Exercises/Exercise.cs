@@ -1,3 +1,5 @@
+using Falcon.Core.Domain.Exercises.Rules;
+
 namespace Falcon.Core.Domain.Exercises;
 
 public class Exercise : Entity
@@ -32,7 +34,7 @@ public class Exercise : Entity
     {
         if (string.IsNullOrWhiteSpace(title))
         {
-            throw new ArgumentException("Title is required");
+            throw new ArgumentException("Título é obrigatório");
         }
 
         Title = title;
@@ -59,10 +61,7 @@ public class Exercise : Entity
 
     public void SetJudgeUuid(string judgeUuid)
     {
-        if (string.IsNullOrWhiteSpace(judgeUuid))
-        {
-            throw new ArgumentException("Invalid UUID");
-        }
+        CheckRule(new ExerciseMustHaveValidUuidRule(judgeUuid));
 
         JudgeUuid = judgeUuid;
     }
@@ -71,7 +70,7 @@ public class Exercise : Entity
     {
         if (string.IsNullOrWhiteSpace(title))
         {
-            throw new ArgumentException("Title is required");
+            throw new ArgumentException("Título é obrigatório");
         }
 
         Title = title;

@@ -17,7 +17,7 @@ public class ExerciseInput : Entity
     {
         if (string.IsNullOrWhiteSpace(inputContent))
         {
-            throw new ArgumentException("Input content is required");
+            throw new ArgumentException("Conteúdo da entrada é obrigatório");
         }
 
         InputContent = inputContent;
