@@ -420,6 +420,48 @@ FalconApiReborn/
    - Documentação Scalar: https://localhost:7155/scalar/v1
    - URL Base da API: https://localhost:7155
 
+---
+
+## 🗄️ Migrations de Banco de Dados
+
+### Usando Scripts PowerShell (Windows - Recomendado)
+
+```powershell
+# Criar nova migration (solicita o nome)
+.\add-migration.ps1
+
+# Aplicar migrations ao banco de dados
+.\update-db.ps1
+```
+
+### Usando Scripts Bash (Linux/Mac)
+
+```bash
+# Criar nova migration (solicita o nome)
+./add-migration.sh
+
+# Aplicar migrations ao banco de dados
+./update-db.sh
+```
+
+### Comandos Manuais de Migration
+
+```bash
+# Criar migration
+dotnet ef migrations add NomeDaMigration \
+  --project src/Falcon.Infrastructure \
+  --startup-project src/Falcon.Api
+
+# Aplicar migrations
+dotnet ef database update \
+  --project src/Falcon.Infrastructure \
+  --startup-project src/Falcon.Api
+```
+
+**Por que usar scripts?** As migrations do EF Core requerem caminhos de projeto corretos. Os scripts previnem erros comuns como mirar no projeto errado ou configuração de projeto de inicialização ausente.
+
+---
+
 ### Desenvolvimento Local sem Docker
 
 1. **Instale as dependências**:
@@ -466,37 +508,6 @@ dotnet run
 # Executar Worker
 cd src/Falcon.Worker
 dotnet run
-```
-
-### Migrations de Banco de Dados
-
-**Sempre use os scripts PowerShell fornecidos** (eles lidam corretamente com os caminhos dos projetos):
-
-**Windows (PowerShell):**
-```powershell
-# Criar nova migration
-.\add-migration.ps1
-
-# Aplicar migrations no banco
-.\update-db.ps1
-```
-
-**Linux/Mac (Bash):**
-```bash
-# Criar nova migration
-./add-migration.sh
-
-# Aplicar migrations no banco
-./update-db.sh
-```
-
-Ou manualmente:
-```bash
-# Criar migration
-dotnet ef migrations add NomeDaMigration --project src/Falcon.Infrastructure --startup-project src/Falcon.Api
-
-# Atualizar banco
-dotnet ef database update --project src/Falcon.Infrastructure --startup-project src/Falcon.Api
 ```
 
 ### Fluxo de Testes
