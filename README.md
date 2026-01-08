@@ -85,12 +85,12 @@
 - **SQL Server** - Primary database (production)
 - **Docker & Docker Compose** - Containerization
 - **Scalar** - Modern API documentation (replaces Swagger)
-- **Serilog** - Structured logging
+- **ASP.NET Core Logging** - Built-in structured logging via ILogger
 
 ### Development Tools
 - **MediatR** - Mediator pattern implementation
 - **xUnit** - Testing framework
-- **Moq** - Mocking library
+- **Moq** - Mocking library (used in Core.Tests)
 
 ---
 
@@ -164,33 +164,78 @@ Features/
 
 ### Message Flow Architecture
 
+**Detailed Submission Processing Sequence**:
+
+```mermaid
+sequenceDiagram
+    actor Client
+    participant Hub as CompetitionHub<br/>(SignalR)
+    participant RMQ as RabbitMQ<br/>(MassTransit)
+    participant Worker as Worker<br/>(Consumer)
+    participant Judge as Judge API
+    participant DB as Database
+
+    Client->>Hub: SendExerciseAttempt(exerciseId, code, language)
+    
+    rect rgb(240, 248, 255)
+        Note over Hub: Validation Phase
+        Hub->>DB: Check group not blocked
+        Hub->>DB: Check not already accepted
+        Hub->>DB: Check exercise in competition
+    end
+    
+    Hub->>RMQ: Publish ISubmitExerciseCommand
+    Hub-->>Client: ReceiveExerciseAttemptQueued(correlationId)
+    
+    RMQ->>Worker: Consume ISubmitExerciseCommand
+    
+    rect rgb(255, 250, 240)
+        Note over Worker: Processing Phase (2-5 seconds)
+        Worker->>Judge: POST /submissions (code + test cases)
+        Judge-->>Worker: Evaluation result
+        Worker->>DB: Create Attempt entity
+        Worker->>DB: Update ranking if accepted
+        Worker->>DB: Create AuditLog
+    end
+    
+    Worker->>RMQ: Publish ISubmitExerciseResult
+    RMQ->>Hub: Consume ISubmitExerciseResult<br/>(SubmitExerciseResultConsumer)
+    
+    Hub-->>Client: ReceiveExerciseAttemptResponse(result)
+    Hub-->>Client: ReceiveRankingUpdate(ranking) [Broadcast to ALL]
 ```
-┌─────────┐         ┌──────────────┐         ┌──────────┐         ┌─────────┐
-│ Client  │         │ CompetitionHub│         │ RabbitMQ │         │ Worker  │
-│(React)  │         │  (SignalR)    │         │(MassT.)  │         │Consumer │
-└────┬────┘         └──────┬───────┘         └─────┬────┘         └────┬────┘
-     │                     │                        │                   │
-     │ SendExerciseAttempt │                        │                   │
-     ├────────────────────►│                        │                   │
-     │                     │ Validate & Publish     │                   │
-     │                     ├───────────────────────►│                   │
-     │                     │                        │ Consume Message   │
-     │                     │                        ├──────────────────►│
-     │                     │                        │                   │ Process
-     │                     │                        │                   │ - Call Judge
-     │                     │                        │                   │ - Update DB
-     │                     │                        │                   │ - Calculate Ranking
-     │                     │                        │                   │
-     │                     │                        │ Publish Result    │
-     │                     │◄───────────────────────┤◄──────────────────┤
-     │                     │ (SubmitExerciseResult  │                   │
-     │                     │  Consumer in API)      │                   │
-     │                     │                        │                   │
-     │ ReceiveAttemptResponse                       │                   │
-     │◄────────────────────┤                        │                   │
-     │                     │                        │                   │
-     │ ReceiveRankingUpdate (ALL CLIENTS)           │                   │
-     │◄────────────────────┤                        │                   │
+
+**Architecture Components**:
+
+1. **CompetitionHub** (SignalR): Handles WebSocket connections, validates submissions, publishes to queue
+2. **RabbitMQ** (MassTransit): Message broker ensuring reliable delivery and decoupling
+3. **Worker** (Background Service): Consumes messages, calls Judge API, updates database
+4. **Judge API** (External): Executes code in sandboxed environment and returns results
+5. **SubmitExerciseResultConsumer** (API): Receives results from Worker and notifies clients
+
+**Why This Architecture?**
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│ Without RabbitMQ (Blocking)          │ With RabbitMQ (Async)        │
+├─────────────────────────────────────────────────────────────────────┤
+│ Client → API → Judge → Response      │ Client → API → Queue → ✓    │
+│ Wait time: 2-5 seconds (blocking)    │ Wait time: ~50ms (immediate) │
+│ API thread blocked during execution  │ Worker processes async       │
+│ No retry on Judge API failure        │ Automatic retry with backoff │
+│ Can't scale processing independently │ Scale workers horizontally   │
+│ Single point of failure              │ Queue persists if Worker down│
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+**Key Benefits**:
+- ✅ **Scalable**: Workers can be scaled horizontally (run multiple instances)
+- ✅ **Reliable**: RabbitMQ guarantees message delivery even if Worker is temporarily down
+- ✅ **Resilient**: Failures in Judge API don't crash or block the main API
+- ✅ **Fast**: API responds immediately (~50ms), processing happens asynchronously (~2-5s)
+- ✅ **Decoupled**: API and Worker can be deployed, updated, and scaled independently
+- ✅ **Observable**: Each component can be monitored separately for bottlenecks
+
 ```
 
 See [SIGNALR_RABBITMQ_ARCHITECTURE.md](docs/SIGNALR_RABBITMQ_ARCHITECTURE.md) for complete flow documentation.
@@ -376,7 +421,7 @@ FalconApiReborn/
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/FalconCompetitions/FalconApiReborn.git
+   git clone https://github.com/rafael135/FalconApiReborn.git
    cd FalconApiReborn
    ```
 
@@ -418,6 +463,48 @@ FalconApiReborn/
    - Scalar Documentation: https://localhost:7155/scalar/v1
    - API Base URL: https://localhost:7155
 
+---
+
+## 🗄️ Database Migrations
+
+### Using PowerShell Scripts (Windows - Recommended)
+
+```powershell
+# Create new migration (prompts for name)
+.\add-migration.ps1
+
+# Apply migrations to database
+.\update-db.ps1
+```
+
+### Using Bash Scripts (Linux/Mac)
+
+```bash
+# Create new migration (prompts for name)
+./add-migration.sh
+
+# Apply migrations to database
+./update-db.sh
+```
+
+### Manual Migration Commands
+
+```bash
+# Create migration
+dotnet ef migrations add MigrationName \
+  --project src/Falcon.Infrastructure \
+  --startup-project src/Falcon.Api
+
+# Apply migrations
+dotnet ef database update \
+  --project src/Falcon.Infrastructure \
+  --startup-project src/Falcon.Api
+```
+
+**Why use scripts?** EF Core migrations require correct project paths. Scripts prevent common errors like targeting wrong project or missing startup project configuration.
+
+---
+
 ### Local Development without Docker
 
 1. **Install dependencies**:
@@ -442,7 +529,83 @@ FalconApiReborn/
 
 ---
 
-## 📖 API Documentation
+## � Development Workflows
+
+### Running with Helper Scripts
+
+**Windows (PowerShell)**:
+```powershell
+# Run API with environment selection
+.\run.ps1
+
+# Run Worker
+cd src\Falcon.Worker
+dotnet run
+```
+
+**Linux/Mac (Bash)**:
+```bash
+# Run API with environment selection
+./run.linux.sh
+
+# Run Worker
+cd src/Falcon.Worker
+dotnet run
+```
+
+### Testing Workflow
+
+```bash
+# Run all tests
+dotnet test
+
+# Run specific test project
+dotnet test tests/Falcon.Core.Tests
+
+# Run with detailed output
+dotnet test --logger "console;verbosity=detailed"
+
+# Run with coverage (requires coverlet)
+dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
+```
+
+### Integration Testing Pattern
+
+Tests use `CustomWebApplicationFactory` with:
+- **In-memory database**: Unique database per test class via `IClassFixture`
+- **Mocked MassTransit**: All RabbitMQ services removed for isolated testing
+- **Test JWT tokens**: Pre-configured with `TestJwtSecretKey`
+- **Helper methods**: `CreateStudentAsync()`, `CreateTeacherAsync()`, `CreateAdminAsync()`
+
+**Example Test**:
+```csharp
+public class MyFeatureTests : TestBase, IClassFixture<CustomWebApplicationFactory>
+{
+    public MyFeatureTests(CustomWebApplicationFactory factory) : base(factory) { }
+
+    [Fact]
+    public async Task Should_CreateGroup_When_ValidRequest()
+    {
+        // Arrange
+        var (user, token) = await CreateStudentAsync();
+        HttpClient.DefaultRequestHeaders.Authorization = 
+            new AuthenticationHeaderValue("Bearer", token);
+        
+        // Act
+        var response = await HttpClient.PostAsJsonAsync("/api/Group", new 
+        { 
+            name = "Test Group" 
+        });
+        
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+    }
+}
+```
+
+---
+
+## �📖 API Documentation
 
 ### Scalar API Explorer
 
@@ -456,33 +619,215 @@ The API uses **Scalar** (modern alternative to Swagger) with a purple theme:
   - Try-it-out functionality
   - Available in **development only**
 
-### Main Endpoints
+### Complete API Reference
 
-| Category | Endpoints | Description |
-|----------|-----------|-------------|
-| **Auth** | `POST /api/Auth/register`<br>`POST /api/Auth/login` | User registration and authentication |
-| **Users** | `GET /api/User`<br>`GET /api/User/{id}`<br>`PUT /api/User/{id}` | User management |
-| **Groups** | `POST /api/Group`<br>`POST /api/Group/{id}/invite`<br>`POST /api/Group/invite/{id}/accept` | Group operations |
-| **Competitions** | `GET /api/Competition`<br>`POST /api/Competition` | Competition management |
-| **Exercises** | `GET /api/Exercise`<br>`POST /api/Exercise` | Exercise CRUD |
-| **Submissions** | `POST /api/Submission/attempt` | Code submission |
-| **Files** | `POST /api/File/upload`<br>`GET /api/File/{id}` | File operations |
+<details>
+<summary><b>🔐 Authentication</b></summary>
 
-### SignalR Hub
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/api/Auth/register` | Register new user (Student/Teacher) | No |
+| POST | `/api/Auth/login` | Authenticate user and receive JWT + cookie | No |
 
-**Endpoint**: `/hubs/competition`
+</details>
 
-**Authentication**: Required (JWT via query string or cookies)
+<details>
+<summary><b>🛡️ Admin Operations</b></summary>
 
-**Client Methods** (invoke from frontend):
-- `SendExerciseAttempt(exerciseId, code, language)` - Submit code
-- `GetCompetitionRanking(competitionId)` - Fetch ranking
-- `SendCompetitionQuestion(competitionId, exerciseId, question)` - Ask question
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/api/Admin/teacher-token` | Generate teacher registration token (1 day expiration) | Admin |
+| GET | `/api/Admin/teacher-token` | Get current active teacher token | Admin |
+| GET | `/api/Admin/stats` | Get system statistics (users, groups, competitions, exercises, submissions) | Admin |
+| GET | `/api/Admin/users` | List all users with optional role filtering | Admin |
 
-**Server Events** (receive from backend):
-- `ReceiveRankingUpdate(ranking)` - Live ranking updates
-- `ReceiveExerciseAttemptResponse(result)` - Submission result
-- `ReceiveQuestionCreation(question)` - New question notification
+**Admin Statistics Response:**
+```json
+{
+  "totalUsers": 150,
+  "totalStudents": 120,
+  "totalTeachers": 25,
+  "totalAdmins": 5,
+  "totalGroups": 40,
+  "competitions": {
+    "pending": 5,
+    "ongoing": 2,
+    "finished": 30
+  },
+  "exercises": {
+    "algorithm": 45,
+    "dataStructure": 30,
+    "other": 25
+  },
+  "submissions": {
+    "total": 5000,
+    "accepted": 3200,
+    "acceptanceRate": 64.0
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><b>👥 User Management</b></summary>
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/api/User` | Get current user profile | Yes |
+| GET | `/api/User/{id}` | Get user by ID | Yes |
+| PUT | `/api/User/{id}` | Update user profile | Yes (own profile or Admin) |
+
+</details>
+
+<details>
+<summary><b>👨‍👩‍👦 Groups</b></summary>
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/api/Group` | Create new group (max 3 members) | Student |
+| GET | `/api/Group/{id}` | Get group details with members | Yes |
+| PUT | `/api/Group/{id}` | Update group name | Group Leader |
+| POST | `/api/Group/{id}/invite` | Invite user to group (by email) | Group Leader |
+| POST | `/api/Group/invite/{id}/accept` | Accept group invitation | Student |
+| POST | `/api/Group/invite/{id}/reject` | Reject group invitation | Student |
+| POST | `/api/Group/{id}/leave` | Leave group | Group Member |
+| DELETE | `/api/Group/{id}/member/{userId}` | Remove member from group | Group Leader |
+
+</details>
+
+<details>
+<summary><b>🏆 Competitions</b></summary>
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/api/Competition` | List all competitions | Yes |
+| GET | `/api/Competition/{id}` | Get competition details with exercises and ranking | Yes |
+| POST | `/api/Competition` | Create competition template | Teacher/Admin |
+| POST | `/api/Competition/{id}/promote` | Promote template to active competition | Teacher/Admin |
+| POST | `/api/Competition/{id}/start` | Start competition (opens registration) | Teacher/Admin |
+| POST | `/api/Competition/{id}/finish` | Finish competition (closes submissions) | Teacher/Admin |
+| POST | `/api/Competition/{id}/register` | Register group in competition | Student (Group Leader) |
+| POST | `/api/Competition/{id}/unregister` | Unregister group from competition | Student (Group Leader) |
+| POST | `/api/Competition/{id}/block` | Block group from competition | Teacher/Admin |
+| POST | `/api/Competition/{id}/exercise` | Add exercise to competition | Teacher/Admin |
+| DELETE | `/api/Competition/{id}/exercise/{exerciseId}` | Remove exercise from competition | Teacher/Admin |
+| GET | `/api/Competition/{id}/ranking` | Get real-time competition ranking | Yes |
+| GET | `/api/Competition/{id}/attempts` | Get all submission attempts for competition | Teacher/Admin |
+
+</details>
+
+<details>
+<summary><b>📝 Exercises</b></summary>
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/api/Exercise` | List all exercises | Teacher/Admin |
+| GET | `/api/Exercise/{id}` | Get exercise details with test cases | Yes |
+| POST | `/api/Exercise` | Create new exercise | Teacher/Admin |
+| PUT | `/api/Exercise/{id}` | Update exercise (description, difficulty, type) | Teacher/Admin |
+| POST | `/api/Exercise/{id}/testcase` | Add test case to exercise | Teacher/Admin |
+| DELETE | `/api/Exercise/{id}/testcase/{testCaseId}` | Remove test case from exercise | Teacher/Admin |
+
+</details>
+
+<details>
+<summary><b>💻 Submissions</b></summary>
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/api/Submission/attempt` | Submit code solution (HTTP fallback) | Student |
+| GET | `/api/Submission/attempt/{id}` | Get specific attempt details with judge results | Yes |
+| GET | `/api/Submission/group/{groupId}/attempts` | Get all attempts for a group | Yes |
+
+**Note**: Submissions are primarily handled via **SignalR** (`SendExerciseAttempt` method) for real-time processing. HTTP endpoints are fallback options.
+
+</details>
+
+<details>
+<summary><b>📁 File Management</b></summary>
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/api/File/upload` | Upload file attachment (PDF, images) | Teacher/Admin |
+| GET | `/api/File/{id}` | Download file by ID | Yes |
+| DELETE | `/api/File/{id}` | Delete file | Teacher/Admin (file owner) |
+
+**Supported File Types**: PDF, PNG, JPG, JPEG (max 10MB per file)
+
+</details>
+
+<details>
+<summary><b>📊 Audit Logging</b></summary>
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/api/Log` | Get system logs with filtering (by type, user, date range) | Teacher/Admin |
+| GET | `/api/Log/user/{userId}` | Get all logs for specific user | Teacher/Admin |
+
+**Available Log Types**:
+- `UserRegistered`, `UserLogin`, `UserUpdated`
+- `GroupCreated`, `GroupUpdated`, `UserInvitedToGroup`, `UserJoinedGroup`, `UserLeftGroup`
+- `CompetitionCreated`, `CompetitionStarted`, `CompetitionFinished`
+- `ExerciseCreated`, `ExerciseUpdated`, `ExerciseDeleted`
+- `SubmissionCreated`
+
+**Query Parameters for `/api/Log`**:
+- `logType` - Filter by log type (e.g., "UserLogin")
+- `userId` - Filter by user ID
+- `startDate` - Filter logs after this date
+- `endDate` - Filter logs before this date
+- `page` - Page number (pagination)
+- `pageSize` - Items per page
+
+</details>
+
+### SignalR Hub - Real-Time Competition
+
+**Hub Endpoint**: `/hubs/competition`
+
+**Authentication**: Required (JWT token via query string `?access_token=YOUR_TOKEN` or cookies)
+
+**Connection Flow**:
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant H as CompetitionHub
+    participant DB as Database
+    
+    C->>H: Connect to /hubs/competition
+    H->>DB: Get active competition
+    H->>C: OnConnectionResponse(competition, ranking)
+    C->>H: SendExerciseAttempt(exerciseId, code, language)
+    H-->>C: ReceiveExerciseAttemptQueued(correlationId)
+    Note over H: Processing via RabbitMQ + Worker
+    H->>C: ReceiveExerciseAttemptResponse(result)
+    H->>C: ReceiveRankingUpdate(ranking) [Broadcast to all]
+```
+
+#### Client-Invoked Methods
+
+| Method | Parameters | Description | Role Required |
+|--------|------------|-------------|---------------|
+| `SendExerciseAttempt` | `exerciseId: Guid`<br>`code: string`<br>`language: LanguageType` | Submit code solution for evaluation | Student (in group) |
+| `GetCurrentCompetition` | None | Request current competition data on demand | Any authenticated |
+| `AskQuestion` | `competitionId: Guid`<br>`exerciseId: Guid?`<br>`content: string`<br>`questionType: int` | Submit question during competition | Student |
+| `AnswerQuestion` | `questionId: Guid`<br>`content: string` | Answer a submitted question | Teacher/Admin |
+| `Ping` | None | Keep-alive / connection health check | Any authenticated |
+
+#### Server-Sent Events
+
+| Event | Payload | Description | Recipients |
+|-------|---------|-------------|------------|
+| `OnConnectionResponse` | `{ competition, ranking, exercises }` | Initial data sent on connection | Connected client only |
+| `ReceiveExerciseAttemptQueued` | `{ correlationId, message }` | Confirmation that submission is queued | Submitting client only |
+| `ReceiveExerciseAttemptResponse` | `{ success, attemptId, accepted, judgeResponse, executionTime, rankOrder }` | Final result of code evaluation | Submitting client only |
+| `ReceiveExerciseAttemptError` | `{ error, message }` | Error during submission processing | Submitting client only |
+| `ReceiveRankingUpdate` | `{ ranking[] }` | Updated ranking after any submission | **All connected clients** |
+| `ReceiveQuestionCreation` | `{ question }` | New question submitted | Teachers/Admins in competition |
+| `ReceiveAnswer` | `{ questionId, answer }` | Question answered | Student who asked + Teachers/Admins |
+| `ReceiveAnswerError` | `{ error }` | Error answering question | Requester only |
+| `Pong` | `{ timestamp }` | Response to Ping | Requester only |
 
 See [SIGNALR_RABBITMQ_ARCHITECTURE.md](docs/SIGNALR_RABBITMQ_ARCHITECTURE.md) for complete documentation.
 
@@ -599,25 +944,25 @@ dotnet test /p:CollectCoverage=true
 ### Integration Tests
 
 ```bash
-# Run integration tests
-dotnet test --filter Category=Integration
+# Run integration tests (all tests in Falcon.Api.IntegrationTests project)
+dotnet test tests/Falcon.Api.IntegrationTests
 ```
 
 ### Test Structure
 
 ```
 tests/
-├── Falcon.Api.Tests/
+├── Falcon.Api.IntegrationTests/          # Integration tests with WebApplicationFactory
 │   ├── Features/
 │   │   └── Auth/
-│   │       └── RegisterUserHandlerTests.cs
-│   └── ...
-├── Falcon.Core.Tests/
+│   │       └── RegisterUserTests.cs
+│   ├── TestBase.cs                       # Base class with helper methods
+│   └── WebApplicationFactory.cs          # Test server factory
+├── Falcon.Core.Tests/                    # Domain logic unit tests
 │   └── Domain/
 │       └── Groups/
 │           └── GroupTests.cs
-└── Falcon.Infrastructure.Tests/
-    └── ...
+└── (Future: Falcon.Infrastructure.Tests/)
 ```
 
 ---
@@ -629,23 +974,40 @@ tests/
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost,1433;Database=falcon-reborn;..."
+    "DefaultConnection": "Server=localhost,1433;Database=falcon-reborn;User ID=sa;Password=YourPassword;TrustServerCertificate=True;"
   },
   "Jwt": {
-    "Key": "your-secret-key-min-32-chars",
-    "Issuer": "System",
-    "Audience": "System",
-    "ExpirationMinutes": 60
+    "SecretKey": "your-secret-key-minimum-32-characters-long!",
+    "Issuer": "FalconSystem",
+    "Audience": "FalconSystem"
   },
   "JudgeApi": {
     "Url": "https://judge-api.example.com/v0",
-    "SecurityKey": "your-judge-key"
-  },
-  "Cors": {
-    "FrontendURL": "http://localhost:3000"
+    "SecurityKey": "your-judge-api-security-key"
   }
 }
 ```
+
+**Important**: The JWT configuration is **required** for the API to start. The `SecretKey` must be at least 32 characters long.
+
+### Worker Configuration
+
+The Worker project requires its own `appsettings.json` with database and Judge API configuration:
+
+**`src/Falcon.Worker/appsettings.json`:**
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost,1433;Database=falcon-reborn;User ID=sa;Password=YourPassword;TrustServerCertificate=True;"
+  },
+  "JudgeApi": {
+    "Url": "https://judge-api.example.com/v0",
+    "SecurityKey": "same-security-key-as-api"
+  }
+}
+```
+
+**Note**: The Worker does **NOT** need JWT configuration, only ConnectionString and JudgeApi settings.
 
 ### Judge API Configuration
 
@@ -663,10 +1025,14 @@ The Judge API is an external service that executes and evaluates code submission
 
 ```bash
 ConnectionStrings__DefaultConnection=your-sql-connection
-Jwt__Key=your-production-jwt-key
+Jwt__SecretKey=your-production-jwt-secret-key-min-32-chars
+Jwt__Issuer=FalconSystem
+Jwt__Audience=FalconSystem
 JudgeApi__Url=https://judge-api.production.com
-Cors__FrontendURL=https://your-frontend.com
+JudgeApi__SecurityKey=your-judge-api-key
 ```
+
+**Note**: CORS origins are hardcoded in `Program.cs` for `localhost:3000` and `localhost:5173`. For production, update the `AddCors` configuration in code.
 
 ---
 
@@ -713,6 +1079,45 @@ Check Worker logs for RabbitMQ connection and Judge API errors
 ```
 Solution: Configure JudgeApi:Url in appsettings.Development.json
 Note: Judge API is a separate service and not included in this repository
+```
+
+**JWT Configuration Missing**
+```
+Error: "ArgumentNullException: Jwt:SecretKey" or "IDX10603: The algorithm: 'HS256' requires the SecurityKey.KeySize to be greater than '128' bits."
+Solution: Add JWT configuration to appsettings.Development.json:
+{
+  "Jwt": {
+    "SecretKey": "your-secret-key-minimum-32-characters-long!",
+    "Issuer": "FalconSystem",
+    "Audience": "FalconSystem"
+  }
+}
+Note: SecretKey must be at least 32 characters. The Worker project does NOT need JWT configuration.
+```
+
+**Scalar Documentation Not Showing**
+```
+Issue: Navigating to https://localhost:7155/scalar/v1 shows 404
+Solution 1: Ensure ASPNETCORE_ENVIRONMENT=Development
+Solution 2: Root path (/) redirects to /scalar/v1, try navigating to root first
+Solution 3: Check if OpenAPI services are registered (builder.Services.AddOpenApi())
+```
+
+**Integration Tests Database Conflicts**
+```
+Error: "Database 'TestDb_xxxxx' already exists" or tests interfering with each other
+Solution: Each test class gets unique database via IClassFixture<CustomWebApplicationFactory>
+Ensure: Test class inherits from TestBase and implements IClassFixture
+Pattern: public class MyTests : TestBase, IClassFixture<CustomWebApplicationFactory>
+Note: Tests within the same class share the database, but different test classes are isolated.
+```
+
+**Worker Can't Connect to Database**
+```
+Error: "Cannot open database 'falcon-reborn' requested by the login"
+Solution: Ensure Worker's appsettings.json has correct ConnectionString
+Check: Worker needs same ConnectionString as API project
+Path: src/Falcon.Worker/appsettings.Development.json
 ```
 
 ---
@@ -766,7 +1171,6 @@ This project served as a comprehensive learning experience, covering modern soft
 ### Database & Persistence
 - **SQL Server**: Production-ready configuration with connection resilience
 - **EF Core Migrations**: Schema versioning and database evolution strategies
-- **Repository Pattern**: Data access abstraction with generic base implementation
 - **Concurrency Control**: Optimistic concurrency with RowVersion timestamps
 
 ### DevOps & Deployment
@@ -782,10 +1186,10 @@ This project served as a comprehensive learning experience, covering modern soft
 - **Input Validation**: Domain-level validation with custom exceptions and Problem Details
 
 ### Testing & Quality
-- **Unit Testing**: xUnit with isolation using Moq for dependency mocking
-- **Integration Testing**: End-to-end API testing with in-memory databases
-- **Exception Handling**: Global exception handler with standardized error responses
-- **Logging**: Structured logging with Serilog for production monitoring
+- **Unit Testing**: xUnit with isolation using Moq for dependency mocking (Core.Tests)
+- **Integration Testing**: End-to-end API testing with in-memory databases (Api.IntegrationTests)
+- **Exception Handling**: Global exception handler with standardized error responses (RFC 7807 Problem Details)
+- **Logging**: Structured logging with ASP.NET Core ILogger for production monitoring
 
 ### API Documentation & Developer Experience
 - **Scalar**: Modern API documentation with interactive testing (replacement for Swagger)

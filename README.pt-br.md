@@ -85,12 +85,12 @@
 - **SQL Server** - Banco de dados principal (produção)
 - **Docker & Docker Compose** - Containerização
 - **Scalar** - Documentação moderna da API (substitui Swagger)
-- **Serilog** - Logging estruturado
+- **ASP.NET Core Logging** - Logging estruturado integrado via ILogger
 
 ### Ferramentas de Desenvolvimento
 - **MediatR** - Implementação do padrão Mediator
 - **xUnit** - Framework de testes
-- **Moq** - Biblioteca de mocking
+- **Moq** - Biblioteca de mocking (usada em Core.Tests)
 
 ---
 
@@ -376,7 +376,7 @@ FalconApiReborn/
 
 1. **Clone o repositório**:
    ```bash
-   git clone https://github.com/FalconCompetitions/FalconApiReborn.git
+   git clone https://github.com/rafael135/FalconApiReborn.git
    cd FalconApiReborn
    ```
 
@@ -444,6 +444,28 @@ FalconApiReborn/
 
 ## 🛠️ Fluxos de Desenvolvimento
 
+### Executando com Scripts Auxiliares
+
+**Windows (PowerShell)**:
+```powershell
+# Executar API com seleção de ambiente
+.\run.ps1
+
+# Executar Worker
+cd src\Falcon.Worker
+dotnet run
+```
+
+**Linux/Mac (Bash)**:
+```bash
+# Executar API com seleção de ambiente
+./run.linux.sh
+
+# Executar Worker
+cd src/Falcon.Worker
+dotnet run
+```
+
 ### Migrations de Banco de Dados
 
 **Sempre use os scripts PowerShell fornecidos** (eles lidam corretamente com os caminhos dos projetos):
@@ -475,6 +497,56 @@ dotnet ef migrations add NomeDaMigration --project src/Falcon.Infrastructure --s
 dotnet ef database update --project src/Falcon.Infrastructure --startup-project src/Falcon.Api
 ```
 
+### Fluxo de Testes
+
+```bash
+# Executar todos os testes
+dotnet test
+
+# Executar projeto de teste específico
+dotnet test tests/Falcon.Core.Tests
+
+# Executar com saída detalhada
+dotnet test --logger "console;verbosity=detailed"
+
+# Executar com cobertura (requer coverlet)
+dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
+```
+
+### Padrão de Testes de Integração
+
+Os testes usam `CustomWebApplicationFactory` com:
+- **Banco de dados em memória**: Banco de dados único por classe de teste via `IClassFixture`
+- **MassTransit mockado**: Todos os serviços RabbitMQ removidos para testes isolados
+- **Tokens JWT de teste**: Pré-configurados com `TestJwtSecretKey`
+- **Métodos auxiliares**: `CreateStudentAsync()`, `CreateTeacherAsync()`, `CreateAdminAsync()`
+
+**Exemplo de Teste**:
+```csharp
+public class MyFeatureTests : TestBase, IClassFixture<CustomWebApplicationFactory>
+{
+    public MyFeatureTests(CustomWebApplicationFactory factory) : base(factory) { }
+
+    [Fact]
+    public async Task Should_CreateGroup_When_ValidRequest()
+    {
+        // Arrange
+        var (user, token) = await CreateStudentAsync();
+        HttpClient.DefaultRequestHeaders.Authorization = 
+            new AuthenticationHeaderValue("Bearer", token);
+        
+        // Act
+        var response = await HttpClient.PostAsJsonAsync("/api/Group", new 
+        { 
+            name = "Grupo Teste" 
+        });
+        
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+    }
+}
+```
+
 ---
 
 ## 📖 Documentação da API
@@ -491,33 +563,215 @@ A API usa **Scalar** (alternativa moderna ao Swagger) com tema roxo:
   - Funcionalidade try-it-out
   - Disponível apenas em **desenvolvimento**
 
-### Endpoints Principais
+### Referência Completa da API
 
-| Categoria | Endpoints | Descrição |
-|-----------|-----------|-----------|
-| **Auth** | `POST /api/Auth/register`<br>`POST /api/Auth/login` | Registro e autenticação de usuários |
-| **Users** | `GET /api/User`<br>`GET /api/User/{id}`<br>`PUT /api/User/{id}` | Gerenciamento de usuários |
-| **Groups** | `POST /api/Group`<br>`POST /api/Group/{id}/invite`<br>`POST /api/Group/invite/{id}/accept` | Operações de grupo |
-| **Competitions** | `GET /api/Competition`<br>`POST /api/Competition` | Gerenciamento de competições |
-| **Exercises** | `GET /api/Exercise`<br>`POST /api/Exercise` | CRUD de exercícios |
-| **Submissions** | `POST /api/Submission/attempt` | Submissão de código |
-| **Files** | `POST /api/File/upload`<br>`GET /api/File/{id}` | Operações de arquivo |
+<details>
+<summary><b>🔐 Autenticação</b></summary>
 
-### Hub SignalR
+| Método | Endpoint | Descrição | Auth Necessária |
+|--------|----------|-----------|-----------------|
+| POST | `/api/Auth/register` | Registrar novo usuário (Aluno/Professor) | Não |
+| POST | `/api/Auth/login` | Autenticar usuário e receber JWT + cookie | Não |
 
-**Endpoint**: `/hubs/competition`
+</details>
 
-**Autenticação**: Obrigatória (JWT via query string ou cookies)
+<details>
+<summary><b>🛡️ Operações de Administrador</b></summary>
 
-**Métodos do Cliente** (invocar do frontend):
-- `SendExerciseAttempt(exerciseId, code, language)` - Submeter código
-- `GetCompetitionRanking(competitionId)` - Buscar ranking
-- `SendCompetitionQuestion(competitionId, exerciseId, question)` - Fazer pergunta
+| Método | Endpoint | Descrição | Auth Necessária |
+|--------|----------|-----------|-----------------|
+| POST | `/api/Admin/teacher-token` | Gerar token de registro de professor (expiração de 1 dia) | Admin |
+| GET | `/api/Admin/teacher-token` | Obter token de professor ativo atual | Admin |
+| GET | `/api/Admin/stats` | Obter estatísticas do sistema (usuários, grupos, competições, exercícios, submissões) | Admin |
+| GET | `/api/Admin/users` | Listar todos os usuários com filtro opcional por role | Admin |
 
-**Eventos do Servidor** (receber do backend):
-- `ReceiveRankingUpdate(ranking)` - Atualizações de ranking ao vivo
-- `ReceiveExerciseAttemptResponse(result)` - Resultado da submissão
-- `ReceiveQuestionCreation(question)` - Notificação de nova pergunta
+**Resposta de Estatísticas Admin:**
+```json
+{
+  "totalUsers": 150,
+  "totalStudents": 120,
+  "totalTeachers": 25,
+  "totalAdmins": 5,
+  "totalGroups": 40,
+  "competitions": {
+    "pending": 5,
+    "ongoing": 2,
+    "finished": 30
+  },
+  "exercises": {
+    "algorithm": 45,
+    "dataStructure": 30,
+    "other": 25
+  },
+  "submissions": {
+    "total": 5000,
+    "accepted": 3200,
+    "acceptanceRate": 64.0
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><b>👥 Gerenciamento de Usuários</b></summary>
+
+| Método | Endpoint | Descrição | Auth Necessária |
+|--------|----------|-----------|-----------------|
+| GET | `/api/User` | Obter perfil do usuário atual | Sim |
+| GET | `/api/User/{id}` | Obter usuário por ID | Sim |
+| PUT | `/api/User/{id}` | Atualizar perfil do usuário | Sim (próprio perfil ou Admin) |
+
+</details>
+
+<details>
+<summary><b>👨‍👩‍👦 Grupos</b></summary>
+
+| Método | Endpoint | Descrição | Auth Necessária |
+|--------|----------|-----------|-----------------|
+| POST | `/api/Group` | Criar novo grupo (máx 3 membros) | Aluno |
+| GET | `/api/Group/{id}` | Obter detalhes do grupo com membros | Sim |
+| PUT | `/api/Group/{id}` | Atualizar nome do grupo | Líder do Grupo |
+| POST | `/api/Group/{id}/invite` | Convidar usuário para o grupo (por email) | Líder do Grupo |
+| POST | `/api/Group/invite/{id}/accept` | Aceitar convite do grupo | Aluno |
+| POST | `/api/Group/invite/{id}/reject` | Rejeitar convite do grupo | Aluno |
+| POST | `/api/Group/{id}/leave` | Sair do grupo | Membro do Grupo |
+| DELETE | `/api/Group/{id}/member/{userId}` | Remover membro do grupo | Líder do Grupo |
+
+</details>
+
+<details>
+<summary><b>🏆 Competições</b></summary>
+
+| Método | Endpoint | Descrição | Auth Necessária |
+|--------|----------|-----------|-----------------|
+| GET | `/api/Competition` | Listar todas as competições | Sim |
+| GET | `/api/Competition/{id}` | Obter detalhes da competição com exercícios e ranking | Sim |
+| POST | `/api/Competition` | Criar template de competição | Professor/Admin |
+| POST | `/api/Competition/{id}/promote` | Promover template para competição ativa | Professor/Admin |
+| POST | `/api/Competition/{id}/start` | Iniciar competição (abre inscrições) | Professor/Admin |
+| POST | `/api/Competition/{id}/finish` | Finalizar competição (fecha submissões) | Professor/Admin |
+| POST | `/api/Competition/{id}/register` | Registrar grupo na competição | Aluno (Líder do Grupo) |
+| POST | `/api/Competition/{id}/unregister` | Cancelar inscrição do grupo | Aluno (Líder do Grupo) |
+| POST | `/api/Competition/{id}/block` | Bloquear grupo da competição | Professor/Admin |
+| POST | `/api/Competition/{id}/exercise` | Adicionar exercício à competição | Professor/Admin |
+| DELETE | `/api/Competition/{id}/exercise/{exerciseId}` | Remover exercício da competição | Professor/Admin |
+| GET | `/api/Competition/{id}/ranking` | Obter ranking em tempo real da competição | Sim |
+| GET | `/api/Competition/{id}/attempts` | Obter todas as tentativas de submissão da competição | Professor/Admin |
+
+</details>
+
+<details>
+<summary><b>📝 Exercícios</b></summary>
+
+| Método | Endpoint | Descrição | Auth Necessária |
+|--------|----------|-----------|-----------------|
+| GET | `/api/Exercise` | Listar todos os exercícios | Professor/Admin |
+| GET | `/api/Exercise/{id}` | Obter detalhes do exercício com casos de teste | Sim |
+| POST | `/api/Exercise` | Criar novo exercício | Professor/Admin |
+| PUT | `/api/Exercise/{id}` | Atualizar exercício (descrição, dificuldade, tipo) | Professor/Admin |
+| POST | `/api/Exercise/{id}/testcase` | Adicionar caso de teste ao exercício | Professor/Admin |
+| DELETE | `/api/Exercise/{id}/testcase/{testCaseId}` | Remover caso de teste do exercício | Professor/Admin |
+
+</details>
+
+<details>
+<summary><b>💻 Submissões</b></summary>
+
+| Método | Endpoint | Descrição | Auth Necessária |
+|--------|----------|-----------|-----------------|
+| POST | `/api/Submission/attempt` | Submeter solução de código (fallback HTTP) | Aluno |
+| GET | `/api/Submission/attempt/{id}` | Obter detalhes da tentativa específica com resultados do judge | Sim |
+| GET | `/api/Submission/group/{groupId}/attempts` | Obter todas as tentativas de um grupo | Sim |
+
+**Nota**: Submissões são principalmente tratadas via **SignalR** (método `SendExerciseAttempt`) para processamento em tempo real. Endpoints HTTP são opções de fallback.
+
+</details>
+
+<details>
+<summary><b>📁 Gerenciamento de Arquivos</b></summary>
+
+| Método | Endpoint | Descrição | Auth Necessária |
+|--------|----------|-----------|-----------------|
+| POST | `/api/File/upload` | Upload de arquivo anexo (PDF, imagens) | Professor/Admin |
+| GET | `/api/File/{id}` | Download de arquivo por ID | Sim |
+| DELETE | `/api/File/{id}` | Deletar arquivo | Professor/Admin (dono do arquivo) |
+
+**Tipos de Arquivo Suportados**: PDF, PNG, JPG, JPEG (máx 10MB por arquivo)
+
+</details>
+
+<details>
+<summary><b>📊 Logs de Auditoria</b></summary>
+
+| Método | Endpoint | Descrição | Auth Necessária |
+|--------|----------|-----------|-----------------|
+| GET | `/api/Log` | Obter logs do sistema com filtros (por tipo, usuário, intervalo de datas) | Professor/Admin |
+| GET | `/api/Log/user/{userId}` | Obter todos os logs de um usuário específico | Professor/Admin |
+
+**Tipos de Log Disponíveis**:
+- `UserRegistered`, `UserLogin`, `UserUpdated`
+- `GroupCreated`, `GroupUpdated`, `UserInvitedToGroup`, `UserJoinedGroup`, `UserLeftGroup`
+- `CompetitionCreated`, `CompetitionStarted`, `CompetitionFinished`
+- `ExerciseCreated`, `ExerciseUpdated`, `ExerciseDeleted`
+- `SubmissionCreated`
+
+**Parâmetros de Query para `/api/Log`**:
+- `logType` - Filtrar por tipo de log (ex: "UserLogin")
+- `userId` - Filtrar por ID do usuário
+- `startDate` - Filtrar logs após esta data
+- `endDate` - Filtrar logs antes desta data
+- `page` - Número da página (paginação)
+- `pageSize` - Itens por página
+
+</details>
+
+### Hub SignalR - Competição em Tempo Real
+
+**Endpoint do Hub**: `/hubs/competition`
+
+**Autenticação**: Obrigatória (token JWT via query string `?access_token=SEU_TOKEN` ou cookies)
+
+**Fluxo de Conexão**:
+```mermaid
+sequenceDiagram
+    participant C as Cliente
+    participant H as CompetitionHub
+    participant DB as Banco de Dados
+    
+    C->>H: Conectar em /hubs/competition
+    H->>DB: Obter competição ativa
+    H->>C: OnConnectionResponse(competition, ranking)
+    C->>H: SendExerciseAttempt(exerciseId, code, language)
+    H-->>C: ReceiveExerciseAttemptQueued(correlationId)
+    Note over H: Processamento via RabbitMQ + Worker
+    H->>C: ReceiveExerciseAttemptResponse(result)
+    H->>C: ReceiveRankingUpdate(ranking) [Broadcast para todos]
+```
+
+#### Métodos Invocados pelo Cliente
+
+| Método | Parâmetros | Descrição | Role Necessária |
+|--------|------------|-----------|-----------------|
+| `SendExerciseAttempt` | `exerciseId: Guid`<br>`code: string`<br>`language: LanguageType` | Submeter solução de código para avaliação | Aluno (em grupo) |
+| `GetCurrentCompetition` | Nenhum | Solicitar dados da competição atual sob demanda | Qualquer autenticado |
+| `AskQuestion` | `competitionId: Guid`<br>`exerciseId: Guid?`<br>`content: string`<br>`questionType: int` | Submeter pergunta durante competição | Aluno |
+| `AnswerQuestion` | `questionId: Guid`<br>`content: string` | Responder uma pergunta submetida | Professor/Admin |
+| `Ping` | Nenhum | Keep-alive / verificação de saúde da conexão | Qualquer autenticado |
+
+#### Eventos Enviados pelo Servidor
+
+| Evento | Payload | Descrição | Destinatários |
+|--------|---------|-----------|---------------|
+| `OnConnectionResponse` | `{ competition, ranking, exercises }` | Dados iniciais enviados na conexão | Apenas cliente conectado |
+| `ReceiveExerciseAttemptQueued` | `{ correlationId, message }` | Confirmação de que submissão foi enfileirada | Apenas cliente que submeteu |
+| `ReceiveExerciseAttemptResponse` | `{ success, attemptId, accepted, judgeResponse, executionTime, rankOrder }` | Resultado final da avaliação do código | Apenas cliente que submeteu |
+| `ReceiveExerciseAttemptError` | `{ error, message }` | Erro durante processamento da submissão | Apenas cliente que submeteu |
+| `ReceiveRankingUpdate` | `{ ranking[] }` | Ranking atualizado após qualquer submissão | **Todos os clientes conectados** |
+| `ReceiveQuestionCreation` | `{ question }` | Nova pergunta submetida | Professores/Admins na competição |
+| `ReceiveAnswer` | `{ questionId, answer }` | Pergunta respondida | Aluno que perguntou + Professores/Admins |
+| `ReceiveAnswerError` | `{ error }` | Erro ao responder pergunta | Apenas solicitante |
+| `Pong` | `{ timestamp }` | Resposta ao Ping | Apenas solicitante |
 
 Veja [SIGNALR_RABBITMQ_ARCHITECTURE.md](docs/SIGNALR_RABBITMQ_ARCHITECTURE.md) para documentação completa.
 
@@ -525,22 +779,80 @@ Veja [SIGNALR_RABBITMQ_ARCHITECTURE.md](docs/SIGNALR_RABBITMQ_ARCHITECTURE.md) p
 
 ## ⚡ Arquitetura em Tempo Real
 
-### Fluxo SignalR + RabbitMQ
+### Arquitetura de Fluxo de Mensagens
 
-O sistema usa uma **arquitetura desacoplada** para processamento de submissões:
+**Sequência Detalhada de Processamento de Submissões**:
 
-1. **Cliente** envia código via SignalR (`SendExerciseAttempt`)
-2. **CompetitionHub** valida e publica no **RabbitMQ**
-3. **Worker** consome mensagem, chama **Judge API**, atualiza banco
-4. **Worker** publica resultado de volta no **RabbitMQ**
-5. **API Consumer** recebe resultado e notifica cliente via **SignalR**
-6. **Todos os clientes** recebem atualização de ranking
+```mermaid
+sequenceDiagram
+    actor Cliente
+    participant Hub as CompetitionHub<br/>(SignalR)
+    participant RMQ as RabbitMQ<br/>(MassTransit)
+    participant Worker as Worker<br/>(Consumer)
+    participant Judge as Judge API
+    participant DB as Banco de Dados
 
-**Benefícios**:
-- ✅ Escalável: Workers podem ser escalados horizontalmente
-- ✅ Confiável: RabbitMQ garante entrega de mensagens
-- ✅ Resiliente: Falhas não derrubam a API
-- ✅ Rápido: API responde imediatamente, processamento acontece async
+    Cliente->>Hub: SendExerciseAttempt(exerciseId, code, language)
+    
+    rect rgb(240, 248, 255)
+        Note over Hub: Fase de Validação
+        Hub->>DB: Verificar grupo não bloqueado
+        Hub->>DB: Verificar não já aceito
+        Hub->>DB: Verificar exercício na competição
+    end
+    
+    Hub->>RMQ: Publicar ISubmitExerciseCommand
+    Hub-->>Cliente: ReceiveExerciseAttemptQueued(correlationId)
+    
+    RMQ->>Worker: Consumir ISubmitExerciseCommand
+    
+    rect rgb(255, 250, 240)
+        Note over Worker: Fase de Processamento (2-5 segundos)
+        Worker->>Judge: POST /submissions (código + casos de teste)
+        Judge-->>Worker: Resultado da avaliação
+        Worker->>DB: Criar entidade Attempt
+        Worker->>DB: Atualizar ranking se aceito
+        Worker->>DB: Criar AuditLog
+    end
+    
+    Worker->>RMQ: Publicar ISubmitExerciseResult
+    RMQ->>Hub: Consumir ISubmitExerciseResult<br/>(SubmitExerciseResultConsumer)
+    
+    Hub-->>Cliente: ReceiveExerciseAttemptResponse(result)
+    Hub-->>Cliente: ReceiveRankingUpdate(ranking) [Broadcast para TODOS]
+```
+
+**Componentes da Arquitetura**:
+
+1. **CompetitionHub** (SignalR): Gerencia conexões WebSocket, valida submissões, publica na fila
+2. **RabbitMQ** (MassTransit): Message broker garantindo entrega confiável e desacoplamento
+3. **Worker** (Serviço em Background): Consome mensagens, chama Judge API, atualiza banco de dados
+4. **Judge API** (Externa): Executa código em ambiente isolado e retorna resultados
+5. **SubmitExerciseResultConsumer** (API): Recebe resultados do Worker e notifica clientes
+
+**Por Que Esta Arquitetura?**
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│ Sem RabbitMQ (Bloqueante)            │ Com RabbitMQ (Assíncrono)    │
+├─────────────────────────────────────────────────────────────────────┤
+│ Cliente → API → Judge → Resposta     │ Cliente → API → Fila → ✓    │
+│ Tempo de espera: 2-5 seg (bloqueante)│ Tempo de espera: ~50ms       │
+│ Thread da API bloqueada na execução  │ Worker processa async        │
+│ Sem retry em falha do Judge API      │ Retry automático com backoff │
+│ Não escala processamento de forma    │ Escala workers horizontalmente│
+│ independente                          │                              │
+│ Ponto único de falha                  │ Fila persiste se Worker cair│
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+**Principais Benefícios**:
+- ✅ **Escalável**: Workers podem ser escalados horizontalmente (múltiplas instâncias)
+- ✅ **Confiável**: RabbitMQ garante entrega de mensagens mesmo se Worker estiver temporariamente offline
+- ✅ **Resiliente**: Falhas no Judge API não travam ou bloqueiam a API principal
+- ✅ **Rápido**: API responde imediatamente (~50ms), processamento acontece assincronamente (~2-5s)
+- ✅ **Desacoplado**: API e Worker podem ser implantados, atualizados e escalados independentemente
+- ✅ **Observável**: Cada componente pode ser monitorado separadamente para identificar gargalos
 
 ### Configuração CORS
 
@@ -634,25 +946,25 @@ dotnet test /p:CollectCoverage=true
 ### Testes de Integração
 
 ```bash
-# Executar testes de integração
-dotnet test --filter Category=Integration
+# Executar testes de integração (todos os testes no projeto Falcon.Api.IntegrationTests)
+dotnet test tests/Falcon.Api.IntegrationTests
 ```
 
 ### Estrutura de Testes
 
 ```
 tests/
-├── Falcon.Api.Tests/
+├── Falcon.Api.IntegrationTests/          # Testes de integração com WebApplicationFactory
 │   ├── Features/
 │   │   └── Auth/
-│   │       └── RegisterUserHandlerTests.cs
-│   └── ...
-├── Falcon.Core.Tests/
+│   │       └── RegisterUserTests.cs
+│   ├── TestBase.cs                       # Classe base com métodos auxiliares
+│   └── WebApplicationFactory.cs          # Factory do servidor de teste
+├── Falcon.Core.Tests/                    # Testes unitários de lógica de domínio
 │   └── Domain/
 │       └── Groups/
 │           └── GroupTests.cs
-└── Falcon.Infrastructure.Tests/
-    └── ...
+└── (Futuro: Falcon.Infrastructure.Tests/)
 ```
 
 ---
@@ -664,23 +976,40 @@ tests/
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost,1433;Database=falcon-reborn;..."
+    "DefaultConnection": "Server=localhost,1433;Database=falcon-reborn;User ID=sa;Password=SuaSenha;TrustServerCertificate=True;"
   },
   "Jwt": {
-    "Key": "sua-chave-secreta-min-32-chars",
-    "Issuer": "System",
-    "Audience": "System",
-    "ExpirationMinutes": 60
+    "SecretKey": "sua-chave-secreta-minimo-32-caracteres!",
+    "Issuer": "FalconSystem",
+    "Audience": "FalconSystem"
   },
   "JudgeApi": {
     "Url": "https://judge-api.example.com/v0",
-    "SecurityKey": "sua-chave-judge"
-  },
-  "Cors": {
-    "FrontendURL": "http://localhost:3000"
+    "SecurityKey": "sua-chave-de-seguranca-judge-api"
   }
 }
 ```
+
+**Importante**: A configuração JWT é **obrigatória** para a API iniciar. A `SecretKey` deve ter pelo menos 32 caracteres.
+
+### Configuração do Worker
+
+O projeto Worker requer seu próprio `appsettings.json` com configuração de banco de dados e Judge API:
+
+**`src/Falcon.Worker/appsettings.json`:**
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost,1433;Database=falcon-reborn;User ID=sa;Password=SuaSenha;TrustServerCertificate=True;"
+  },
+  "JudgeApi": {
+    "Url": "https://judge-api.example.com/v0",
+    "SecurityKey": "mesma-chave-da-api"
+  }
+}
+```
+
+**Nota**: O Worker **NÃO** precisa de configuração JWT, apenas ConnectionString e configurações do JudgeApi.
 
 ### Configuração da Judge API
 
@@ -697,10 +1026,14 @@ A Judge API é um serviço externo que executa e avalia submissões de código. 
 
 ```bash
 ConnectionStrings__DefaultConnection=sua-conexao-sql
-Jwt__Key=sua-chave-jwt-producao
+Jwt__SecretKey=sua-chave-secreta-jwt-producao-min-32-chars
+Jwt__Issuer=FalconSystem
+Jwt__Audience=FalconSystem
 JudgeApi__Url=https://judge-api.production.com
-Cors__FrontendURL=https://seu-frontend.com
+JudgeApi__SecurityKey=sua-chave-judge-api
 ```
+
+**Nota**: As origens CORS estão codificadas no `Program.cs` para `localhost:3000` e `localhost:5173`. Para produção, atualize a configuração `AddCors` no código.
 
 ---
 
@@ -800,7 +1133,6 @@ Este projeto serviu como uma experiência de aprendizado abrangente, cobrindo pr
 ### Banco de Dados & Persistência
 - **SQL Server**: Configuração pronta para produção com resiliência de conexão
 - **EF Core Migrations**: Versionamento de schema e estratégias de evolução de banco de dados
-- **Repository Pattern**: Abstração de acesso a dados com implementação base genérica
 - **Controle de Concorrência**: Concorrência otimista com timestamps RowVersion
 
 ### DevOps & Deploy
@@ -816,10 +1148,10 @@ Este projeto serviu como uma experiência de aprendizado abrangente, cobrindo pr
 - **Validação de Input**: Validação em nível de domínio com exceções customizadas e Problem Details
 
 ### Testes & Qualidade
-- **Testes Unitários**: xUnit com isolamento usando Moq para mocking de dependências
-- **Testes de Integração**: Testes end-to-end de API com bancos de dados em memória
-- **Tratamento de Exceções**: Exception handler global com respostas de erro padronizadas
-- **Logging**: Logging estruturado com Serilog para monitoramento em produção
+- **Testes Unitários**: xUnit com isolamento usando Moq para mocking de dependências (Core.Tests)
+- **Testes de Integração**: Testes end-to-end de API com bancos de dados em memória (Api.IntegrationTests)
+- **Tratamento de Exceções**: Exception handler global com respostas de erro padronizadas (RFC 7807 Problem Details)
+- **Logging**: Logging estruturado com ASP.NET Core ILogger para monitoramento em produção
 
 ### Documentação de API & Experiência do Desenvolvedor
 - **Scalar**: Documentação moderna de API com testes interativos (substituto do Swagger)
