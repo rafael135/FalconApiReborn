@@ -230,8 +230,6 @@ sequenceDiagram
 - ✅ **Decoupled**: API and Worker can be deployed, updated, and scaled independently
 - ✅ **Observable**: Each component can be monitored separately for bottlenecks
 
-```
-
 See [SIGNALR_RABBITMQ_ARCHITECTURE.md](docs/SIGNALR_RABBITMQ_ARCHITECTURE.md) for complete flow documentation.
 
 ---
