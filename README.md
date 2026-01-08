@@ -99,42 +99,40 @@
 ### Clean Architecture Layers
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      Falcon.Api                              │
-│        (Presentation Layer - Minimal APIs + SignalR)         │
-│  • Endpoints (auto-discovered IEndpoint implementations)     │
-│  • SignalR Hubs (CompetitionHub)                            │
-│  • Global Exception Handler                                  │
-└────────────────────┬────────────────────────────────────────┘
-                     │ depends on ↓
-┌────────────────────▼────────────────────────────────────────┐
-│                    Falcon.Core                               │
-│              (Domain Layer - No Dependencies)                │
-│  • Domain Entities (User, Group, Competition, Exercise)      │
-│  • Business Rules (IBusinessRule implementations)            │
-│  • Value Objects & Enums                                     │
-│  • Domain Exceptions (FormException, DomainException)        │
-│  • Service Interfaces (ITokenService, IJudgeService)         │
-└────────────────────┬────────────────────────────────────────┘
-                     │ implemented by ↓
-┌────────────────────▼────────────────────────────────────────┐
-│                Falcon.Infrastructure                         │
-│        (Infrastructure Layer - External Concerns)            │
-│  • EF Core DbContext & Configurations                        │
-│  • ASP.NET Identity Integration                              │
-│  • MassTransit Configuration                                 │
-│  • Judge API Client (IJudgeService)                          │
-│  • File Storage Service                                      │
-│  • Token Service (JWT generation)                            │
-└─────────────────────────────────────────────────────────────┘
+=================================================================
+                        Falcon.Api
+          (Presentation Layer - Minimal APIs + SignalR)
+  • Endpoints (auto-discovered IEndpoint implementations)
+  • SignalR Hubs (CompetitionHub)
+  • Global Exception Handler
+=================================================================
+                            ↓ depends on
+=================================================================
+                        Falcon.Core
+                (Domain Layer - No Dependencies)
+  • Domain Entities (User, Group, Competition, Exercise)
+  • Business Rules (IBusinessRule implementations)
+  • Value Objects & Enums
+  • Domain Exceptions (FormException, DomainException)
+  • Service Interfaces (ITokenService, IJudgeService)
+=================================================================
+                            ↓ implemented by
+=================================================================
+                    Falcon.Infrastructure
+            (Infrastructure Layer - External Concerns)
+  • EF Core DbContext & Configurations
+  • ASP.NET Identity Integration
+  • MassTransit Configuration
+  • Judge API Client (IJudgeService)
+  • File Storage Service
+  • Token Service (JWT generation)
+=================================================================
 
-                  ┌────────────────────────────┐
-                  │      Falcon.Worker         │
-                  │   (Background Processing)  │
-                  │  • MassTransit Consumers   │
-                  │  • Judge API Integration   │
-                  │  • Database Updates        │
-                  └────────────────────────────┘
+                    Falcon.Worker
+                (Background Processing)
+              • MassTransit Consumers
+              • Judge API Integration
+              • Database Updates
 ```
 
 ### Vertical Slice Architecture
@@ -143,23 +141,23 @@ Each feature is organized in a **self-contained folder** with all related concer
 
 ```
 Features/
-├── Auth/
-│   ├── RegisterUser/
-│   │   ├── RegisterUserCommand.cs      # MediatR request
-│   │   ├── RegisterUserHandler.cs      # Business logic
-│   │   ├── RegisterUserEndpoint.cs     # HTTP endpoint
-│   │   └── RegisterUserResult.cs       # Response DTO
-│   └── Login/
-│       ├── LoginCommand.cs
-│       ├── LoginHandler.cs
-│       └── ...
-├── Competitions/
-│   ├── CreateCompetition/
-│   ├── GetCompetitions/
-│   ├── Hubs/
-│   │   └── CompetitionHub.cs           # SignalR hub
-│   └── ...
-└── ...
+  Auth/
+    RegisterUser/
+      RegisterUserCommand.cs      # MediatR request
+      RegisterUserHandler.cs      # Business logic
+      RegisterUserEndpoint.cs     # HTTP endpoint
+      RegisterUserResult.cs       # Response DTO
+    Login/
+      LoginCommand.cs
+      LoginHandler.cs
+      ...
+  Competitions/
+    CreateCompetition/
+    GetCompetitions/
+    Hubs/
+      CompetitionHub.cs           # SignalR hub
+    ...
+  ...
 ```
 
 ### Message Flow Architecture
@@ -215,18 +213,14 @@ sequenceDiagram
 
 **Why This Architecture?**
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│ Without RabbitMQ (Blocking)          │ With RabbitMQ (Async)        │
-├─────────────────────────────────────────────────────────────────────┤
-│ Client → API → Judge → Response      │ Client → API → Queue → ✓    │
-│ Wait time: 2-5 seconds (blocking)    │ Wait time: ~50ms (immediate) │
-│ API thread blocked during execution  │ Worker processes async       │
-│ No retry on Judge API failure        │ Automatic retry with backoff │
-│ Can't scale processing independently │ Scale workers horizontally   │
-│ Single point of failure              │ Queue persists if Worker down│
-└─────────────────────────────────────────────────────────────────────┘
-```
+| Without RabbitMQ (Blocking) | With RabbitMQ (Async) |
+|----------------------------|----------------------|
+| Client → API → Judge → Response | Client → API → Queue → ✓ |
+| Wait time: 2-5 seconds (blocking) | Wait time: ~50ms (immediate) |
+| API thread blocked during execution | Worker processes async |
+| No retry on Judge API failure | Automatic retry with backoff |
+| Can't scale processing independently | Scale workers horizontally |
+| Single point of failure | Queue persists if Worker down |
 
 **Key Benefits**:
 - ✅ **Scalable**: Workers can be scaled horizontally (run multiple instances)

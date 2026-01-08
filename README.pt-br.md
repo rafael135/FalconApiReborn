@@ -99,42 +99,40 @@
 ### Camadas da Clean Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      Falcon.Api                              │
-│        (Camada de Apresentação - Minimal APIs + SignalR)     │
-│  • Endpoints (implementações IEndpoint auto-descobertas)     │
-│  • SignalR Hubs (CompetitionHub)                            │
-│  • Global Exception Handler                                  │
-└────────────────────┬────────────────────────────────────────┘
-                     │ depende de ↓
-┌────────────────────▼────────────────────────────────────────┐
-│                    Falcon.Core                               │
-│            (Camada de Domínio - Sem Dependências)            │
-│  • Entidades de Domínio (User, Group, Competition, Exercise) │
-│  • Regras de Negócio (implementações IBusinessRule)          │
-│  • Value Objects & Enums                                     │
-│  • Exceções de Domínio (FormException, DomainException)      │
-│  • Interfaces de Serviço (ITokenService, IJudgeService)      │
-└────────────────────┬────────────────────────────────────────┘
-                     │ implementado por ↓
-┌────────────────────▼────────────────────────────────────────┐
-│                Falcon.Infrastructure                         │
-│        (Camada de Infraestrutura - Preocupações Externas)   │
-│  • EF Core DbContext & Configurações                         │
-│  • Integração com ASP.NET Identity                           │
-│  • Configuração do MassTransit                               │
-│  • Cliente Judge API (IJudgeService)                         │
-│  • Serviço de Armazenamento de Arquivos                      │
-│  • Token Service (geração JWT)                               │
-└─────────────────────────────────────────────────────────────┘
+=================================================================
+                        Falcon.Api
+        (Camada de Apresentação - Minimal APIs + SignalR)
+  • Endpoints (implementações IEndpoint auto-descobertas)
+  • SignalR Hubs (CompetitionHub)
+  • Global Exception Handler
+=================================================================
+                            ↓ depende de
+=================================================================
+                        Falcon.Core
+              (Camada de Domínio - Sem Dependências)
+  • Entidades de Domínio (User, Group, Competition, Exercise)
+  • Regras de Negócio (implementações IBusinessRule)
+  • Value Objects & Enums
+  • Exceções de Domínio (FormException, DomainException)
+  • Interfaces de Serviço (ITokenService, IJudgeService)
+=================================================================
+                            ↓ implementado por
+=================================================================
+                    Falcon.Infrastructure
+          (Camada de Infraestrutura - Preocupações Externas)
+  • EF Core DbContext & Configurações
+  • Integração com ASP.NET Identity
+  • Configuração do MassTransit
+  • Cliente Judge API (IJudgeService)
+  • Serviço de Armazenamento de Arquivos
+  • Token Service (geração JWT)
+=================================================================
 
-                  ┌────────────────────────────┐
-                  │      Falcon.Worker         │
-                  │  (Processamento Background)│
-                  │  • Consumers MassTransit   │
-                  │  • Integração Judge API    │
-                  │  • Atualizações no Banco   │
-                  └────────────────────────────┘
+                    Falcon.Worker
+                (Processamento Background)
+              • Consumers MassTransit
+              • Integração Judge API
+              • Atualizações no Banco
 ```
 
 ### Vertical Slice Architecture
@@ -143,23 +141,23 @@ Cada feature é organizada em uma **pasta auto-contida** com todas as preocupaç
 
 ```
 Features/
-├── Auth/
-│   ├── RegisterUser/
-│   │   ├── RegisterUserCommand.cs      # Request MediatR
-│   │   ├── RegisterUserHandler.cs      # Lógica de negócio
-│   │   ├── RegisterUserEndpoint.cs     # Endpoint HTTP
-│   │   └── RegisterUserResult.cs       # DTO de resposta
-│   └── Login/
-│       ├── LoginCommand.cs
-│       ├── LoginHandler.cs
-│       └── ...
-├── Competitions/
-│   ├── CreateCompetition/
-│   ├── GetCompetitions/
-│   ├── Hubs/
-│   │   └── CompetitionHub.cs           # Hub SignalR
-│   └── ...
-└── ...
+  Auth/
+    RegisterUser/
+      RegisterUserCommand.cs      # Request MediatR
+      RegisterUserHandler.cs      # Lógica de negócio
+      RegisterUserEndpoint.cs     # Endpoint HTTP
+      RegisterUserResult.cs       # DTO de resposta
+    Login/
+      LoginCommand.cs
+      LoginHandler.cs
+      ...
+  Competitions/
+    CreateCompetition/
+    GetCompetitions/
+    Hubs/
+      CompetitionHub.cs           # Hub SignalR
+    ...
+  ...
 ```
 
 ### Arquitetura de Fluxo de Mensagens
