@@ -14,7 +14,7 @@ public class GroupCannotHaveMoreThanMaxMembersRule : IBusinessRule
 
     public bool IsBroken()
     {
-        return _currentMemberCount > MaxMembers;
+        return _currentMemberCount >= MaxMembers;
     }
 
     public string Message => $"O grupo não pode ter mais de {MaxMembers} membros.";

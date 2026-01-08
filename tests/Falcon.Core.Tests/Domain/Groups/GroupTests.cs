@@ -97,21 +97,19 @@ public class GroupTests
     [Fact]
     public void AddMember_Should_ThrowBusinessRuleException_WhenExceedsMaxMembers()
     {
-        // Arrange - Rule checks if _users.Count > 3 BEFORE adding
+        // Arrange - Rule checks if _users.Count >= 3 BEFORE adding
         // Group starts with 1 member (leader)
         var group = CreateTestGroup("Test Group");
         var member1 = CreateTestUser("member1@test.com", "Member 1");
         var member2 = CreateTestUser("member2@test.com", "Member 2");
         var member3 = CreateTestUser("member3@test.com", "Member 3");
-        var member4 = CreateTestUser("member4@test.com", "Member 4"); 
 
-        group.AddMember(member1);  // Check: 1 > 3? NO → Add → count = 2
-        group.AddMember(member2);  // Check: 2 > 3? NO → Add → count = 3
-        group.AddMember(member3);  // Check: 3 > 3? NO → Add → count = 4
+        group.AddMember(member1);  // Check: 1 >= 3? NO → Add → count = 2
+        group.AddMember(member2);  // Check: 2 >= 3? NO → Add → count = 3
 
-        // Act - Now count is 4, trying to add 5th member
-        // Check: 4 > 3? YES → Exception!
-        Action act = () => group.AddMember(member4);
+        // Act - Now count is 3 (max allowed), trying to add 4th member
+        // Check: 3 >= 3? YES → Exception!
+        Action act = () => group.AddMember(member3);
 
         // Assert
         act.Should().Throw<BusinessRuleException>()

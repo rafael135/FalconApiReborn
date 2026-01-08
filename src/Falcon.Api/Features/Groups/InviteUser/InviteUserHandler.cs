@@ -92,7 +92,7 @@ public class InviteUserHandler : IRequestHandler<InviteUserCommand, InviteUserRe
         var pendingInvitesCount = group.Invites.Count(i => !i.Accepted);
         var totalCount = group.Users.Count + pendingInvitesCount + 1;
         
-        if (totalCount > 3)
+        if (totalCount >= 3)
         {
             var errors = new Dictionary<string, string> 
             { 
