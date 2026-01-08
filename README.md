@@ -246,97 +246,101 @@ See [SIGNALR_RABBITMQ_ARCHITECTURE.md](docs/SIGNALR_RABBITMQ_ARCHITECTURE.md) fo
 
 ```
 FalconApiReborn/
-├── src/
-│   ├── Falcon.Api/                           # Presentation Layer
-│   │   ├── Features/                         # Vertical Slices
-│   │   │   ├── Admin/
-│   │   │   ├── Auth/
-│   │   │   │   ├── RegisterUser/
-│   │   │   │   │   ├── RegisterUserCommand.cs
-│   │   │   │   │   ├── RegisterUserHandler.cs
-│   │   │   │   │   ├── RegisterUserEndpoint.cs
-│   │   │   │   │   └── RegisterUserResult.cs
-│   │   │   │   ├── Login/
-│   │   │   │   └── ...
-│   │   │   ├── Competitions/
-│   │   │   │   ├── Hubs/
-│   │   │   │   │   └── CompetitionHub.cs     # SignalR Hub
-│   │   │   │   ├── CreateCompetition/
-│   │   │   │   ├── GetCompetitions/
-│   │   │   │   └── ...
-│   │   │   ├── Exercises/
-│   │   │   ├── Groups/
-│   │   │   ├── Submissions/
-│   │   │   │   ├── Consumers/
-│   │   │   │   │   └── SubmitExerciseResultConsumer.cs
-│   │   │   │   └── SubmitAttempt/
-│   │   │   └── ...
-│   │   ├── Extensions/
-│   │   │   ├── IEndpoint.cs                  # Endpoint interface
-│   │   │   └── EndpointExtensions.cs         # Auto-discovery
-│   │   ├── Infrastructure/
-│   │   │   └── GlobalExceptionHandler.cs     # Exception handling
-│   │   ├── Program.cs                        # Entry point
-│   │   └── wwwroot/
-│   │       └── uploads/                      # File storage
-│   │
-│   ├── Falcon.Core/                          # Domain Layer
-│   │   ├── Domain/
-│   │   │   ├── Users/
-│   │   │   │   └── User.cs                   # User entity
-│   │   │   ├── Groups/
-│   │   │   │   ├── Group.cs                  # Group entity
-│   │   │   │   └── Rules/
-│   │   │   │       └── GroupCannotHaveMoreThanMaxMembersRule.cs
-│   │   │   ├── Competitions/
-│   │   │   ├── Exercises/
-│   │   │   └── Shared/
-│   │   │       ├── IBusinessRule.cs
-│   │   │       └── Exceptions/
-│   │   │           ├── FormException.cs
-│   │   │           ├── BusinessRuleValidationException.cs
-│   │   │           └── DomainException.cs
-│   │   ├── Interfaces/
-│   │   │   ├── ITokenService.cs
-│   │   │   ├── IJudgeService.cs
-│   │   │   └── IFileStorageService.cs
-│   │   ├── Messages/
-│   │   │   ├── ISubmitExerciseCommand.cs
-│   │   │   └── ISubmitExerciseResult.cs
-│   │   └── Entity.cs                         # Base entity
-│   │
-│   ├── Falcon.Infrastructure/                # Infrastructure Layer
-│   │   ├── Database/
-│   │   │   ├── FalconDbContext.cs
-│   │   │   └── Configurations/               # EF configurations
-│   │   ├── Auth/
-│   │   │   └── TokenService.cs               # JWT implementation
-│   │   ├── Judge/
-│   │   │   ├── JudgeService.cs               # Judge API client
-│   │   │   └── Models/
-│   │   ├── Storage/
-│   │   │   └── LocalFileStorageService.cs
-│   │   ├── Extensions/
-│   │   │   └── IdentityExtensions.cs         # Error translation
-│   │   ├── Migrations/                       # EF migrations
-│   │   └── DependencyInjection.cs            # Service registration
-│   │
-│   └── Falcon.Worker/                        # Background Processing
-│       ├── Consumers/
-│       │   └── SubmitExerciseCommandConsumer.cs
-│       ├── Program.cs
-│       └── appsettings.json
-│
-├── docs/
-│   └── SIGNALR_RABBITMQ_ARCHITECTURE.md      # Architecture docs
-│
-├── .github/
-│   └── copilot-instructions.md               # AI agent instructions
-│
-├── docker-compose.yml                         # Production compose
-├── add-migration.ps1                          # Migration helper
-├── update-db.ps1                              # Database update helper
-└── FalconApiReborn.sln
+  src/
+    Falcon.Api/                           # Presentation Layer
+      Features/                           # Vertical Slices
+        Admin/
+        Auth/
+          RegisterUser/
+            RegisterUserCommand.cs
+            RegisterUserHandler.cs
+            RegisterUserEndpoint.cs
+            RegisterUserResult.cs
+          Login/
+          ...
+        Competitions/
+          Hubs/
+            CompetitionHub.cs             # SignalR Hub
+          CreateCompetition/
+          GetCompetitions/
+          ...
+        Exercises/
+        Groups/
+        Submissions/
+          Consumers/
+            SubmitExerciseResultConsumer.cs
+          SubmitAttempt/
+        ...
+      Extensions/
+        IEndpoint.cs                      # Endpoint interface
+        EndpointExtensions.cs             # Auto-discovery
+      Infrastructure/
+        GlobalExceptionHandler.cs         # Exception handling
+      Program.cs                          # Entry point
+      wwwroot/
+        uploads/                          # File storage
+
+    Falcon.Core/                          # Domain Layer
+      Domain/
+        Users/
+          User.cs                         # User entity
+        Groups/
+          Group.cs                        # Group entity
+          Rules/
+            GroupCannotHaveMoreThanMaxMembersRule.cs
+        Competitions/
+        Exercises/
+        Shared/
+          IBusinessRule.cs
+          Exceptions/
+            FormException.cs
+            BusinessRuleValidationException.cs
+            DomainException.cs
+      Interfaces/
+        ITokenService.cs
+        IJudgeService.cs
+        IFileStorageService.cs
+      Messages/
+        ISubmitExerciseCommand.cs
+        ISubmitExerciseResult.cs
+      Entity.cs                           # Base entity
+
+    Falcon.Infrastructure/                # Infrastructure Layer
+      Database/
+        FalconDbContext.cs
+        Configurations/                   # EF configurations
+      Auth/
+        TokenService.cs                   # JWT implementation
+      Judge/
+        JudgeService.cs                   # Judge API client
+        Models/
+      Storage/
+        LocalFileStorageService.cs
+      Extensions/
+        IdentityExtensions.cs             # Error translation
+      Migrations/                         # EF migrations
+      DependencyInjection.cs              # Service registration
+
+    Falcon.Worker/                        # Background Processing
+      Consumers/
+        SubmitExerciseCommandConsumer.cs
+      Program.cs
+      appsettings.json
+
+  tests/
+    Falcon.Api.IntegrationTests/
+    Falcon.Core.Tests/
+
+  docs/
+    SIGNALR_RABBITMQ_ARCHITECTURE.md      # Architecture docs
+
+  .github/
+    copilot-instructions.md               # AI agent instructions
+
+  docker-compose.yml                      # Production compose
+  add-migration.ps1                       # Migration helper
+  update-db.ps1                           # Database update helper
+  FalconApiReborn.sln
 ```
 
 ---
