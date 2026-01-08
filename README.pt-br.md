@@ -162,34 +162,73 @@ Features/
 
 ### Arquitetura de Fluxo de Mensagens
 
+**Sequência Detalhada de Processamento de Submissões**:
+
+```mermaid
+sequenceDiagram
+    actor Cliente
+    participant Hub as CompetitionHub<br/>(SignalR)
+    participant RMQ as RabbitMQ<br/>(MassTransit)
+    participant Worker as Worker<br/>(Consumer)
+    participant Judge as Judge API
+    participant DB as Database
+
+    Cliente->>Hub: SendExerciseAttempt(exerciseId, code, language)
+    
+    rect rgb(240, 248, 255)
+        Note over Hub: Fase de Validação
+        Hub->>DB: Verifica grupo não bloqueado
+        Hub->>DB: Verifica não já aceito
+        Hub->>DB: Verifica exercício na competição
+    end
+    
+    Hub->>RMQ: Publish ISubmitExerciseCommand
+    Hub-->>Cliente: ReceiveExerciseAttemptQueued(correlationId)
+    
+    RMQ->>Worker: Consume ISubmitExerciseCommand
+    
+    rect rgb(255, 250, 240)
+        Note over Worker: Fase de Processamento (2-5 segundos)
+        Worker->>Judge: POST /submissions (código + casos de teste)
+        Judge-->>Worker: Resultado da avaliação
+        Worker->>DB: Criar entidade Attempt
+        Worker->>DB: Atualizar ranking se aceito
+        Worker->>DB: Criar AuditLog
+    end
+    
+    Worker->>RMQ: Publish ISubmitExerciseResult
+    RMQ->>Hub: Consume ISubmitExerciseResult<br/>(SubmitExerciseResultConsumer)
+    
+    Hub-->>Cliente: ReceiveExerciseAttemptResponse(result)
+    Hub-->>Cliente: ReceiveRankingUpdate(ranking) [Broadcast para TODOS]
 ```
-┌─────────┐         ┌──────────────┐         ┌──────────┐         ┌─────────┐
-│ Cliente │         │ CompetitionHub│         │ RabbitMQ │         │ Worker  │
-│ (React) │         │  (SignalR)    │         │(MassT.)  │         │Consumer │
-└────┬────┘         └──────┬───────┘         └─────┬────┘         └────┬────┘
-     │                     │                        │                   │
-     │ SendExerciseAttempt │                        │                   │
-     ├────────────────────►│                        │                   │
-     │                     │ Valida & Publica       │                   │
-     │                     ├───────────────────────►│                   │
-     │                     │                        │ Consome Mensagem  │
-     │                     │                        ├──────────────────►│
-     │                     │                        │                   │ Processa
-     │                     │                        │                   │ - Chama Judge
-     │                     │                        │                   │ - Atualiza BD
-     │                     │                        │                   │ - Calcula Ranking
-     │                     │                        │                   │
-     │                     │                        │ Publica Resultado │
-     │                     │◄───────────────────────┤◄──────────────────┤
-     │                     │ (SubmitExerciseResult  │                   │
-     │                     │  Consumer na API)      │                   │
-     │                     │                        │                   │
-     │ ReceiveAttemptResponse                       │                   │
-     │◄────────────────────┤                        │                   │
-     │                     │                        │                   │
-     │ ReceiveRankingUpdate (TODOS OS CLIENTES)     │                   │
-     │◄────────────────────┤                        │                   │
-```
+
+**Componentes da Arquitetura**:
+
+1. **CompetitionHub** (SignalR): Gerencia conexões WebSocket, valida submissões, publica na fila
+2. **RabbitMQ** (MassTransit): Message broker garantindo entrega confiável e desacoplamento
+3. **Worker** (Serviço em Background): Consome mensagens, chama Judge API, atualiza banco de dados
+4. **Judge API** (Externa): Executa código em ambiente isolado e retorna resultados
+5. **SubmitExerciseResultConsumer** (API): Recebe resultados do Worker e notifica clientes
+
+**Por Que Esta Arquitetura?**
+
+| Sem RabbitMQ (Bloqueante) | Com RabbitMQ (Assíncrono) |
+|----------------------------|---------------------------|
+| Cliente → API → Judge → Resposta | Cliente → API → Fila → ✓ |
+| Tempo de espera: 2-5 seg (bloqueante) | Tempo de espera: ~50ms (imediato) |
+| Thread da API bloqueada na execução | Worker processa async |
+| Sem retry em falha do Judge API | Retry automático com backoff |
+| Não escala processamento independentemente | Escala workers horizontalmente |
+| Ponto único de falha | Fila persiste se Worker cair |
+
+**Principais Benefícios**:
+- ✅ **Escalável**: Workers podem ser escalados horizontalmente (múltiplas instâncias)
+- ✅ **Confiável**: RabbitMQ garante entrega de mensagens mesmo se Worker estiver temporariamente offline
+- ✅ **Resiliente**: Falhas no Judge API não travam ou bloqueiam a API principal
+- ✅ **Rápido**: API responde imediatamente (~50ms), processamento acontece assincronamente (~2-5s)
+- ✅ **Desacoplado**: API e Worker podem ser implantados, atualizados e escalados independentemente
+- ✅ **Observável**: Cada componente pode ser monitorado separadamente para identificar gargalos
 
 Veja [SIGNALR_RABBITMQ_ARCHITECTURE.md](docs/SIGNALR_RABBITMQ_ARCHITECTURE.md) para documentação completa do fluxo.
 
