@@ -16,7 +16,7 @@ public class GenerateTeacherTokenTests : TestBase
     public async Task Should_ReturnSuccess_When_AdminGeneratesToken()
     {
         // Arrange
-        var (admin, token) = await CreateAdminAsync();
+        var (_, token) = await CreateAdminAsync();
         HttpClient.SetBearerToken(token);
 
         // Act
@@ -47,7 +47,7 @@ public class GenerateTeacherTokenTests : TestBase
     public async Task Should_ReturnForbidden_When_StudentTriesToGenerateToken()
     {
         // Arrange
-        var (student, token) = await CreateStudentAsync();
+        var (_, token) = await CreateStudentAsync();
         HttpClient.SetBearerToken(token);
 
         // Act
@@ -61,7 +61,7 @@ public class GenerateTeacherTokenTests : TestBase
     public async Task Should_ReturnForbidden_When_TeacherTriesToGenerateToken()
     {
         // Arrange
-        var (teacher, token) = await CreateTeacherAsync();
+        var (_, token) = await CreateTeacherAsync();
         HttpClient.SetBearerToken(token);
 
         // Act
