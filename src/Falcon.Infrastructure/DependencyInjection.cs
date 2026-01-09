@@ -22,8 +22,10 @@ public static class DependencyInjection
     )
     {
         string? connectionString = configuration.GetConnectionString("DefaultConnection");
-        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") 
-                           ?? "Production";
+        var environment = configuration["ASPNETCORE_ENVIRONMENT"] ?? 
+                         Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? 
+                         configuration["Environment"] ??
+                         "Production";
 
         // Only register SQL Server if connection string is provided and not in Testing environment
         // This allows tests to register InMemory database without conflicts
