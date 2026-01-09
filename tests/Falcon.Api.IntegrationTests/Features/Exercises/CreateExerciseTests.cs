@@ -32,7 +32,7 @@ public class CreateExerciseTests : TestBase
             Outputs = new List<object>()
         };
 
-        var content = new MultipartFormDataContent();
+        using var content = new MultipartFormDataContent();
         var metadataJson = JsonSerializer.Serialize(metadata);
         content.Add(new StringContent(metadataJson, Encoding.UTF8, "application/json"), "metadata");
 
@@ -59,7 +59,7 @@ public class CreateExerciseTests : TestBase
             Outputs = new List<object>()
         };
 
-        var content = new MultipartFormDataContent();
+        using var content = new MultipartFormDataContent();
         var metadataJson = JsonSerializer.Serialize(metadata);
         content.Add(new StringContent(metadataJson, Encoding.UTF8, "application/json"), "metadata");
 
