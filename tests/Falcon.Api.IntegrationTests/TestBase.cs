@@ -40,12 +40,19 @@ public abstract class TestBase : IClassFixture<CustomWebApplicationFactory>, IDi
     private async Task EnsureRolesExistAsync()
     {
         string[] roleNames = { "Admin", "Teacher", "Student" };
+        
+        var missingRoles = new List<string>();
         foreach (var roleName in roleNames)
         {
             if (!await RoleManager.RoleExistsAsync(roleName))
             {
-                await RoleManager.CreateAsync(new IdentityRole(roleName));
+                missingRoles.Add(roleName);
             }
+        }
+        
+        foreach (var roleName in missingRoles)
+        {
+            await RoleManager.CreateAsync(new IdentityRole(roleName));
         }
     }
 
