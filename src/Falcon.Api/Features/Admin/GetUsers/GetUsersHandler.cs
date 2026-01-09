@@ -59,6 +59,16 @@ public class GetUsersHandler : IRequestHandler<GetUsersQuery, GetUsersResult>
                 .ToListAsync(cancellationToken);
         }
 
+        // Apply search filter if specified
+        if (!string.IsNullOrEmpty(request.Search))
+        {
+            var searchLower = request.Search.ToLower();
+            users = users.Where(u =>
+                u.Name.ToLower().Contains(searchLower) ||
+                u.Email!.ToLower().Contains(searchLower) ||
+                u.RA.ToLower().Contains(searchLower));
+        }
+
         // Order by creation date descending
         var orderedUsers = users.OrderByDescending(u => u.CreatedAt);
 

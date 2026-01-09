@@ -17,7 +17,7 @@ public class AnswerConfiguration : IEntityTypeConfiguration<Answer>
 
         builder.Property(a => a.Content)
             .IsRequired()
-            .HasColumnType("nvarchar(max)");
+            .HasMaxLength(Answer.MaxContentLength);
 
         builder.Property(a => a.UserId)
             .IsRequired()

@@ -102,6 +102,17 @@ public class RegisterGroupHandler : IRequestHandler<RegisterGroupCommand, Regist
         var ranking = new CompetitionRanking(competition, group);
         await _dbContext.CompetitionRankings.AddAsync(ranking, cancellationToken);
 
+        // Create user competition participation records for all group members
+        foreach (var member in group.Users)
+        {
+            var participation = new Core.Domain.Users.UserCompetitionParticipation(
+                member.Id,
+                competition.Id,
+                group.Id
+            );
+            await _dbContext.UserCompetitionParticipations.AddAsync(participation, cancellationToken);
+        }
+
         // Create log entry
         var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         var log = new Log(

@@ -8,6 +8,8 @@ namespace Falcon.Core.Domain.Exercises;
 /// </summary>
 public class Question : Entity
 {
+    public const int MaxContentLength = 1000;
+
     public Guid CompetitionId { get; private set; }
     public virtual Competitions.Competition Competition { get; private set; }
 
@@ -23,6 +25,7 @@ public class Question : Entity
     public string Content { get; private set; }
     public QuestionType QuestionType { get; private set; }
     public DateTime CreatedAt { get; private set; }
+    public byte[]? RowVersion { get; private set; }
 
 #pragma warning disable CS8618
     protected Question() { }
@@ -41,6 +44,8 @@ public class Question : Entity
             throw new ArgumentNullException(nameof(user));
         if (string.IsNullOrWhiteSpace(content))
             throw new ArgumentException("O conteúdo da questão não pode estar vazio");
+        if (content.Length > MaxContentLength)
+            throw new ArgumentException($"Conteúdo não pode exceder {MaxContentLength} caracteres");
 
         Competition = competition;
         CompetitionId = competition.Id;

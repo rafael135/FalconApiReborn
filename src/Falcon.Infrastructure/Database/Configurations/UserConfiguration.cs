@@ -30,6 +30,13 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.CreatedAt)
             .IsRequired();
 
+        builder.Property(u => u.IsDeleted)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(u => u.DeletedAt)
+            .IsRequired(false);
+
         builder
             .HasOne(u => u.Group)
             .WithMany(g => g.Users)

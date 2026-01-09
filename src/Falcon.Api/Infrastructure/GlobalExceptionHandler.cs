@@ -44,6 +44,12 @@ public class GlobalExceptionHandler : IExceptionHandler
                 problemDetails.Detail = businessRuleException.Message;
                 break;
 
+            case UnauthorizedAccessException unauthorizedAccessException:
+                httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
+                problemDetails.Title = "Forbidden";
+                problemDetails.Detail = unauthorizedAccessException.Message;
+                break;
+
             default:
                 httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
                 problemDetails.Title = "Internal Server Error";

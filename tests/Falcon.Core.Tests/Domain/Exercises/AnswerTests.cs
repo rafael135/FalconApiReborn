@@ -102,18 +102,49 @@ public class AnswerTests
     }
 
     [Fact]
-    public void Answer_Should_SupportLongContent()
+    public void Answer_Should_SupportContentUpToMaxLength()
     {
         // Arrange
         var user = CreateTestUser();
-        var longContent = new string('A', 5000); // 5000 characters
+        var maxLengthContent = new string('A', Answer.MaxContentLength); // 2000 characters
 
         // Act
-        var answer = new Answer(user, longContent);
+        var answer = new Answer(user, maxLengthContent);
 
         // Assert
-        answer.Content.Should().HaveLength(5000);
-        answer.Content.Should().Be(longContent);
+        answer.Content.Should().HaveLength(Answer.MaxContentLength);
+        answer.Content.Should().Be(maxLengthContent);
+    }
+
+    [Fact]
+    public void Constructor_Should_ThrowArgumentException_WhenContentExceedsMaxLength()
+    {
+        // Arrange
+        var user = CreateTestUser();
+        var tooLongContent = new string('A', Answer.MaxContentLength + 1); // 2001 characters
+
+        // Act
+        var act = () => new Answer(user, tooLongContent);
+
+        // Assert
+        act.Should().Throw<ArgumentException>()
+            .WithMessage("*não pode exceder*2000*caracteres*");
+    }
+
+    [Fact]
+    public void UpdateContent_Should_ThrowArgumentException_WhenContentExceedsMaxLength()
+    {
+        // Arrange
+        var user = CreateTestUser();
+        var answer = new Answer(user, "Initial content");
+        var tooLongContent = new string('A', Answer.MaxContentLength + 1); // 2001 characters
+
+        // Act
+        var act = () => answer.UpdateContent(tooLongContent);
+
+        // Assert
+        act.Should().Throw<ArgumentException>()
+            .WithMessage("*não pode exceder*2000*caracteres*");
     }
 
     [Fact]

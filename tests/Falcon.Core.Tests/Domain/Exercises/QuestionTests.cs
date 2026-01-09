@@ -206,6 +206,38 @@ public class QuestionTests
         question1.Content.Should().NotBe(question2.Content);
     }
 
+    [Fact]
+    public void Constructor_Should_SupportContentUpToMaxLength()
+    {
+        // Arrange
+        var competition = CreateTestCompetition();
+        var user = CreateTestUser();
+        var maxLengthContent = new string('A', Question.MaxContentLength); // 1000 characters
+
+        // Act
+        var question = new Question(competition, user, maxLengthContent, QuestionType.General);
+
+        // Assert
+        question.Content.Should().HaveLength(Question.MaxContentLength);
+        question.Content.Should().Be(maxLengthContent);
+    }
+
+    [Fact]
+    public void Constructor_Should_ThrowArgumentException_WhenContentExceedsMaxLength()
+    {
+        // Arrange
+        var competition = CreateTestCompetition();
+        var user = CreateTestUser();
+        var tooLongContent = new string('A', Question.MaxContentLength + 1); // 1001 characters
+
+        // Act
+        Action act = () => new Question(competition, user, tooLongContent, QuestionType.General);
+
+        // Assert
+        act.Should().Throw<ArgumentException>()
+            .WithMessage("*não pode exceder*1000*caracteres*");
+    }
+
     // Helper methods
     private static Question CreateTestQuestion()
     {
