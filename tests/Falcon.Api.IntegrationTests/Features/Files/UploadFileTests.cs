@@ -18,7 +18,7 @@ public class UploadFileTests : TestBase
         var (_, token) = await CreateTeacherAsync();
         HttpClient.SetBearerToken(token);
 
-        var content = new MultipartFormDataContent();
+        using var content = new MultipartFormDataContent();
         var fileContent = new ByteArrayContent(new byte[] { 1, 2, 3, 4 });
         fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
         content.Add(fileContent, "file", "test.pdf");
@@ -36,7 +36,7 @@ public class UploadFileTests : TestBase
         // Arrange
         HttpClient.ClearAuthorization();
 
-        var content = new MultipartFormDataContent();
+        using var content = new MultipartFormDataContent();
         var fileContent = new ByteArrayContent(new byte[] { 1, 2, 3, 4 });
         content.Add(fileContent, "file", "test.pdf");
 
