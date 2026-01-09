@@ -42,7 +42,7 @@ public class RegisterUserTests : TestBase
     public async Task Should_ReturnBadRequest_When_EmailAlreadyExists()
     {
         // Arrange
-        var existingUser = await CreateStudentAsync("existing@test.com", "Existing User", "111111");
+        await CreateStudentAsync("existing@test.com", "Existing User", "111111");
         
         var command = new
         {
@@ -64,7 +64,7 @@ public class RegisterUserTests : TestBase
     public async Task Should_ReturnBadRequest_When_RAAlreadyExists()
     {
         // Arrange
-        var existingUser = await CreateStudentAsync("user1@test.com", "User 1", "123456");
+        await CreateStudentAsync("user1@test.com", "User 1", "123456");
         
         var command = new
         {
