@@ -22,20 +22,43 @@ public static class DependencyInjection
     )
     {
         string? connectionString = configuration.GetConnectionString("DefaultConnection");
+        var environment = configuration["ASPNETCORE_ENVIRONMENT"] ?? 
+                         Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? 
+                         configuration["Environment"] ??
+                         "Production";
 
-        services.AddDbContext<FalconDbContext>(options =>
-            options.UseSqlServer(
-                connectionString,
-                options =>
-                {
-                    options.EnableRetryOnFailure(
-                        maxRetryCount: 5,
-                        maxRetryDelay: TimeSpan.FromSeconds(30),
-                        errorNumbersToAdd: null
-                    );
-                }
-            )
-        );
+        // Only register SQL Server if connection string is provided and not in Testing environment
+        // This allows tests to register InMemory database without conflicts
+        if (!string.IsNullOrWhiteSpace(connectionString) && 
+            environment != "Testing" && 
+            environment != "Test")
+        {
+            services.AddDbContext<FalconDbContext>(options =>
+                options.UseSqlServer(
+                    connectionString,
+                    options =>
+                    {
+                        options.EnableRetryOnFailure(
+                            maxRetryCount: 5,
+                            maxRetryDelay: TimeSpan.FromSeconds(30),
+                            errorNumbersToAdd: null
+                        );
+                    }
+                )
+            );
+        }
+        else if (environment != "Testing" && environment != "Test")
+        {
+            // In non-testing environments, FalconDbContext must be configured.
+            // Fail fast with a clear message if the DefaultConnection string is missing or empty.
+            throw new InvalidOperationException(
+                "FalconDbContext is not configured. Connection string 'DefaultConnection' is missing or empty. " +
+                "Ensure a valid connection string is provided in configuration, or register a DbContext explicitly " +
+                "in AddInfrastructure."
+            );
+        }
+        // If connection string is empty/null or in Testing environment, 
+        // tests will register InMemory database in ConfigureTestServices
 
         services.AddDataProtection();
 

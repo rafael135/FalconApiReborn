@@ -30,7 +30,7 @@ jobs:
         run: dotnet build --configuration Release
       
 
-      - name: Run unit tests only (Falcon.Core.Tests)
+      - name: Run unit tests and integration tests (Falcon.Core.Tests, Falcon.Api.IntegrationTests)
         run: dotnet test --configuration Release
 
       # The code below is for educational purposes and do not deploy to azure without proper credentials

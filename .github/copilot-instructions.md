@@ -212,6 +212,25 @@ public void AddMember(User user)
 4. **MassTransit**: Configured with kebab-case endpoints (see `AddApiMassTransit` in [DependencyInjection.cs](src/Falcon.Infrastructure/DependencyInjection.cs))
 5. **Concurrency**: `Group` has `RowVersion` for optimistic concurrency control
 6. **SignalR authorization**: All hub methods require `[Authorize]` attribute on hub class level
+7. **Cookie authentication**: Registration and login endpoints set `CompetitionAuthToken` cookie (HttpOnly, Secure, 1-day expiration)
+8. **File uploads**: Use `IAttachedFileService` for metadata tracking + `IFileStorageService` for physical storage in `wwwroot/uploads/`
+
+## Integration Tests Pattern
+Tests use `CustomWebApplicationFactory` ([WebApplicationFactory.cs](tests/Falcon.Api.IntegrationTests/WebApplicationFactory.cs)) with:
+- **In-memory database**: Each test class gets unique database via `IClassFixture` (tests within class share DB)
+- **Mocked MassTransit**: All RabbitMQ/MassTransit services removed, no external dependencies
+- **Test JWT tokens**: Configured with `TestJwtSecretKey` for authentication
+- **Helper methods**: `CreateStudentAsync()`, `CreateTeacherAsync()`, `CreateAdminAsync()` in [TestBase.cs](tests/Falcon.Api.IntegrationTests/TestBase.cs)
+
+**Pattern**: Inherit from `TestBase`, use helper methods to create users/groups, then test via `HttpClient`.
+
+## Code Documentation Standard
+Follow XML documentation pattern from [.github/instructions/docsCsharpInstructions.instructions.md](.github/instructions/docsCsharpInstructions.instructions.md):
+- **Always in English** regardless of code language or prompt language
+- **Interfaces**: Document each property/method inside the interface
+- **Optional properties**: Mark clearly with "An optional property of type..."
+- **Classes**: Document public methods, constructors, and complex private methods
+- **Consistency**: Match existing documentation style in the file
 
 ## Integration Points
 
@@ -221,3 +240,4 @@ public void AddMember(User user)
 - **API Docs**: Scalar (replaces Swagger) with purple theme at `/scalar/v1`
 - **Logging**: Standard ASP.NET Core ILogger injection
 - **File Storage**: Local file storage via `IFileStorageService` in `wwwroot/uploads/`
+- **Authentication**: Dual-mode (JWT Bearer + Cookie) for API clients and browser-based frontends

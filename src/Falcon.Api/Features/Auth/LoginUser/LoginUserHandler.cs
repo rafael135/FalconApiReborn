@@ -67,15 +67,15 @@ public class LoginUserHandler : IRequestHandler<LoginUserCommand, LoginUserResul
         }
 
         existentUser.UpdateLastLogin();
-        await this._userManager.UpdateAsync(existentUser);
+        // Use DbContext directly to avoid concurrency issues with UserManager
+        _dbContext.Users.Update(existentUser);
+        await _dbContext.SaveChangesAsync(cancellationToken);
 
         // 4. Busca Rica (Operação de Leitura Otimizada)
         // Aqui substituímos aquele repositório genérico complexo.
         // Usamos "Filtered Include" para trazer apenas convites não aceitos de uma vez só.
         var userWithData = await _dbContext
             .Users.AsNoTracking() // Leitura mais rápida (não precisa trackear pois só vamos ler para devolver)
-            .Include(u => u.Group)
-            .ThenInclude(g => g.Users) // Membros do grupo
             .Include(u => u.Group)
             .ThenInclude(g =>
                 g.Invites.Where(i => !i.Accepted && i.UserId.ToString() == existentUser.Id)
@@ -93,24 +93,27 @@ public class LoginUserHandler : IRequestHandler<LoginUserCommand, LoginUserResul
         // 6. Gerar Token
         var token = _tokenService.GenerateUserToken(finalUser, role);
 
-        return MapToResult(finalUser, role, token);
+        return await MapToResultAsync(finalUser, role, token, cancellationToken);
     }
 
-    private LoginUserResult MapToResult(User user, string role, string token)
+    private async Task<LoginUserResult> MapToResultAsync(User user, string role, string token, CancellationToken cancellationToken)
     {
+        // Load invites separately if group exists
+        var groupInvites = user.Group != null
+            ? await _dbContext.GroupInvites
+                .AsNoTracking()
+                .Where(i => i.GroupId == user.Group.Id && !i.Accepted && i.UserId == user.Id)
+                .Select(i => new GroupInviteDto(i.Id, i.UserId, i.GroupId, i.Accepted))
+                .ToListAsync()
+            : new List<GroupInviteDto>();
+
         var groupDto =
             user.Group != null
                 ? new GroupDto(
                     user.Group.Id,
                     user.Group.Name,
                     user.Group.LeaderId,
-                    user.Group.Invites.Select(i => new GroupInviteDto(
-                            i.Id,
-                            i.UserId,
-                            i.GroupId,
-                            i.Accepted
-                        ))
-                        .ToList()
+                    groupInvites
                 )
                 : null;
 

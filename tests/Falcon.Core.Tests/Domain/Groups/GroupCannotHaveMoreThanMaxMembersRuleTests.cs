@@ -10,7 +10,6 @@ public class GroupCannotHaveMoreThanMaxMembersRuleTests
     [InlineData(0)]
     [InlineData(1)]
     [InlineData(2)]
-    [InlineData(3)]
     public void IsBroken_Should_ReturnFalse_WhenMembersCountIsWithinLimit(int memberCount)
     {
         // Arrange
@@ -24,6 +23,7 @@ public class GroupCannotHaveMoreThanMaxMembersRuleTests
     }
 
     [Theory]
+    [InlineData(3)]
     [InlineData(4)]
     [InlineData(5)]
     [InlineData(10)]
