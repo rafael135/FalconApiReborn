@@ -16,7 +16,7 @@ public class InviteUserTests : TestBase
     {
         // Arrange
         var (leader, leaderToken) = await CreateStudentAsync("leader@test.com", "Leader", "111111");
-        var (invitedUser, _) = await CreateStudentAsync("invited@test.com", "Invited", "222222");
+        _ = await CreateStudentAsync("invited@test.com", "Invited", "222222");
         var group = await CreateGroupAsync(leader, "Test Group");
         HttpClient.SetBearerToken(leaderToken);
 
