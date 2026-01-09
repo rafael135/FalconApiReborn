@@ -15,7 +15,7 @@ public class UploadFileTests : TestBase
     public async Task Should_ReturnSuccess_When_UploadingFile()
     {
         // Arrange
-        var (teacher, token) = await CreateTeacherAsync();
+        var (_, token) = await CreateTeacherAsync();
         HttpClient.SetBearerToken(token);
 
         var content = new MultipartFormDataContent();
