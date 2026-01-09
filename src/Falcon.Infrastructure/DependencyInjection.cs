@@ -47,6 +47,16 @@ public static class DependencyInjection
                 )
             );
         }
+        else if (environment != "Testing" && environment != "Test")
+        {
+            // In non-testing environments, FalconDbContext must be configured.
+            // Fail fast with a clear message if the DefaultConnection string is missing or empty.
+            throw new InvalidOperationException(
+                "FalconDbContext is not configured. Connection string 'DefaultConnection' is missing or empty. " +
+                "Ensure a valid connection string is provided in configuration, or register a DbContext explicitly " +
+                "in AddInfrastructure."
+            );
+        }
         // If connection string is empty/null or in Testing environment, 
         // tests will register InMemory database in ConfigureTestServices
 
