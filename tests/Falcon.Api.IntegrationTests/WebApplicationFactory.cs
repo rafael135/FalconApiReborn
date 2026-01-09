@@ -31,11 +31,17 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.ConfigureServices(services =>
+        // Set environment to Testing to prevent SQL Server registration in DependencyInjection
+        builder.UseEnvironment("Testing");
+
+        // Configure app settings to remove SQL Server connection string
+        builder.ConfigureAppConfiguration((context, config) =>
         {
-            // This runs BEFORE the app's ConfigureServices
-            // We need to prevent SQL Server registration by ensuring connection string is empty/null
-            // The app will try to register SQL Server, but we'll replace it in ConfigureTestServices
+            config.AddInMemoryCollection(new Dictionary<string, string>
+            {
+                ["ConnectionStrings:DefaultConnection"] = "", // Empty to prevent SQL Server registration
+                ["Environment"] = "Testing"
+            }!);
         });
 
         builder.ConfigureTestServices(services =>
