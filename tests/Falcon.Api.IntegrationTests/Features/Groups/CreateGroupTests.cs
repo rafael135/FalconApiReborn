@@ -15,7 +15,7 @@ public class CreateGroupTests : TestBase
     public async Task Should_ReturnSuccess_When_ValidGroupCreation()
     {
         // Arrange
-        var (student, token) = await CreateStudentAsync();
+        var (_, token) = await CreateStudentAsync();
         HttpClient.SetBearerToken(token);
 
         var command = new
