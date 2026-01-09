@@ -160,6 +160,28 @@ Features/
   ...
 ```
 
+**Key Architectural Patterns**:
+
+- **CQRS with MediatR**: All business operations use the Command/Query pattern via MediatR `IRequest<TResponse>` and `IRequestHandler<TRequest, TResponse>`
+- **Auto-Discovery**: Endpoints implementing `IEndpoint` interface are automatically registered at startup via reflection
+- **Feature Isolation**: Each feature folder contains everything needed (command, handler, endpoint, DTOs) - no shared services
+- **Domain-Driven Design**: Rich domain entities with explicit business rules validated through `IBusinessRule` implementations
+- **Primary Keys**: All entities use `Guid` for primary keys (except `User` which uses `string` due to ASP.NET Identity)
+
+**Feature Creation Pattern**:
+
+1. **Command**: Define request with `IRequest<TResult>` marker
+2. **Handler**: Implement `IRequestHandler<TCommand, TResult>` with business logic
+3. **Endpoint**: Implement `IEndpoint` with `MapEndpoint(IEndpointRouteBuilder app)` method
+4. **Result**: Define response DTO with all necessary data
+
+**Exception Handling**:
+
+- `FormException` → 400 Bad Request (field-level validation errors)
+- `BusinessRuleValidationException` → 422 Unprocessable Entity (domain rule violations)
+- `NotFoundException` → 404 Not Found (entity not found)
+- `DomainException` → 500 Internal Server Error (unexpected domain errors)
+
 ### Message Flow Architecture
 
 **Detailed Submission Processing Sequence**:
@@ -374,10 +396,14 @@ FalconApiReborn/
 - Submission tracking per group
 
 ### 💬 Questions & Answers
-- Real-time question submission during competitions
-- Teacher/Admin response system
-- Public or private answers
-- Exercise-specific or general questions
+- **Real-time SignalR methods**: `AskQuestion` and `AnswerQuestion` for instant communication
+- **REST API endpoints**: `GET /api/Question` (paginated list with filters) and `GET /api/Question/{id}` (single question details)
+- **Question types**: Exercise-specific or general competition questions
+- **Answer visibility**: Public answers (visible to all) or private (visible only to asker)
+- **Content validation**: Questions limited to 1000 characters, answers to 2000 characters
+- **Optimistic concurrency**: `RowVersion` field prevents conflicting answer updates
+- **Audit logging**: All question and answer activities tracked with timestamps
+- **Filtering capabilities**: Filter questions by competition, exercise, type, and pagination support
 
 ### 📊 Logging & Audit
 - Comprehensive activity logging
@@ -525,7 +551,7 @@ dotnet ef database update \
 
 ---
 
-## � Development Workflows
+## 👨‍💻 Development Workflows
 
 ### Running with Helper Scripts
 
@@ -601,7 +627,7 @@ public class MyFeatureTests : TestBase, IClassFixture<CustomWebApplicationFactor
 
 ---
 
-## �📖 API Documentation
+## 📖 API Documentation
 
 ### Scalar API Explorer
 
@@ -754,7 +780,51 @@ The API uses **Scalar** (modern alternative to Swagger) with a purple theme:
 </details>
 
 <details>
-<summary><b>📊 Audit Logging</b></summary>
+<summary><b>� Questions & Answers</b></summary>
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/api/Question` | Get paginated questions with filters | Yes |
+| GET | `/api/Question/{id}` | Get specific question with answer | Yes |
+
+**Query Parameters for `/api/Question`**:
+- `competitionId` - Filter by competition ID (Guid)
+- `exerciseId` - Filter by exercise ID (Guid, optional)
+- `questionType` - Filter by type: `0` = General, `1` = Exercise-specific
+- `skip` - Number of records to skip (pagination)
+- `take` - Number of records to return (max 100)
+
+**Question Response**:
+```json
+{
+  "id": "guid",
+  "content": "How do I solve this problem?",
+  "questionType": 1,
+  "isAnswered": true,
+  "createdAt": "2026-01-08T10:30:00Z",
+  "user": { "id": "string", "name": "Student Name", "email": "student@example.com" },
+  "group": { "id": "guid", "name": "Group Alpha" },
+  "exercise": { "id": "guid", "title": "Exercise 1" },
+  "answer": {
+    "id": "guid",
+    "content": "You should approach this by...",
+    "isPublic": true,
+    "createdAt": "2026-01-08T10:35:00Z",
+    "answeredBy": { "id": "string", "name": "Teacher Name" }
+  }
+}
+```
+
+**Content Validations**:
+- Question content: 1-1000 characters
+- Answer content: 1-2000 characters
+
+**Note**: Question creation and answering are primarily handled via **SignalR** (`AskQuestion` and `AnswerQuestion` methods). REST endpoints are for querying and displaying question history.
+
+</details>
+
+<details>
+<summary><b>�📊 Audit Logging</b></summary>
 
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
@@ -819,7 +889,7 @@ sequenceDiagram
 | `ReceiveExerciseAttemptQueued` | `{ correlationId, message }` | Confirmation that submission is queued | Submitting client only |
 | `ReceiveExerciseAttemptResponse` | `{ success, attemptId, accepted, judgeResponse, executionTime, rankOrder }` | Final result of code evaluation | Submitting client only |
 | `ReceiveExerciseAttemptError` | `{ error, message }` | Error during submission processing | Submitting client only |
-| `ReceiveRankingUpdate` | `{ ranking[] }` | Updated ranking after any submission | **All connected clients** |
+| `ReceiveRankingUpdate` | `{ ranking: [{ id, points, penalty, rankOrder, group, exerciseAttempts: [{ groupId, exerciseId, attempts }] }] }` | Updated ranking with exercise attempt counts after any submission | **All connected clients** |
 | `ReceiveQuestionCreation` | `{ question }` | New question submitted | Teachers/Admins in competition |
 | `ReceiveAnswer` | `{ questionId, answer }` | Question answered | Student who asked + Teachers/Admins |
 | `ReceiveAnswerError` | `{ error }` | Error answering question | Requester only |
@@ -1032,7 +1102,7 @@ JudgeApi__SecurityKey=your-judge-api-key
 
 ---
 
-## � Troubleshooting
+## 🔧 Troubleshooting
 
 ### Common Issues
 

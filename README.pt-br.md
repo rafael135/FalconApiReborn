@@ -160,6 +160,28 @@ Features/
   ...
 ```
 
+**Padrões Arquiteturais Principais**:
+
+- **CQRS com MediatR**: Todas as operações de negócio usam o padrão Command/Query via MediatR `IRequest<TResponse>` e `IRequestHandler<TRequest, TResponse>`
+- **Auto-Descoberta**: Endpoints que implementam a interface `IEndpoint` são automaticamente registrados na inicialização via reflexão
+- **Isolamento de Features**: Cada pasta de feature contém tudo que é necessário (command, handler, endpoint, DTOs) - sem serviços compartilhados
+- **Domain-Driven Design**: Entidades de domínio ricas com regras de negócio explícitas validadas através de implementações de `IBusinessRule`
+- **Chaves Primárias**: Todas as entidades usam `Guid` para chaves primárias (exceto `User` que usa `string` devido ao ASP.NET Identity)
+
+**Padrão de Criação de Feature**:
+
+1. **Command**: Definir requisição com marcador `IRequest<TResult>`
+2. **Handler**: Implementar `IRequestHandler<TCommand, TResult>` com lógica de negócio
+3. **Endpoint**: Implementar `IEndpoint` com método `MapEndpoint(IEndpointRouteBuilder app)`
+4. **Result**: Definir DTO de resposta com todos os dados necessários
+
+**Tratamento de Exceções**:
+
+- `FormException` → 400 Bad Request (erros de validação a nível de campo)
+- `BusinessRuleValidationException` → 422 Unprocessable Entity (violações de regras de domínio)
+- `NotFoundException` → 404 Not Found (entidade não encontrada)
+- `DomainException` → 500 Internal Server Error (erros de domínio inesperados)
+
 ### Arquitetura de Fluxo de Mensagens
 
 **Sequência Detalhada de Processamento de Submissões**:
@@ -374,10 +396,14 @@ FalconApiReborn/
 - Rastreamento de submissões por grupo
 
 ### 💬 Perguntas e Respostas
-- Submissão de perguntas em tempo real durante competições
-- Sistema de resposta de Professor/Admin
-- Respostas públicas ou privadas
-- Perguntas específicas de exercício ou gerais
+- **Métodos SignalR em tempo real**: `AskQuestion` e `AnswerQuestion` para comunicação instantânea
+- **Endpoints REST API**: `GET /api/Question` (lista paginada com filtros) e `GET /api/Question/{id}` (detalhes de uma pergunta)
+- **Tipos de pergunta**: Perguntas específicas de exercício ou gerais da competição
+- **Visibilidade de resposta**: Respostas públicas (visíveis para todos) ou privadas (visíveis apenas para quem perguntou)
+- **Validação de conteúdo**: Perguntas limitadas a 1000 caracteres, respostas a 2000 caracteres
+- **Concorrência otimista**: Campo `RowVersion` previne atualizações conflitantes de respostas
+- **Log de auditoria**: Todas as atividades de perguntas e respostas rastreadas com timestamps
+- **Capacidades de filtragem**: Filtrar perguntas por competição, exercício, tipo, e suporte a paginação
 
 ### 📊 Logging e Auditoria
 - Log abrangente de atividades
@@ -754,7 +780,51 @@ A API usa **Scalar** (alternativa moderna ao Swagger) com tema roxo:
 </details>
 
 <details>
-<summary><b>📊 Logs de Auditoria</b></summary>
+<summary><b>� Perguntas e Respostas</b></summary>
+
+| Método | Endpoint | Descrição | Auth Necessária |
+|--------|----------|-----------|------------------|
+| GET | `/api/Question` | Obter perguntas paginadas com filtros | Sim |
+| GET | `/api/Question/{id}` | Obter pergunta específica com resposta | Sim |
+
+**Parâmetros de Query para `/api/Question`**:
+- `competitionId` - Filtrar por ID da competição (Guid)
+- `exerciseId` - Filtrar por ID do exercício (Guid, opcional)
+- `questionType` - Filtrar por tipo: `0` = Geral, `1` = Específico de exercício
+- `skip` - Número de registros a pular (paginação)
+- `take` - Número de registros a retornar (máx 100)
+
+**Resposta de Pergunta**:
+```json
+{
+  "id": "guid",
+  "content": "Como resolvo este problema?",
+  "questionType": 1,
+  "isAnswered": true,
+  "createdAt": "2026-01-08T10:30:00Z",
+  "user": { "id": "string", "name": "Nome do Aluno", "email": "aluno@exemplo.com" },
+  "group": { "id": "guid", "name": "Grupo Alpha" },
+  "exercise": { "id": "guid", "title": "Exercício 1" },
+  "answer": {
+    "id": "guid",
+    "content": "Você deve abordar isso...",
+    "isPublic": true,
+    "createdAt": "2026-01-08T10:35:00Z",
+    "answeredBy": { "id": "string", "name": "Nome do Professor" }
+  }
+}
+```
+
+**Validações de Conteúdo**:
+- Conteúdo da pergunta: 1-1000 caracteres
+- Conteúdo da resposta: 1-2000 caracteres
+
+**Nota**: Criação de perguntas e respostas são principalmente tratadas via **SignalR** (métodos `AskQuestion` e `AnswerQuestion`). Endpoints REST são para consulta e exibição do histórico de perguntas.
+
+</details>
+
+<details>
+<summary><b>�📊 Logs de Auditoria</b></summary>
 
 | Método | Endpoint | Descrição | Auth Necessária |
 |--------|----------|-----------|-----------------|
@@ -819,7 +889,7 @@ sequenceDiagram
 | `ReceiveExerciseAttemptQueued` | `{ correlationId, message }` | Confirmação de que submissão foi enfileirada | Apenas cliente que submeteu |
 | `ReceiveExerciseAttemptResponse` | `{ success, attemptId, accepted, judgeResponse, executionTime, rankOrder }` | Resultado final da avaliação do código | Apenas cliente que submeteu |
 | `ReceiveExerciseAttemptError` | `{ error, message }` | Erro durante processamento da submissão | Apenas cliente que submeteu |
-| `ReceiveRankingUpdate` | `{ ranking[] }` | Ranking atualizado após qualquer submissão | **Todos os clientes conectados** |
+| `ReceiveRankingUpdate` | `{ ranking: [{ id, points, penalty, rankOrder, group, exerciseAttempts: [{ groupId, exerciseId, attempts }] }] }` | Ranking atualizado com contagens de tentativas por exercício após qualquer submissão | **Todos os clientes conectados** |
 | `ReceiveQuestionCreation` | `{ question }` | Nova pergunta submetida | Professores/Admins na competição |
 | `ReceiveAnswer` | `{ questionId, answer }` | Pergunta respondida | Aluno que perguntou + Professores/Admins |
 | `ReceiveAnswerError` | `{ error }` | Erro ao responder pergunta | Apenas solicitante |
@@ -1089,7 +1159,7 @@ JudgeApi__SecurityKey=sua-chave-judge-api
 
 ---
 
-## � Solução de Problemas
+## 🔧 Solução de Problemas
 
 ### Problemas Comuns
 
