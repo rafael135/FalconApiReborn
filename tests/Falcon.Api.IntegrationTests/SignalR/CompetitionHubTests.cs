@@ -14,7 +14,7 @@ public class CompetitionHubTests : TestBase
     public async Task Should_Connect_When_Authenticated()
     {
         // Arrange
-        var (student, token) = await CreateStudentAsync();
+        var (_, token) = await CreateStudentAsync();
         var hubUrl = $"{Factory.Server.BaseAddress}hubs/competition";
 
         var connection = new HubConnectionBuilder()
