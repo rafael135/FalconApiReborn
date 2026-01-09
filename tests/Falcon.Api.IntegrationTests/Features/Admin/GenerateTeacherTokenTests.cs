@@ -47,7 +47,7 @@ public class GenerateTeacherTokenTests : TestBase
     public async Task Should_ReturnForbidden_When_StudentTriesToGenerateToken()
     {
         // Arrange
-        var (student, token) = await CreateStudentAsync();
+        var (_, token) = await CreateStudentAsync();
         HttpClient.SetBearerToken(token);
 
         // Act
