@@ -17,7 +17,7 @@ public class QuestionConfiguration : IEntityTypeConfiguration<Question>
 
         builder.Property(q => q.Content)
             .IsRequired()
-            .HasColumnType("nvarchar(max)");
+            .HasMaxLength(Question.MaxContentLength);
 
         builder.Property(q => q.QuestionType)
             .IsRequired()
@@ -25,6 +25,9 @@ public class QuestionConfiguration : IEntityTypeConfiguration<Question>
 
         builder.Property(q => q.CreatedAt)
             .IsRequired();
+
+        builder.Property(q => q.RowVersion)
+            .IsRowVersion();
 
         builder.Property(q => q.UserId)
             .IsRequired()

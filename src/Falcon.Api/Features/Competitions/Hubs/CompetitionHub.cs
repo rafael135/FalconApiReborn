@@ -464,6 +464,22 @@ public class CompetitionHub : Hub
         answer.UpdateContent(content);
         await _dbContext.SaveChangesAsync();
 
+        // Create audit log
+        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == userName);
+        if (user != null)
+        {
+            var ipAddress = Context.GetHttpContext()?.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            var log = new Log(
+                LogType.AnswerUpdated,
+                ipAddress,
+                user,
+                user.Group,
+                answer.Question!.Competition
+            );
+            await _dbContext.Logs.AddAsync(log);
+            await _dbContext.SaveChangesAsync();
+        }
+
         _logger.LogInformation("Answer {AnswerId} updated by user {UserId}", answerId, userName);
 
         var answerDto = new AnswerDto(

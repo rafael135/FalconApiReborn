@@ -13,6 +13,9 @@ public class User : IdentityUser
     public DateTime CreatedAt { get; private set; }
     public DateTime LastLoggedAt { get; private set; }
 
+    public bool IsDeleted { get; private set; }
+    public DateTime? DeletedAt { get; private set; }
+
     public Guid? GroupId { get; private set; }
     public virtual Group? Group { get; private set; }
 
@@ -69,5 +72,24 @@ public class User : IdentityUser
     {
         Group = null;
         GroupId = null;
+    }
+
+    public void UpdateProfile(string name, string ra, int? joinYear, string? department)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Nome inválido");
+        if (string.IsNullOrWhiteSpace(ra))
+            throw new ArgumentException("RA inválido");
+
+        Name = name;
+        RA = ra;
+        JoinYear = joinYear;
+        Department = department;
+    }
+
+    public void SoftDelete()
+    {
+        IsDeleted = true;
+        DeletedAt = DateTime.UtcNow;
     }
 }

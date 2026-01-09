@@ -87,4 +87,36 @@ public class Group : Entity
 
         _users.Remove(user);
     }
+
+    /// <summary>
+    /// Transfers group leadership to another member.
+    /// </summary>
+    /// <param name="newLeader">The new leader of the group. Must be an existing member.</param>
+    public void TransferLeadership(User newLeader)
+    {
+        if (newLeader == null)
+        {
+            throw new ArgumentNullException(nameof(newLeader));
+        }
+
+        if (!_users.Any(u => u.Id == newLeader.Id))
+        {
+            throw new InvalidOperationException("O novo líder deve ser um membro do grupo");
+        }
+
+        LeaderId = newLeader.Id;
+    }
+
+    /// <summary>
+    /// Disbands the group by removing all members and clearing their group association.
+    /// </summary>
+    public void Disband()
+    {
+        var usersToRemove = _users.ToList();
+        foreach (var user in usersToRemove)
+        {
+            user.LeaveGroup();
+        }
+        _users.Clear();
+    }
 }

@@ -39,6 +39,9 @@ public class FalconDbContext : IdentityDbContext<User>
     public DbSet<AttachedFile> AttachedFiles { get; set; }
     public DbSet<Log> Logs { get; set; }
 
+    // Users
+    public DbSet<UserCompetitionParticipation> UserCompetitionParticipations { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -46,5 +49,8 @@ public class FalconDbContext : IdentityDbContext<User>
         // Apply all configurations from the current assembly
         // This assumes that entity configurations are defined in separate classes
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(FalconDbContext).Assembly);
+
+        // Global query filter for soft delete on User
+        modelBuilder.Entity<User>().HasQueryFilter(u => !u.IsDeleted);
     }
 }

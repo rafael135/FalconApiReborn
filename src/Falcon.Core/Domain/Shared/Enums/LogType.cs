@@ -14,5 +14,7 @@ public enum LogType
     ViewExercise = 10,
     DownloadFile = 11,
     QuestionSent = 12,
-    AnswerGiven = 13
+    AnswerGiven = 13,
+    DeleteUser = 14,
+    AnswerUpdated = 16
 }

@@ -14,10 +14,11 @@ public class GetUsersEndpoint : IEndpoint
         app.MapGet("/api/Admin/users", [Authorize(Roles = "Admin")] async (
             IMediator mediator,
             string? role,
+            string? search,
             int skip = 0,
             int take = 50) =>
         {
-            var query = new GetUsersQuery(role, skip, take);
+            var query = new GetUsersQuery(role, search, skip, take);
             var result = await mediator.Send(query);
             return Results.Ok(result);
         })

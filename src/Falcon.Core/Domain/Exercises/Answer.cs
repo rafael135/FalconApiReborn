@@ -7,6 +7,8 @@ namespace Falcon.Core.Domain.Exercises;
 /// </summary>
 public class Answer : Entity
 {
+    public const int MaxContentLength = 2000;
+
     public string Content { get; private set; }
     public string UserId { get; private set; }
     public virtual User User { get; private set; }
@@ -23,6 +25,8 @@ public class Answer : Entity
             throw new ArgumentNullException(nameof(user));
         if (string.IsNullOrWhiteSpace(content))
             throw new ArgumentException("O conteúdo da resposta não pode estar vazio");
+        if (content.Length > MaxContentLength)
+            throw new ArgumentException($"Conteúdo não pode exceder {MaxContentLength} caracteres");
 
         User = user;
         UserId = user.Id;
@@ -34,6 +38,8 @@ public class Answer : Entity
     {
         if (string.IsNullOrWhiteSpace(content))
             throw new ArgumentException("O conteúdo da resposta não pode estar vazio");
+        if (content.Length > MaxContentLength)
+            throw new ArgumentException($"Conteúdo não pode exceder {MaxContentLength} caracteres");
 
         Content = content;
     }
