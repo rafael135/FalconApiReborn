@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Falcon.Infrastructure;
 
@@ -21,17 +23,22 @@ public static class DependencyInjection
         IConfiguration configuration
     )
     {
+        services.AddMemoryCache();
+
         string? connectionString = configuration.GetConnectionString("DefaultConnection");
-        var environment = configuration["ASPNETCORE_ENVIRONMENT"] ?? 
-                         Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? 
-                         configuration["Environment"] ??
-                         "Production";
+        string? environment =
+            configuration["ASPNETCORE_ENVIRONMENT"]
+            ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
+            ?? configuration["Environment"]
+            ?? "Production";
 
         // Only register SQL Server if connection string is provided and not in Testing environment
         // This allows tests to register InMemory database without conflicts
-        if (!string.IsNullOrWhiteSpace(connectionString) && 
-            environment != "Testing" && 
-            environment != "Test")
+        if (
+            !string.IsNullOrWhiteSpace(connectionString)
+            && environment != "Testing"
+            && environment != "Test"
+        )
         {
             services.AddDbContext<FalconDbContext>(options =>
                 options.UseSqlServer(
@@ -52,12 +59,12 @@ public static class DependencyInjection
             // In non-testing environments, FalconDbContext must be configured.
             // Fail fast with a clear message if the DefaultConnection string is missing or empty.
             throw new InvalidOperationException(
-                "FalconDbContext is not configured. Connection string 'DefaultConnection' is missing or empty. " +
-                "Ensure a valid connection string is provided in configuration, or register a DbContext explicitly " +
-                "in AddInfrastructure."
+                "FalconDbContext is not configured. Connection string 'DefaultConnection' is missing or empty. "
+                    + "Ensure a valid connection string is provided in configuration, or register a DbContext explicitly "
+                    + "in AddInfrastructure."
             );
         }
-        // If connection string is empty/null or in Testing environment, 
+        // If connection string is empty/null or in Testing environment,
         // tests will register InMemory database in ConfigureTestServices
 
         services.AddDataProtection();
@@ -83,20 +90,53 @@ public static class DependencyInjection
         var judgeApiUrl = configuration["JudgeApi:Url"];
         if (!string.IsNullOrEmpty(judgeApiUrl))
         {
-            services.AddHttpClient("JudgeAPI", client =>
-            {
-                client.BaseAddress = new Uri(judgeApiUrl);
-                client.Timeout = TimeSpan.FromSeconds(30);
-            })
-            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-            {
-                ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) => true
-            });
+            services
+                .AddHttpClient(
+                    "JudgeAPI",
+                    client =>
+                    {
+                        client.BaseAddress = new Uri(judgeApiUrl);
+                        client.Timeout = TimeSpan.FromSeconds(30);
+                    }
+                )
+                .ConfigurePrimaryHttpMessageHandler(() =>
+                    new HttpClientHandler
+                    {
+                        ServerCertificateCustomValidationCallback = (
+                            message,
+                            cert,
+                            chain,
+                            sslPolicyErrors
+                        ) => true,
+                    }
+                );
         }
 
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IJudgeService, JudgeService>();
-        services.AddSingleton<IFileStorageService, LocalFileStorageService>();
+
+        services.AddSingleton<IFileStorageService>(provider =>
+        {
+            ILogger<LocalFileStorageService> logger = provider.GetRequiredService<
+                ILogger<LocalFileStorageService>
+            >();
+            IWebHostEnvironment? webEnv = provider.GetService<IWebHostEnvironment>();
+
+            if (webEnv != null)
+            {
+                return new LocalFileStorageService(webEnv, logger);
+            }
+
+            IHostEnvironment hostEnv = provider.GetRequiredService<IHostEnvironment>();
+            string basePath = Path.Combine(
+                hostEnv.ContentRootPath ?? Directory.GetCurrentDirectory(),
+                "wwwroot",
+                "uploads"
+            );
+
+            return new LocalFileStorageService(basePath, logger);
+        });
+
         services.AddScoped<IAttachedFileService, AttachedFileService>();
 
         services.AddHttpContextAccessor();
@@ -109,7 +149,8 @@ public static class DependencyInjection
     /// </summary>
     public static IServiceCollection AddApiMassTransit(
         this IServiceCollection services,
-        Action<IRegistrationConfigurator> configureConsumers)
+        Action<IRegistrationConfigurator> configureConsumers
+    )
     {
         services.AddMassTransit(bus =>
         {
@@ -117,16 +158,22 @@ public static class DependencyInjection
 
             configureConsumers(bus);
 
-            bus.UsingRabbitMq((context, cfg) =>
-            {
-                cfg.Host("localhost", "/", h =>
+            bus.UsingRabbitMq(
+                (context, cfg) =>
                 {
-                    h.Username("guest");
-                    h.Password("guest");
-                });
+                    cfg.Host(
+                        "localhost",
+                        "/",
+                        h =>
+                        {
+                            h.Username("guest");
+                            h.Password("guest");
+                        }
+                    );
 
-                cfg.ConfigureEndpoints(context);
-            });
+                    cfg.ConfigureEndpoints(context);
+                }
+            );
         });
 
         return services;

@@ -8,8 +8,6 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddMemoryCache();
-
 // Add infrastructure services
 builder.Services.AddInfrastructure(builder.Configuration);
 
