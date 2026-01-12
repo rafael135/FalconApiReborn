@@ -12,7 +12,10 @@ public class LocalFileStorageService : IFileStorageService
     private readonly string _baseDirectory;
     private readonly ILogger<LocalFileStorageService> _logger;
 
-    public LocalFileStorageService(IWebHostEnvironment environment, ILogger<LocalFileStorageService> logger)
+    public LocalFileStorageService(
+        IWebHostEnvironment environment,
+        ILogger<LocalFileStorageService> logger
+    )
     {
         _baseDirectory = Path.Combine(environment.WebRootPath, "uploads");
         _logger = logger;
@@ -25,7 +28,27 @@ public class LocalFileStorageService : IFileStorageService
         }
     }
 
-    public async Task<string> SaveFileAsync(Stream fileStream, string fileName, CancellationToken cancellationToken = default)
+    public LocalFileStorageService(string baseDirectory, ILogger<LocalFileStorageService> logger)
+    {
+        _baseDirectory = baseDirectory;
+        _logger = logger;
+        EnsureBaseDirectoryExists();
+    }
+
+    private void EnsureBaseDirectoryExists()
+    {
+        if (!Directory.Exists(_baseDirectory))
+        {
+            Directory.CreateDirectory(_baseDirectory);
+            _logger.LogInformation($"Created uploads directory at {_baseDirectory}");
+        }
+    }
+
+    public async Task<string> SaveFileAsync(
+        Stream fileStream,
+        string fileName,
+        CancellationToken cancellationToken = default
+    )
     {
         // Generate unique filename
         var extension = Path.GetExtension(fileName);
@@ -57,7 +80,10 @@ public class LocalFileStorageService : IFileStorageService
         return relativePath;
     }
 
-    public async Task<Stream> GetFileAsync(string filePath, CancellationToken cancellationToken = default)
+    public async Task<Stream> GetFileAsync(
+        string filePath,
+        CancellationToken cancellationToken = default
+    )
     {
         var fullPath = Path.Combine(_baseDirectory, filePath);
 
@@ -89,7 +115,10 @@ public class LocalFileStorageService : IFileStorageService
         return Task.CompletedTask;
     }
 
-    public Task<bool> FileExistsAsync(string filePath, CancellationToken cancellationToken = default)
+    public Task<bool> FileExistsAsync(
+        string filePath,
+        CancellationToken cancellationToken = default
+    )
     {
         var fullPath = Path.Combine(_baseDirectory, filePath);
         return Task.FromResult(File.Exists(fullPath));

@@ -22,6 +22,10 @@ public class SubmitExerciseResultConsumer : IConsumer<ISubmitExerciseResult>
         _logger = logger;
     }
 
+    /// <summary>
+    /// Receives submission results from the Worker and forwards them to the client via SignalR.
+    /// </summary>
+    /// <param name="context">MassTransit consume context containing <see cref="ISubmitExerciseResult"/> message.</param>
     public async Task Consume(ConsumeContext<ISubmitExerciseResult> context)
     {
         var result = context.Message;

@@ -21,6 +21,13 @@ public class BlockGroupHandler : IRequestHandler<BlockGroupCommand, BlockGroupRe
         _logger = logger;
     }
 
+/// <summary>
+    /// Handles the <see cref="BlockGroupCommand"/> and blocks a group's participation in the competition.
+    /// </summary>
+    /// <param name="request">Command containing competition and group ids.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A <see cref="BlockGroupResult"/> indicating success or failure.</returns>
+    /// <exception cref="FormException">Thrown when the group is not registered in the competition.</exception>
     public async Task<BlockGroupResult> Handle(BlockGroupCommand request, CancellationToken cancellationToken)
     {
         // Find group registration
@@ -45,5 +52,5 @@ public class BlockGroupHandler : IRequestHandler<BlockGroupCommand, BlockGroupRe
             request.GroupId, request.CompetitionId);
 
         return new BlockGroupResult(true, "Grupo bloqueado com sucesso");
-    }
+    } 
 }

@@ -8,6 +8,11 @@ namespace Falcon.Api.Features.Users.UpdateUser;
 /// <summary>
 /// Endpoint for updating user profile information.
 /// </summary>
+/// <remarks>
+/// Recebe um <see cref="UpdateUserCommand"/> no body. Verifica que o `id` da rota corresponde a `command.UserId`.
+/// Exemplo de request: { "userId": "...", "name": "Alice", "email": "alice@example.com", "ra": "12345", "newPassword": "novaSenha123", "currentPassword": "senhaAtual" }
+/// Exemplo de resposta: { "user": { "id":"...", "name":"Alice", "email":"alice@example.com" } }
+/// </remarks>
 public class UpdateUserEndpoint : IEndpoint
 {
     /// <summary>

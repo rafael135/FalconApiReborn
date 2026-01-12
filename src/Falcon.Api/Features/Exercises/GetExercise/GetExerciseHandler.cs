@@ -9,6 +9,11 @@ namespace Falcon.Api.Features.Exercises.GetExercise;
 /// <summary>
 /// Handler for getting an exercise by ID.
 /// </summary>
+/// <remarks>
+/// Includes test cases only when the current user has the Teacher or Admin role. The handler maps
+/// attached file metadata and test cases (inputs/outputs) to <see cref="ExerciseDetailDto"/>.
+/// </remarks>
+/// <exception cref="Falcon.Core.Domain.Shared.Exceptions.NotFoundException">Thrown when the exercise does not exist.</exception>
 public class GetExerciseHandler : IRequestHandler<GetExerciseQuery, GetExerciseResult>
 {
     private readonly FalconDbContext _dbContext;

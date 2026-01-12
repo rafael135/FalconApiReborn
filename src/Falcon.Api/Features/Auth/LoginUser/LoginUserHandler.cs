@@ -10,6 +10,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Falcon.Api.Features.Auth.LoginUser;
 
+/// <summary>
+/// Handler responsável pela autenticação de usuários.
+/// </summary>
 public class LoginUserHandler : IRequestHandler<LoginUserCommand, LoginUserResult>
 {
     private readonly UserManager<User> _userManager;
@@ -36,6 +39,13 @@ public class LoginUserHandler : IRequestHandler<LoginUserCommand, LoginUserResul
         _logger = logger;
     }
 
+    /// <summary>
+    /// Processa o comando de autenticação e retorna o usuário (com dados adicionais) e token.
+    /// </summary>
+    /// <param name="request">Comando contendo RA/email e senha.</param>
+    /// <param name="cancellationToken">Token de cancelamento.</param>
+    /// <returns>Resultado com `UserDto` e token JWT.</returns>
+    /// <exception cref="FormException">Quando o RA/senha forem inválidos.</exception>
     public async Task<LoginUserResult> Handle(
         LoginUserCommand request,
         CancellationToken cancellationToken

@@ -17,6 +17,14 @@ public class AddExerciseHandler : IRequestHandler<AddExerciseCommand, AddExercis
         _logger = logger;
     }
 
+    /// <summary>
+    /// Handles the <see cref="AddExerciseCommand"/> and adds an existing exercise to the specified competition.
+    /// </summary>
+    /// <param name="request">Command containing competition and exercise ids.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>An <see cref="AddExerciseResult"/> indicating success or failure.</returns>
+    /// <exception cref="NotFoundException">Thrown when the competition or exercise does not exist.</exception>
+    /// <exception cref="FormException">Thrown when the operation is invalid (e.g., competition finished, exercise already added, or max exercises reached).</exception>
     public async Task<AddExerciseResult> Handle(AddExerciseCommand request, CancellationToken cancellationToken)
     {
         var competition = await _dbContext.Competitions

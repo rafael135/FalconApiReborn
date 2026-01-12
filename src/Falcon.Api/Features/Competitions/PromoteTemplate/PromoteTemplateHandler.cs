@@ -23,6 +23,14 @@ public class PromoteTemplateHandler : IRequestHandler<PromoteTemplateCommand, Pr
         _logger = logger;
     }
 
+/// <summary>
+    /// Handles the <see cref="PromoteTemplateCommand"/> and promotes a template to an active competition.
+    /// </summary>
+    /// <param name="request">Promotion parameters.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The created competition representation after promotion.</returns>
+    /// <exception cref="FormException">Thrown for invalid input parameters or if the template is not promotable.</exception>
+    /// <exception cref="NotFoundException">Thrown when the template competition is not found.</exception>
     public async Task<PromoteTemplateResult> Handle(PromoteTemplateCommand request, CancellationToken cancellationToken)
     {
         // Validate inputs

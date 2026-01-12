@@ -5,6 +5,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Falcon.Api.Features.Exercises.RemoveTestCase;
 
+/// <summary>
+/// Handler that removes a test case (input and corresponding output) from an exercise.
+/// </summary>
+/// <remarks>
+/// Throws <see cref="Falcon.Core.Domain.Shared.Exceptions.NotFoundException"/> if the test case input is not found.
+/// </remarks>
 public class RemoveTestCaseHandler : IRequestHandler<RemoveTestCaseCommand, RemoveTestCaseResult>
 {
     private readonly FalconDbContext _dbContext;

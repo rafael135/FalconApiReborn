@@ -6,8 +6,17 @@ using Microsoft.AspNetCore.Mvc;
 namespace Falcon.Api.Features.Competitions.PromoteTemplate;
 
 /// <summary>
-/// Endpoint for promoting a competition template to an active competition.
+/// Endpoint for promoting a competition template to an active competition. Requires Teacher or Admin role.
 /// </summary>
+/// <remarks>
+/// Example:
+/// <code>
+/// curl -X POST "https://localhost:5001/api/Competition/00000000-0000-0000-0000-000000000000/promote" \
+///   -H "Authorization: Bearer {token}" \
+///   -H "Content-Type: application/json" \
+///   -d '{ "TemplateId": "00000000-0000-0000-0000-000000000000", "MaxMembers": 3, "MaxExercises": 10, "MaxSubmissionSize": 1024, "Duration": "01:00:00", "StopRanking": "00:45:00", "BlockSubmissions": "00:10:00", "Penalty": "00:05:00" }'
+/// </code>
+/// </remarks>
 public class PromoteTemplateEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)

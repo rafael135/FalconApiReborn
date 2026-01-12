@@ -23,6 +23,14 @@ public class StartCompetitionHandler : IRequestHandler<StartCompetitionCommand, 
         _logger = logger;
     }
 
+    /// <summary>
+    /// Handles the <see cref="StartCompetitionCommand"/> and starts the competition if it is in a valid state.
+    /// </summary>
+    /// <param name="request">Command containing the competition id to start.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The updated competition information after starting.</returns>
+    /// <exception cref="NotFoundException">Thrown when the competition does not exist.</exception>
+    /// <exception cref="FormException">Thrown when the competition is in an invalid state to start.</exception>
     public async Task<StartCompetitionResult> Handle(StartCompetitionCommand request, CancellationToken cancellationToken)
     {
         var competition = await _dbContext.Competitions

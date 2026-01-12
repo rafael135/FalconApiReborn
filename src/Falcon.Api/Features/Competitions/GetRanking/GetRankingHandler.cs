@@ -18,6 +18,13 @@ public class GetRankingHandler : IRequestHandler<GetRankingQuery, GetRankingResu
         _dbContext = dbContext;
     }
 
+    /// <summary>
+    /// Handles the <see cref="GetRankingQuery"/> and returns the ranking entries for the competition.
+    /// </summary>
+    /// <param name="request">Query containing the competition id.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A <see cref="GetRankingResult"/> containing ranking entries ordered by rank.</returns>
+    /// <exception cref="NotFoundException">Thrown when the competition does not exist.</exception>
     public async Task<GetRankingResult> Handle(GetRankingQuery request, CancellationToken cancellationToken)
     {
         // Verify competition exists

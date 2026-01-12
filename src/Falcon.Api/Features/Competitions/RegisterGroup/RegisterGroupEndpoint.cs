@@ -6,8 +6,15 @@ using Microsoft.AspNetCore.Mvc;
 namespace Falcon.Api.Features.Competitions.RegisterGroup;
 
 /// <summary>
-/// Endpoint for registering a group in a competition.
+/// Endpoint for registering the current user's group in a competition. Requires authentication.
 /// </summary>
+/// <remarks>
+/// Example:
+/// <code>
+/// curl -X POST "https://localhost:5001/api/Competition/00000000-0000-0000-0000-000000000000/register" \
+///   -H "Authorization: Bearer {token}"
+/// </code>
+/// </remarks>
 public class RegisterGroupEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)

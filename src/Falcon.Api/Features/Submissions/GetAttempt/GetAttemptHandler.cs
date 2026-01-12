@@ -8,6 +8,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Falcon.Api.Features.Submissions.GetAttempt;
 
+/// <summary>
+/// Handler para obter os detalhes de uma tentativa.
+/// </summary>
 public class GetAttemptHandler : IRequestHandler<GetAttemptQuery, GetAttemptResult>
 {
     private readonly FalconDbContext _dbContext;
@@ -24,6 +27,15 @@ public class GetAttemptHandler : IRequestHandler<GetAttemptQuery, GetAttemptResu
         _httpContextAccessor = httpContextAccessor;
     }
 
+    /// <summary>
+    /// Busca uma tentativa por ID, validando permissões de acesso (membro do grupo ou Teacher/Admin).
+    /// </summary>
+    /// <param name="request">Query com ID da tentativa.</param>
+    /// <param name="cancellationToken">Token de cancelamento.</param>
+    /// <returns>Detalhes da tentativa em um <see cref="GetAttemptResult"/>.</returns>
+    /// <exception cref="UnauthorizedAccessException">Quando usuário não autenticado ou sem permissão.</exception>
+    /// <exception cref="NotFoundException">Quando a tentativa não é encontrada.</exception>
+    /// <exception cref="FormException">Quando usuário não pertence ao grupo dono da tentativa.</exception>
     public async Task<GetAttemptResult> Handle(GetAttemptQuery request, CancellationToken cancellationToken)
     {
         var userName = _httpContextAccessor.HttpContext?.User?.Identity?.Name;

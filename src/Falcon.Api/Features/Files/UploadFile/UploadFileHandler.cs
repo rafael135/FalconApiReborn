@@ -7,6 +7,7 @@ namespace Falcon.Api.Features.Files.UploadFile;
 
 /// <summary>
 /// Handler for uploading files.
+/// Validates file extension and size, stores the file using <see cref="IAttachedFileService"/>, and returns metadata about the stored file.
 /// </summary>
 public class UploadFileHandler : IRequestHandler<UploadFileCommand, UploadFileResult>
 {
@@ -24,6 +25,12 @@ public class UploadFileHandler : IRequestHandler<UploadFileCommand, UploadFileRe
         _logger = logger;
     }
 
+    /// <summary>
+    /// Processes the upload request. Throws <see cref="ArgumentException"/> when the file is missing or invalid.
+    /// </summary>
+    /// <param name="request">Upload command containing the <see cref="IFormFile"/> to persist.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>An <see cref="UploadFileResult"/> with saved file metadata.</returns>
     public async Task<UploadFileResult> Handle(UploadFileCommand request, CancellationToken cancellationToken)
     {
         var file = request.File;

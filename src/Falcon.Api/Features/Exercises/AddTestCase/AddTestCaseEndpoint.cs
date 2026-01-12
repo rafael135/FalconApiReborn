@@ -5,8 +5,20 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Falcon.Api.Features.Exercises.AddTestCase;
 
+/// <summary>
+/// Endpoint para adicionar um caso de teste a um exercício.
+/// </summary>
+/// <remarks>
+/// Exemplo de uso:
+/// <code>
+/// curl -X POST "https://localhost:5001/api/Exercise/{exerciseId}/testcase" \
+///  -H "Content-Type: application/json" \
+///  -d '{ "exerciseId": "00000000-0000-0000-0000-000000000000", "inputContent": "1 2", "expectedOutput": "3" }'
+/// </code>
+/// </remarks>
 public class AddTestCaseEndpoint : IEndpoint
 {
+    /// <inheritdoc />
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("api/Exercise/{id}/testcase", [Authorize(Roles = "Teacher,Admin")] async (IMediator mediator, Guid id, [FromBody] AddTestCaseCommand command) =>
@@ -19,4 +31,4 @@ public class AddTestCaseEndpoint : IEndpoint
         .WithTags("Exercises")
         .Produces<AddTestCaseResult>();
     }
-}
+} 

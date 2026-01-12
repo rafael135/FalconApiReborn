@@ -17,6 +17,14 @@ public class RemoveExerciseHandler : IRequestHandler<RemoveExerciseCommand, Remo
         _logger = logger;
     }
 
+    /// <summary>
+    /// Handles the <see cref="RemoveExerciseCommand"/> and removes an exercise from a competition if allowed.
+    /// </summary>
+    /// <param name="request">Command containing competition and exercise ids.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A <see cref="RemoveExerciseResult"/> indicating success or failure.</returns>
+    /// <exception cref="NotFoundException">Thrown when the competition does not exist.</exception>
+    /// <exception cref="FormException">Thrown when the operation is invalid (competition ongoing/finished or exercise not present).</exception>
     public async Task<RemoveExerciseResult> Handle(RemoveExerciseCommand request, CancellationToken cancellationToken)
     {
         var competition = await _dbContext.Competitions.FindAsync(new object[] { request.CompetitionId }, cancellationToken);
@@ -44,5 +52,5 @@ public class RemoveExerciseHandler : IRequestHandler<RemoveExerciseCommand, Remo
         _logger.LogInformation("Exercise {ExerciseId} removed from competition {CompetitionId}", request.ExerciseId, request.CompetitionId);
 
         return new RemoveExerciseResult(true, "Exercício removido da competição com sucesso");
-    }
+    } 
 }

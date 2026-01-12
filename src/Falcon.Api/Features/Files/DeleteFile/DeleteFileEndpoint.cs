@@ -7,6 +7,10 @@ namespace Falcon.Api.Features.Files.DeleteFile;
 /// <summary>
 /// Endpoint for deleting files (Admin only).
 /// </summary>
+/// <remarks>
+/// Deletes a file by Id. Will return 200 with a success message when deletion completes.
+/// Example: DELETE /api/File/{id}
+/// </remarks>
 public class DeleteFileEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
@@ -21,4 +25,4 @@ public class DeleteFileEndpoint : IEndpoint
         .WithTags("Files")
         .Produces<DeleteFileResult>();
     }
-}
+} 

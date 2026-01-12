@@ -1,3 +1,6 @@
 namespace Falcon.Api.Features.Exercises.RemoveTestCase;
 
-public record RemoveTestCaseResult(bool Success, string Message);
+/// <summary>
+/// Resultado da operação de remoção de caso de teste.
+/// </summary>
+public record RemoveTestCaseResult(bool Success, string Message); 

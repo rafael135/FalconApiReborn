@@ -21,7 +21,6 @@ public class DownloadFileHandler : IRequestHandler<DownloadFileQuery, DownloadFi
     private readonly UserManager<User> _userManager;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ILogger<DownloadFileHandler> _logger;
-
     public DownloadFileHandler(
         FalconDbContext context,
         IAttachedFileService attachedFileService,
@@ -36,6 +35,12 @@ public class DownloadFileHandler : IRequestHandler<DownloadFileQuery, DownloadFi
         _logger = logger;
     }
 
+    /// <summary>
+    /// Retrieves the file and returns a <see cref="DownloadFileResult"/>. Throws <see cref="NotFoundException"/> if the file does not exist.
+    /// </summary>
+    /// <param name="request">The download query carrying the FileId.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>File stream, content type and filename packaged in a <see cref="DownloadFileResult"/>.</returns>
     public async Task<DownloadFileResult> Handle(DownloadFileQuery request, CancellationToken cancellationToken)
     {
         // Get file metadata

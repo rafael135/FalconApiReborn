@@ -8,6 +8,13 @@ namespace Falcon.Api.Features.Competitions.GetAttempts;
 /// <summary>
 /// Endpoint for getting attempts of a competition (Teacher/Admin only).
 /// </summary>
+/// <remarks>
+/// Example:
+/// <code>
+/// curl -X GET "https://localhost:5001/api/Competition/00000000-0000-0000-0000-000000000000/attempts?skip=0&amp;take=10" \
+///   -H "Authorization: Bearer {token}"
+/// </code>
+/// </remarks>
 public class GetAttemptsEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
@@ -26,4 +33,4 @@ public class GetAttemptsEndpoint : IEndpoint
         .WithTags("Competitions")
         .Produces<GetAttemptsResult>();
     }
-}
+} 

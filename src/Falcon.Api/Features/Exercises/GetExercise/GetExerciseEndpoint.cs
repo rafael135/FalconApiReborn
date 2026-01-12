@@ -7,8 +7,17 @@ namespace Falcon.Api.Features.Exercises.GetExercise;
 /// <summary>
 /// Endpoint for getting an exercise by ID.
 /// </summary>
+/// <remarks>
+/// Returns detailed exercise information. **Note:** test cases are included only if the caller is
+/// in the **Teacher** or **Admin** role — otherwise the `testCases` property will be null.
+/// Example:
+/// <code>
+/// curl "https://localhost:5001/api/Exercise/{exerciseId}"
+/// </code>
+/// </remarks>
 public class GetExerciseEndpoint : IEndpoint
 {
+    /// <inheritdoc />
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("api/Exercise/{id}", async (IMediator mediator, Guid id) =>
@@ -21,4 +30,4 @@ public class GetExerciseEndpoint : IEndpoint
         .WithTags("Exercises")
         .Produces<GetExerciseResult>();
     }
-}
+} 

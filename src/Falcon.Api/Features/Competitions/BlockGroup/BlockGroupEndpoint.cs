@@ -8,6 +8,13 @@ namespace Falcon.Api.Features.Competitions.BlockGroup;
 /// <summary>
 /// Endpoint for blocking a group in a competition.
 /// </summary>
+/// <remarks>
+/// Example:
+/// <code>
+/// curl -X POST "https://localhost:5001/api/Competition/00000000-0000-0000-0000-000000000000/block/00000000-0000-0000-0000-000000000000" \
+///   -H "Authorization: Bearer {token}"
+/// </code>
+/// </remarks>
 public class BlockGroupEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)

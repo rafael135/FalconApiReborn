@@ -23,6 +23,14 @@ public class FinishCompetitionHandler : IRequestHandler<FinishCompetitionCommand
         _logger = logger;
     }
 
+/// <summary>
+    /// Handles the <see cref="FinishCompetitionCommand"/> and finishes the competition if it is ongoing.
+    /// </summary>
+    /// <param name="request">Command containing the competition id to finish.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The updated competition information after finishing.</returns>
+    /// <exception cref="NotFoundException">Thrown when the competition is not found.</exception>
+    /// <exception cref="FormException">Thrown when the competition is not in an ongoing state.</exception>
     public async Task<FinishCompetitionResult> Handle(FinishCompetitionCommand request, CancellationToken cancellationToken)
     {
         var competition = await _dbContext.Competitions
@@ -64,5 +72,5 @@ public class FinishCompetitionHandler : IRequestHandler<FinishCompetitionCommand
         );
 
         return new FinishCompetitionResult(competitionDto);
-    }
+    } 
 }
