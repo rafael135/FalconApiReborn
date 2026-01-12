@@ -1,6 +1,7 @@
 using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Admin.GetUsers;
 
@@ -26,6 +27,8 @@ public class GetUsersEndpoint : IEndpoint
         .WithTags("Admin")
         .WithSummary("Get a paginated list of users.")
         .WithDescription("Returns users filtered by role and search text; requires Admin or Teacher role.")
-        .Produces<GetUsersResult>();
+        .Produces<GetUsersResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
     }
 }

@@ -1,6 +1,8 @@
 using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Groups.GetGroup;
 
@@ -19,6 +21,11 @@ public class GetGroupEndpoint : IEndpoint
         })
         .WithName("GetGroup")
         .WithTags("Groups")
-        .Produces<GetGroupResult>();
+        .WithSummary("Get group details.")
+        .WithDescription("Returns detailed information about a group, including members and invites.")
+        .Produces<GetGroupResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound);
     }
 }

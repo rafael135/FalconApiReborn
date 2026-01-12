@@ -2,6 +2,7 @@ using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Groups.UpdateGroup;
 
@@ -20,6 +21,12 @@ public class UpdateGroupEndpoint : IEndpoint
         })
         .WithName("UpdateGroup")
         .WithTags("Groups")
-        .Produces<UpdateGroupResult>();
+        .WithSummary("Update a group.")
+        .WithDescription("Updates group information such as the group name. Requires authentication and appropriate permissions.")
+        .Produces<UpdateGroupResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound);
     }
 }

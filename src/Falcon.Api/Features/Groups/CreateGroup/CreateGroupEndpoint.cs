@@ -19,6 +19,12 @@ public class CreateGroupEndpoint : IEndpoint
         })
         .WithName("CreateGroup")
         .WithTags("Groups")
-        .Produces<CreateGroupResult>();
+        .WithSummary("Create a new group.")
+        .WithDescription("Creates a new group. The creator is set as group leader.")
+        .Produces<CreateGroupResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound);
     }
 }

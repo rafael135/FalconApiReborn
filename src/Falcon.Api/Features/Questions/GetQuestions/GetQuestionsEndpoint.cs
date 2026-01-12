@@ -2,6 +2,7 @@ using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Questions.GetQuestions;
 
@@ -33,7 +34,11 @@ public class GetQuestionsEndpoint : IEndpoint
         })
         .WithName("GetQuestions")
         .WithTags("Questions")
-        .Produces<GetQuestionsResult>()
-        .Produces(401);
+        .WithSummary("List questions for a competition/exercise.")
+        .WithDescription("Returns a paginated list of questions filtered by competition and optional exercise/question type. Requires authentication.")
+        .Produces<GetQuestionsResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound);
     }
 }

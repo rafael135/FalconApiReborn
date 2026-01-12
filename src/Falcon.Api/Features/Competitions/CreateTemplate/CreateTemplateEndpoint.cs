@@ -2,6 +2,7 @@ using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Competitions.CreateTemplate;
 
@@ -21,6 +22,8 @@ public class CreateTemplateEndpoint : IEndpoint
         .WithTags("Competitions")
         .WithSummary("Create a competition template.")
         .WithDescription("Creates a new competition template which can later be promoted to an active competition by a Teacher or Admin.")
-        .Produces<CreateTemplateResult>();
+        .Produces<CreateTemplateResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
     }
 }

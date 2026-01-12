@@ -1,6 +1,7 @@
 using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Admin.GetStatistics;
 
@@ -22,6 +23,8 @@ public class GetStatisticsEndpoint : IEndpoint
         .WithTags("Admin")
         .WithSummary("Get system statistics for admin dashboard.")
         .WithDescription("Provides aggregated user, competition, exercise and submission statistics; Admin only.")
-        .Produces<GetStatisticsResult>();
+        .Produces<GetStatisticsResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
     }
 }

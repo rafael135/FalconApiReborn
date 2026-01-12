@@ -2,6 +2,7 @@ using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Competitions.RemoveExercise;
 
@@ -27,6 +28,11 @@ public class RemoveExerciseEndpoint : IEndpoint
         })
         .WithName("RemoveExercise")
         .WithTags("Competitions")
-        .Produces<RemoveExerciseResult>();
+        .WithSummary("Remove an exercise from a competition.")
+        .WithDescription("Removes an exercise from the specified competition. Requires Teacher or Admin role.")
+        .Produces<RemoveExerciseResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound);
     }
 } 

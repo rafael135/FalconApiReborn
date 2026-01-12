@@ -1,6 +1,7 @@
 using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Admin.GetCurrentToken;
 
@@ -20,6 +21,10 @@ public class GetCurrentTokenEndpoint : IEndpoint
         })
         .WithName("GetCurrentToken")
         .WithTags("Admin")
-        .Produces<GetCurrentTokenResult>();
+        .WithSummary("Get current admin token info.")
+        .WithDescription("Returns information about the current admin's token. Requires Admin role.")
+        .Produces<GetCurrentTokenResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
     }
 }

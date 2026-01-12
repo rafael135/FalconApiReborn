@@ -32,6 +32,7 @@ public class GetCompetitionEndpoint : IEndpoint
         .WithTags("Competitions")
         .WithSummary("Get competition details by ID.")
         .WithDescription("Returns detailed information about a specific competition, including exercises and schedule.")
-        .Produces<GetCompetitionResult>();
+        .Produces<GetCompetitionResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status404NotFound);
     }
 }

@@ -2,6 +2,7 @@ using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Groups.LeaveGroup;
 
@@ -20,6 +21,10 @@ public class LeaveGroupEndpoint : IEndpoint
         })
         .WithName("LeaveGroup")
         .WithTags("Groups")
-        .Produces<LeaveGroupResult>();
+        .WithSummary("Leave a group.")
+        .WithDescription("Removes the authenticated user from their current group.")
+        .Produces<LeaveGroupResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status404NotFound);
     }
 }

@@ -10,13 +10,13 @@ namespace Falcon.Api.Features.Exercises.CreateExercise;
 /// Endpoint for creating a new exercise.
 /// </summary>
 /// <remarks>
-/// Este endpoint aceita formulário multipart/form-data com dois campos:
-/// - `metadata` — string contendo o JSON serializado de <see cref="CreateExerciseRequestDto"/>;
-/// - `file` — arquivo opcional (ex.: enunciado em PDF).
-/// Exemplo de uso via curl:
+/// This endpoint accepts multipart/form-data with two fields:
+/// - `metadata` — a string containing JSON serialized <see cref="CreateExerciseRequestDto"/>;
+/// - `file` — an optional file attachment (e.g., PDF statement).
+/// Example curl usage:
 /// <code>
 /// curl -X POST "https://localhost:5001/api/Exercise" \
-///  -F "metadata={ \"title\": \"Somar dois números\", \"exerciseTypeId\": 1, \"inputs\": [{ \"orderId\": 1, \"input\": \"1 2\" }], \"outputs\": [{ \"orderId\": 1, \"output\": \"3\" }] }" \
+///  -F "metadata={ \"title\": \"Add numbers\", \"exerciseTypeId\": 1, \"inputs\": [{ \"orderId\": 1, \"input\": \"1 2\" }], \"outputs\": [{ \"orderId\": 1, \"output\": \"3\" }] }" \
 ///  -F "file=@statement.pdf"
 /// </code>
 /// </remarks>
@@ -53,6 +53,9 @@ public class CreateExerciseEndpoint : IEndpoint
         .WithDescription("Creates a new exercise using multipart/form-data: 'metadata' JSON string and optional 'file' attachment.")
         .DisableAntiforgery()
         .WithMetadata(new Microsoft.AspNetCore.Mvc.ConsumesAttribute("multipart/form-data"))
-        .Produces<CreateExerciseResult>();
+        .Produces<CreateExerciseResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
     }
 } 

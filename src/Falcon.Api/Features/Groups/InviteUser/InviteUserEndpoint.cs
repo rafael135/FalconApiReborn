@@ -2,6 +2,7 @@ using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Groups.InviteUser;
 
@@ -19,6 +20,12 @@ public class InviteUserEndpoint : IEndpoint
         })
         .WithName("InviteUser")
         .WithTags("Groups")
-        .Produces<InviteUserResult>();
+        .WithSummary("Invite a user to the group.")
+        .WithDescription("Sends an invitation to the specified user to join the authenticated user's group. Requires group leadership.")
+        .Produces<InviteUserResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
+
     }
 }

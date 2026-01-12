@@ -2,6 +2,7 @@ using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Groups.RemoveMember;
 
@@ -20,6 +21,11 @@ public class RemoveMemberEndpoint : IEndpoint
         })
         .WithName("RemoveMember")
         .WithTags("Groups")
-        .Produces<RemoveMemberResult>();
+        .WithSummary("Remove a member from a group.")
+        .WithDescription("Removes a member from the group. Requires group leadership.")
+        .Produces<RemoveMemberResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound);
     }
 }

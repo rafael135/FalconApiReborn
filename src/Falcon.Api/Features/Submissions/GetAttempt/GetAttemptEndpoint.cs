@@ -2,6 +2,7 @@ using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Submissions.GetAttempt;
 
@@ -27,6 +28,11 @@ public class GetAttemptEndpoint : IEndpoint
         })
         .WithName("GetAttempt")
         .WithTags("Submissions")
-        .Produces<GetAttemptResult>();
+        .WithSummary("Get attempt details.")
+        .WithDescription("Returns details for a specific attempt. Requires authentication and appropriate authorization.")
+        .Produces<GetAttemptResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound);
     }
 } 

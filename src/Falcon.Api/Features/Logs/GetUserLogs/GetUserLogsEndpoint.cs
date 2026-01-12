@@ -1,6 +1,7 @@
 using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Logs.GetUserLogs;
 
@@ -23,6 +24,11 @@ public class GetUserLogsEndpoint : IEndpoint
         })
         .WithName("GetUserLogs")
         .WithTags("Logs")
-        .Produces<GetUserLogsResult>();
+        .WithSummary("Get logs for a specific user.")
+        .WithDescription("Returns logs related to a specific user. Requires Teacher or Admin role.")
+        .Produces<GetUserLogsResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
+
     }
 }

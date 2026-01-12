@@ -2,6 +2,7 @@ using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Competitions.FinishCompetition;
 
@@ -29,6 +30,9 @@ public class FinishCompetitionEndpoint : IEndpoint
         .WithTags("Competitions")
         .WithSummary("Finish a competition.")
         .WithDescription("Marks the competition as finished and finalizes rankings; requires Teacher or Admin role.")
-        .Produces<FinishCompetitionResult>();
+        .Produces<FinishCompetitionResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound);
     }
 }

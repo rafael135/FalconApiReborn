@@ -1,6 +1,7 @@
 using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Admin.GenerateTeacherToken;
 
@@ -21,6 +22,10 @@ public class GenerateTeacherTokenEndpoint : IEndpoint
         })
         .WithName("GenerateTeacherToken")
         .WithTags("Admin")
-        .Produces<GenerateTeacherTokenResult>();
+        .WithSummary("Generate an access token for teacher registration.")
+        .WithDescription("Generates a single-use token that can be used to register a Teacher account. Requires Admin role.")
+        .Produces<GenerateTeacherTokenResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
     }
 }

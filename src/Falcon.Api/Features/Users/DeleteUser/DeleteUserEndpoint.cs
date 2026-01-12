@@ -26,10 +26,10 @@ public class DeleteUserEndpoint : IEndpoint
         })
         .WithName("DeleteUser")
         .WithTags("Users")
-        .Produces<DeleteUserResult>()
-        .Produces(401)
-        .Produces(403)
-        .Produces(404)
-        .Produces(422);
+        .Produces<DeleteUserResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound)
+        .Produces(StatusCodes.Status422UnprocessableEntity);
     }
 }

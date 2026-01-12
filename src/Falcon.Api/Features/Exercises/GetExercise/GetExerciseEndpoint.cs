@@ -28,6 +28,9 @@ public class GetExerciseEndpoint : IEndpoint
         })
         .WithName("GetExercise")
         .WithTags("Exercises")
-        .Produces<GetExerciseResult>();
+        .WithSummary("Get an exercise by ID.")
+        .WithDescription("Returns exercise details. Test cases are included only for Teacher/Admin; otherwise testCases is null.")
+        .Produces<GetExerciseResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status404NotFound);
     }
 } 

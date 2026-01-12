@@ -41,6 +41,8 @@ public class LoginUserEndpoint : IEndpoint
         .WithSummary("Authenticate a user and return tokens.")
         .WithDescription("Authenticates the user and sets an HttpOnly 'CompetitionAuthToken' cookie; returns user information and token.")
         .Produces<LoginUserResult>(StatusCodes.Status200OK)
-        .Produces(StatusCodes.Status400BadRequest);
+        .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status422UnprocessableEntity);
     }
 }

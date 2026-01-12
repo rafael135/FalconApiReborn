@@ -1,6 +1,7 @@
 using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Files.DeleteFile;
 
@@ -23,6 +24,11 @@ public class DeleteFileEndpoint : IEndpoint
         })
         .WithName("DeleteFile")
         .WithTags("Files")
-        .Produces<DeleteFileResult>();
+        .WithSummary("Delete a file.")
+        .WithDescription("Deletes a file by ID. Requires Admin role.")
+        .Produces<DeleteFileResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound);
     }
 } 

@@ -31,9 +31,9 @@ public class GetCompetitionHistoryEndpoint : IEndpoint
         })
         .WithName("GetCompetitionHistory")
         .WithTags("Users")
-        .Produces<GetCompetitionHistoryResult>()
-        .Produces(401)
-        .Produces(403)
-        .Produces(404);
+        .Produces<GetCompetitionHistoryResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound);
     }
 }

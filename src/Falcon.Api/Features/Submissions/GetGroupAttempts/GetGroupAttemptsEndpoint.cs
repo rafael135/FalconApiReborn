@@ -31,6 +31,10 @@ public class GetGroupAttemptsEndpoint : IEndpoint
         })
         .WithName("GetGroupAttempts")
         .WithTags("Submissions")
-        .Produces<GetGroupAttemptsResult>();
+        .WithSummary("List group attempts.")
+        .WithDescription("Returns attempts submitted by the authenticated user's group. Requires authentication.")
+        .Produces<GetGroupAttemptsResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
     }
 } 

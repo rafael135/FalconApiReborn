@@ -2,6 +2,7 @@ using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Competitions.RegisterGroup;
 
@@ -29,6 +30,9 @@ public class RegisterGroupEndpoint : IEndpoint
         .WithTags("Competitions")
         .WithSummary("Register the current user's group in a competition.")
         .WithDescription("Registers the calling user's group into the specified competition; returns registration confirmation or error if not eligible.")
-        .Produces<RegisterGroupResult>();
+        .Produces<RegisterGroupResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound);
     }
 }

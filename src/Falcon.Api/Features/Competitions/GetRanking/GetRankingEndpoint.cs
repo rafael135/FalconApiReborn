@@ -1,6 +1,7 @@
 using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Competitions.GetRanking;
 
@@ -28,6 +29,8 @@ public class GetRankingEndpoint : IEndpoint
         .WithTags("Competitions")
         .WithSummary("Get ranking for a competition.")
         .WithDescription("Returns the ranking table (groups and scores) for the specified competition.")
-        .Produces<GetRankingResult>();
+        .Produces<GetRankingResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status404NotFound);
+
     }
 } 

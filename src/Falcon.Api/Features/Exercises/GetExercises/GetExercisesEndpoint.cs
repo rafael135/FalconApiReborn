@@ -1,6 +1,7 @@
 using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Exercises.GetExercises;
 
@@ -24,6 +25,9 @@ public class GetExercisesEndpoint : IEndpoint
         })
         .WithName("GetExercises")
         .WithTags("Exercises")
-        .Produces<GetExercisesResult>();
+        .WithSummary("List exercises with optional filters.")
+        .WithDescription("Returns a paginated list of exercises. Supports filtering by exercise type.")
+        .Produces<GetExercisesResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized);
     }
 } 

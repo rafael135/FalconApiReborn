@@ -6,10 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 namespace Falcon.Api.Features.Exercises.AddTestCase;
 
 /// <summary>
-/// Endpoint para adicionar um caso de teste a um exercício.
+/// Endpoint for adding a test case to an exercise.
 /// </summary>
 /// <remarks>
-/// Exemplo de uso:
+/// Example:
 /// <code>
 /// curl -X POST "https://localhost:5001/api/Exercise/{exerciseId}/testcase" \
 ///  -H "Content-Type: application/json" \
@@ -29,6 +29,12 @@ public class AddTestCaseEndpoint : IEndpoint
         })
         .WithName("AddTestCase")
         .WithTags("Exercises")
-        .Produces<AddTestCaseResult>();
+        .WithSummary("Add a test case to an exercise.")
+        .WithDescription("Adds a test case to the specified exercise. Requires Teacher or Admin role; route id must match command.ExerciseId.")
+        .Produces<AddTestCaseResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound);
     }
 } 

@@ -2,6 +2,7 @@ using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Groups.RejectInvite;
 
@@ -20,6 +21,10 @@ public class RejectInviteEndpoint : IEndpoint
         })
         .WithName("RejectInvite")
         .WithTags("Groups")
-        .Produces<RejectInviteResult>();
+        .WithSummary("Reject a group invitation.")
+        .WithDescription("Rejects an outstanding invitation to join a group. Requires authentication.")
+        .Produces<RejectInviteResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status404NotFound);
     }
 }

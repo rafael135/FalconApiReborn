@@ -1,6 +1,7 @@
 using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Users.GetUser;
 
@@ -27,9 +28,11 @@ public class GetUserEndpoint : IEndpoint
         })
         .WithName("GetUser")
         .WithTags("Users")
-        .Produces<Shared.UserDetailDto>()
-        .Produces(401)
-        .Produces(403)
-        .Produces(404);
+        .WithSummary("Get a user by id.")
+        .WithDescription("Returns detailed user information. Requires authentication; only the user themselves or an Admin can access this endpoint.")
+        .Produces<Shared.UserDetailDto>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound);
     }
 }

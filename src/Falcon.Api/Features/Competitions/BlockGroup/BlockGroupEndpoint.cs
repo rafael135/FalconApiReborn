@@ -27,6 +27,11 @@ public class BlockGroupEndpoint : IEndpoint
         })
         .WithName("BlockGroup")
         .WithTags("Competitions")
-        .Produces<BlockGroupResult>();
+        .WithSummary("Block a group in a competition.")
+        .WithDescription("Blocks a group from participating in the specified competition. Requires Teacher or Admin role.")
+        .Produces<BlockGroupResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound);
     }
 }

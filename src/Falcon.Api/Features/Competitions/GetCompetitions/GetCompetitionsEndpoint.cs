@@ -2,6 +2,7 @@ using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Falcon.Core.Domain.Competitions;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Competitions.GetCompetitions;
 
@@ -33,6 +34,6 @@ public class GetCompetitionsEndpoint : IEndpoint
         .WithTags("Competitions")
         .WithSummary("List competitions with optional status filter and pagination.")
         .WithDescription("Returns a paginated list of competitions. Filter by status when provided.")
-        .Produces<GetCompetitionsResult>();
+        .Produces<GetCompetitionsResult>(StatusCodes.Status200OK);
     }
 }

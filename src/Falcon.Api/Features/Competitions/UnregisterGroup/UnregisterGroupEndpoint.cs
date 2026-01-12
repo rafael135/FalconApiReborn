@@ -2,6 +2,7 @@ using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Competitions.UnregisterGroup;
 
@@ -27,6 +28,11 @@ public class UnregisterGroupEndpoint : IEndpoint
         })
         .WithName("UnregisterGroup")
         .WithTags("Competitions")
-        .Produces<UnregisterGroupResult>();
+        .WithSummary("Unregister the current user's group from a competition.")
+        .WithDescription("Unregisters the authenticated user's group from the specified competition. Requires group leadership.")
+        .Produces<UnregisterGroupResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound);
     }
 }

@@ -3,8 +3,8 @@ using Falcon.Api.Features.Auth.Shared;
 namespace Falcon.Api.Features.Auth.LoginUser;
 
 /// <summary>
-/// Resultado retornado após autenticação.
+/// Result returned after authentication.
 /// </summary>
-/// <param name="User">Informações básicas do usuário.</param>
-/// <param name="Token">Token de autenticação JWT.</param>
+/// <param name="User">Basic user information.</param>
+/// <param name="Token">JWT authentication token.</param>
 public record LoginUserResult(UserDto User, string Token);

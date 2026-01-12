@@ -1,16 +1,16 @@
 namespace Falcon.Api.Features.Auth.RegisterUser;
 
 /// <summary>
-/// Resultado retornado após registro de usuário.
+/// Result returned after user registration.
 /// </summary>
-/// <param name="Id">Id do usuário.</param>
-/// <param name="Name">Nome do usuário.</param>
-/// <param name="Email">E-mail do usuário.</param>
-/// <param name="Ra">Registro Acadêmico.</param>
-/// <param name="Role">Papel do usuário.</param>
-/// <param name="Token">Token de autenticação JWT.</param>
-/// <param name="EmailConfirmed">Indica se o e-mail foi confirmado.</param>
-/// <param name="joinYear">Ano de ingresso (opcional).</param>
+/// <param name="Id">User identifier.</param>
+/// <param name="Name">User's full name.</param>
+/// <param name="Email">User's email address.</param>
+/// <param name="Ra">Academic registration (RA).</param>
+/// <param name="Role">User role.</param>
+/// <param name="Token">JWT authentication token.</param>
+/// <param name="EmailConfirmed">Indicates whether the email is confirmed.</param>
+/// <param name="joinYear">Year of joining (optional).</param>
 public record RegisterUserResult(
     string Id,
     string Name,

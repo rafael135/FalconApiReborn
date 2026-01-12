@@ -2,6 +2,7 @@ using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Competitions.AddExercise;
 
@@ -27,6 +28,11 @@ public class AddExerciseEndpoint : IEndpoint
         })
         .WithName("AddExercise")
         .WithTags("Competitions")
-        .Produces<AddExerciseResult>();
+        .WithSummary("Add an exercise to a competition.")
+        .WithDescription("Adds an existing exercise to the specified competition. Requires Teacher or Admin role.")
+        .Produces<AddExerciseResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound);
     }
 }

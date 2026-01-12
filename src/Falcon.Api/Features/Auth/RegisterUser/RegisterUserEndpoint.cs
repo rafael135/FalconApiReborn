@@ -42,6 +42,8 @@ public class RegisterUserEndpoint : IEndpoint
         .WithSummary("Register a new user (student or teacher).")
         .WithDescription("Creates a new user account. For teacher role, supply a valid access code. Returns the created user and an authentication token; sets an HttpOnly cookie named 'CompetitionAuthToken'.")
         .Produces<RegisterUserResult>(StatusCodes.Status200OK)
-        .Produces(StatusCodes.Status400BadRequest);
+        .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status422UnprocessableEntity);
     }
 }

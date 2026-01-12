@@ -2,6 +2,7 @@ using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Competitions.StartCompetition;
 
@@ -29,6 +30,9 @@ public class StartCompetitionEndpoint : IEndpoint
         .WithTags("Competitions")
         .WithSummary("Start a competition.")
         .WithDescription("Starts the specified competition immediately; requires Teacher or Admin role.")
-        .Produces<StartCompetitionResult>();
+        .Produces<StartCompetitionResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound);
     }
 }

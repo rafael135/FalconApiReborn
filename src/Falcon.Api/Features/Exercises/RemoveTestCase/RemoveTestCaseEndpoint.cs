@@ -2,14 +2,15 @@ using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Exercises.RemoveTestCase;
 
 /// <summary>
-/// Endpoint para remover um caso de teste de um exercício.
+/// Endpoint to remove a test case from an exercise.
 /// </summary>
 /// <remarks>
-/// Exemplo usando curl:
+/// Example curl usage:
 /// <code>
 /// curl -X DELETE "https://localhost:5001/api/Exercise/{exerciseId}/testcase/{testCaseId}"
 /// </code>
@@ -27,6 +28,11 @@ public class RemoveTestCaseEndpoint : IEndpoint
         })
         .WithName("RemoveTestCase")
         .WithTags("Exercises")
-        .Produces<RemoveTestCaseResult>();
+        .WithSummary("Remove a test case.")
+        .WithDescription("Removes a test case from the specified exercise. Requires Teacher or Admin role.")
+        .Produces<RemoveTestCaseResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound);
     }
 } 

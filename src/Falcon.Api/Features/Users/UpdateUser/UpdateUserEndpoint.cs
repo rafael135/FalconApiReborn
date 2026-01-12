@@ -2,6 +2,7 @@ using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Users.UpdateUser;
 
@@ -40,10 +41,12 @@ public class UpdateUserEndpoint : IEndpoint
         })
         .WithName("UpdateUser")
         .WithTags("Users")
-        .Produces<Shared.UserDetailDto>()
-        .Produces(400)
-        .Produces(401)
-        .Produces(403)
-        .Produces(404);
+        .WithSummary("Update user profile.")
+        .WithDescription("Updates user profile information. Requires authentication; the route id must match command.UserId.")
+        .Produces<Shared.UserDetailDto>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound);
     }
 }

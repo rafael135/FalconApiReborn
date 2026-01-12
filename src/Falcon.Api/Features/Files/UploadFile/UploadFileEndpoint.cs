@@ -1,6 +1,7 @@
 using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Files.UploadFile;
 /// <summary>
@@ -29,7 +30,10 @@ public class UploadFileEndpoint : IEndpoint
         .WithSummary("Upload an attached file.")
         .WithDescription("Upload a file via multipart/form-data using the 'file' field. Supported types: .pdf, .zip, .txt, .md, .jpg, .png. Max 10MB.")
         .Accepts<IFormFile>("multipart/form-data")
-        .Produces<UploadFileResult>()
+        .Produces<UploadFileResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
         .DisableAntiforgery();
     }
 } 

@@ -1,6 +1,7 @@
 using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Logs.GetLogs;
 
@@ -28,6 +29,10 @@ public class GetLogsEndpoint : IEndpoint
         })
         .WithName("GetLogs")
         .WithTags("Logs")
-        .Produces<GetLogsResult>();
+        .WithSummary("Get system logs.")
+        .WithDescription("Returns system logs filtered by provided query parameters. Requires Teacher or Admin role.")
+        .Produces<GetLogsResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
     }
 }

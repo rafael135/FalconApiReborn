@@ -2,6 +2,7 @@ using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Groups.AcceptInvite;
 
@@ -20,6 +21,10 @@ public class AcceptInviteEndpoint : IEndpoint
         })
         .WithName("AcceptInvite")
         .WithTags("Groups")
-        .Produces<AcceptInviteResult>();
+        .WithSummary("Accept a group invitation.")
+        .WithDescription("Accepts an invitation to join a group. Requires authentication.")
+        .Produces<AcceptInviteResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status404NotFound);
     }
 }

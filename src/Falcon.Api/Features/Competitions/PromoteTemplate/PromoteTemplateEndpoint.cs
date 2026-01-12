@@ -2,6 +2,7 @@ using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Competitions.PromoteTemplate;
 
@@ -31,6 +32,10 @@ public class PromoteTemplateEndpoint : IEndpoint
         .WithTags("Competitions")
         .WithSummary("Promote a competition template to active competition.")
         .WithDescription("Promotes the provided template into an active competition; only Teacher or Admin can perform this action.")
-        .Produces<PromoteTemplateResult>();
+        .Produces<PromoteTemplateResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound);
     }
 }

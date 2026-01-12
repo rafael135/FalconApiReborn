@@ -2,6 +2,7 @@ using Falcon.Api.Extensions;
 using Falcon.Api.Features.Questions.Shared;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Questions.GetQuestion;
 
@@ -22,8 +23,10 @@ public class GetQuestionEndpoint : IEndpoint
         })
         .WithName("GetQuestion")
         .WithTags("Questions")
-        .Produces<QuestionDto>()
-        .Produces(401)
-        .Produces(404);
+        .WithSummary("Get question details.")
+        .WithDescription("Returns detailed information for a single question. Requires authentication when the competition is protected.")
+        .Produces<QuestionDto>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status404NotFound);
     }
 }

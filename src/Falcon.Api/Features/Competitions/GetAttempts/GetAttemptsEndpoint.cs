@@ -33,6 +33,9 @@ public class GetAttemptsEndpoint : IEndpoint
         .WithTags("Competitions")
         .WithSummary("List attempts for a competition.")
         .WithDescription("Returns paginated submission attempts for the specified competition. Restricted to Teacher and Admin roles.")
-        .Produces<GetAttemptsResult>();
+        .Produces<GetAttemptsResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound);
     }
 } 
