@@ -1,7 +1,31 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CONFIGURATION="${1:-Release}"
+# Usage: ./scripts/build-docs.sh [-c|--configuration <Configuration>]
+CONFIGURATION="Release"
+
+while (( "$#" )); do
+  case "$1" in
+    -c|--configuration)
+      if [ -n "${2-}" ] && [ "${2:0:1}" != "-" ]; then
+        CONFIGURATION="$2"
+        shift 2
+      else
+        echo "Error: Argument for $1 is missing" >&2
+        exit 1
+      fi
+      ;;
+    -h|--help)
+      echo "Usage: $0 [-c|--configuration CONFIGURATION]"
+      exit 0
+      ;;
+    *)
+      # Allow calling with a single positional argument (e.g., ./script.sh Release)
+      CONFIGURATION="$1"
+      shift
+      ;;
+  esac
+done
 
 echo "Building solution in ${CONFIGURATION}..."
 dotnet build -c "${CONFIGURATION}"

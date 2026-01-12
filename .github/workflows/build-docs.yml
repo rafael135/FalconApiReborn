@@ -49,4 +49,4 @@ jobs:
           path: docs/api
 
       - name: Done
-        run: Write-Host "Docs build and validation completed successfully."
+        run: echo "Docs build and validation completed successfully."
