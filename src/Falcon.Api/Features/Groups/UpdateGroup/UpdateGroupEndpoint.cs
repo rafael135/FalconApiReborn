@@ -15,7 +15,7 @@ public class UpdateGroupEndpoint : IEndpoint
     {
         app.MapPut("api/Group/{id}", [Authorize] async (IMediator mediator, Guid id, [FromBody] UpdateGroupCommand command) =>
         {
-            if (id != command.GroupId) return Results.BadRequest("O ID da rota não corresponde ao ID do comando");
+            if (id != command.GroupId) return Results.BadRequest("Route id does not match command.GroupId");
             var result = await mediator.Send(command);
             return Results.Ok(result);
         })

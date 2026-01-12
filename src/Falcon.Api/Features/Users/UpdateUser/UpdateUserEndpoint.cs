@@ -32,7 +32,7 @@ public class UpdateUserEndpoint : IEndpoint
             {
                 return Results.BadRequest(new
                 {
-                    error = "O ID da rota não corresponde ao ID do comando"
+                    error = "Route id does not match command.UserId"
                 });
             }
 

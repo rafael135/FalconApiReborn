@@ -2,6 +2,7 @@ using Falcon.Api.Extensions;
 using Falcon.Api.Features.Users.Shared;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Users.GetCompetitionHistory;
 
@@ -31,6 +32,8 @@ public class GetCompetitionHistoryEndpoint : IEndpoint
         })
         .WithName("GetCompetitionHistory")
         .WithTags("Users")
+        .WithSummary("Get competition history for a user.")
+        .WithDescription("Returns a paginated list of competitions the specified user participated in. Requires authentication and authorization.")
         .Produces<GetCompetitionHistoryResult>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status401Unauthorized)
         .Produces(StatusCodes.Status403Forbidden)

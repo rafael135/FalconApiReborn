@@ -10,9 +10,9 @@ namespace Falcon.Api.Features.Submissions.GetAttempt;
 /// Endpoint for retrieving details of a single submission attempt.
 /// </summary>
 /// <remarks>
-/// Retorna detalhes da tentativa, incluindo código, linguagem, tempo de execução e resposta do juiz.
-/// Somente professores/admins ou membros do grupo podem acessar a tentativa.
-/// Exemplo de resposta: { "attempt": { "id": "...", "exerciseTitle": "Soma", "accepted": false } }
+/// Returns attempt details including code, language, execution time, and judge response.
+/// Only teachers/admins or members of the owning group can access the attempt.
+/// Example response: { "attempt": { "id": "...", "exerciseTitle": "Sum", "accepted": false } }
 /// </remarks>
 public class GetAttemptEndpoint : IEndpoint
 {

@@ -1,6 +1,7 @@
 using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Users.DeleteUser;
 
@@ -26,6 +27,8 @@ public class DeleteUserEndpoint : IEndpoint
         })
         .WithName("DeleteUser")
         .WithTags("Users")
+        .WithSummary("Soft delete a user.")
+        .WithDescription("Performs a soft delete for the specified user. Requires authentication and appropriate authorization.")
         .Produces<DeleteUserResult>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status401Unauthorized)
         .Produces(StatusCodes.Status403Forbidden)

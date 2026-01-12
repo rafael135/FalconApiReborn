@@ -25,7 +25,7 @@ public class GetUserLogsEndpoint : IEndpoint
         .WithName("GetUserLogs")
         .WithTags("Logs")
         .WithSummary("Get logs for a specific user.")
-        .WithDescription("Returns logs related to a specific user. Requires Teacher or Admin role.")
+        .WithDescription("Returns logs related to a specific user. Requires Admin role.")
         .Produces<GetUserLogsResult>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status401Unauthorized)
         .Produces(StatusCodes.Status403Forbidden);

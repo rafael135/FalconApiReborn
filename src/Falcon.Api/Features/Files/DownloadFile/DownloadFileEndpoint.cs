@@ -1,6 +1,7 @@
 using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Files.DownloadFile;
 
@@ -24,6 +25,11 @@ public class DownloadFileEndpoint : IEndpoint
         })
         .WithName("DownloadFile")
         .WithTags("Files")
-        .Produces(200, contentType: "application/octet-stream");
+        .WithSummary("Download a stored file.")
+        .WithDescription("Downloads a file by id using the stored content type. Requires authentication.")
+        .Produces(StatusCodes.Status200OK, contentType: "application/octet-stream")
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound);
     }
 } 

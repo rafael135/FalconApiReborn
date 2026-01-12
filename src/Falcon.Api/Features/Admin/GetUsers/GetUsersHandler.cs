@@ -32,6 +32,12 @@ public class GetUsersHandler : IRequestHandler<GetUsersQuery, GetUsersResult>
     private readonly UserManager<User> _userManager;
     private readonly ILogger<GetUsersHandler> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GetUsersHandler"/> class.
+    /// </summary>
+    /// <param name="context">The database context.</param>
+    /// <param name="userManager">The user manager for role retrieval.</param>
+    /// <param name="logger">The logger instance.</param>
     public GetUsersHandler(
         FalconDbContext context,
         UserManager<User> userManager,
@@ -42,44 +48,45 @@ public class GetUsersHandler : IRequestHandler<GetUsersQuery, GetUsersResult>
         _logger = logger;
     }
 
-    public async Task<GetUsersResult> Handle(GetUsersQuery request, CancellationToken cancellationToken)
+    /// <summary>
+    /// Handles the users listing query with optional role and search filters.
+    /// </summary>
+    /// <param name="request">The query containing filters and pagination.</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <returns>The paginated users list.</returns>
+    public async Task<GetUsersResult> Handle(
+        GetUsersQuery request,
+        CancellationToken cancellationToken)
     {
-        IEnumerable<User> users;
+        var query = _context.Users
+            .Include(u => u.Group)
+            .AsNoTracking()
+            .AsQueryable();
 
-        // Filter by role if specified
-        if (!string.IsNullOrEmpty(request.Role))
+        if (!string.IsNullOrWhiteSpace(request.Role))
         {
-            users = await _userManager.GetUsersInRoleAsync(request.Role);
-        }
-        else
-        {
-            users = await _context.Users
-                .Include(u => u.Group)
-                .AsNoTracking()
-                .ToListAsync(cancellationToken);
+            var roleName = request.Role.Trim();
+            query = query.Where(u => _context.UserRoles
+                .Any(ur => ur.UserId == u.Id &&
+                           _context.Roles.Any(r => r.Id == ur.RoleId && r.Name == roleName)));
         }
 
-        // Apply search filter if specified
-        if (!string.IsNullOrEmpty(request.Search))
+        if (!string.IsNullOrWhiteSpace(request.Search))
         {
-            var searchLower = request.Search.ToLower();
-            users = users.Where(u =>
-                u.Name.ToLower().Contains(searchLower) ||
-                u.Email!.ToLower().Contains(searchLower) ||
-                u.RA.ToLower().Contains(searchLower));
+            var searchLower = request.Search.Trim().ToLowerInvariant();
+            query = query.Where(u =>
+                u.Name.ToLowerInvariant().Contains(searchLower) ||
+                u.Email!.ToLowerInvariant().Contains(searchLower) ||
+                u.RA.ToLowerInvariant().Contains(searchLower));
         }
 
-        // Order by creation date descending
-        var orderedUsers = users.OrderByDescending(u => u.CreatedAt);
+        var total = await query.CountAsync(cancellationToken);
 
-        // Get total count
-        var total = orderedUsers.Count();
-
-        // Apply pagination
-        var paginatedUsers = orderedUsers
+        var paginatedUsers = await query
+            .OrderByDescending(u => u.CreatedAt)
             .Skip(request.Skip)
             .Take(request.Take)
-            .ToList();
+            .ToListAsync(cancellationToken);
 
         // Get roles for each user
         var userSummaries = new List<UserSummaryDto>();
