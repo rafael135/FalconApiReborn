@@ -4,6 +4,13 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Falcon.Api.Features.Auth.LoginUser;
 
+/// <summary>
+/// Autentica um usuário e retorna token de autenticação.
+/// </summary>
+/// <remarks>
+/// Recebe um <see cref="LoginUserCommand"/> no body e grava cookie HttpOnly `CompetitionAuthToken` em caso de sucesso.
+/// Exemplo request: { "email": "alice@example.com", "password": "senha123" }
+/// </remarks>
 public class LoginUserEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)

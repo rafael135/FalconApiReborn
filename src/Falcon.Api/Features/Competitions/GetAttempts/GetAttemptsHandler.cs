@@ -14,6 +14,12 @@ public class GetAttemptsHandler : IRequestHandler<GetAttemptsQuery, GetAttemptsR
         _dbContext = dbContext;
     }
 
+    /// <summary>
+    /// Handles the <see cref="GetAttemptsQuery"/> and returns a paginated list of attempts for the competition.
+    /// </summary>
+    /// <param name="request">Query containing competition id and pagination parameters.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A <see cref="GetAttemptsResult"/> with the attempts and total count.</returns>
     public async Task<GetAttemptsResult> Handle(GetAttemptsQuery request, CancellationToken cancellationToken)
     {
         var query = _dbContext.GroupExerciseAttempts
@@ -35,5 +41,5 @@ public class GetAttemptsHandler : IRequestHandler<GetAttemptsQuery, GetAttemptsR
             .ToListAsync(cancellationToken);
 
         return new GetAttemptsResult(attempts, totalCount);
-    }
+    } 
 }

@@ -8,6 +8,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Falcon.Api.Features.Submissions.GetGroupAttempts;
 
+/// <summary>
+/// Handler responsável por buscar as tentativas do grupo do usuário autenticado.
+/// </summary>
 public class GetGroupAttemptsHandler : IRequestHandler<GetGroupAttemptsQuery, GetGroupAttemptsResult>
 {
     private readonly FalconDbContext _dbContext;
@@ -24,6 +27,13 @@ public class GetGroupAttemptsHandler : IRequestHandler<GetGroupAttemptsQuery, Ge
         _httpContextAccessor = httpContextAccessor;
     }
 
+    /// <summary>
+    /// Executa a consulta com filtros opcionais e retorna a lista de tentativas do grupo.
+    /// </summary>
+    /// <param name="request">Query com filtros (competitionId, exerciseId).</param>
+    /// <param name="cancellationToken">Token de cancelamento.</param>
+    /// <returns>Lista de tentativas do grupo encapsulada em <see cref="GetGroupAttemptsResult"/>.</returns>
+    /// <exception cref="FormException">Quando o usuário não faz parte de nenhum grupo.</exception>
     public async Task<GetGroupAttemptsResult> Handle(GetGroupAttemptsQuery request, CancellationToken cancellationToken)
     {
         var userName = _httpContextAccessor.HttpContext?.User?.Identity?.Name;

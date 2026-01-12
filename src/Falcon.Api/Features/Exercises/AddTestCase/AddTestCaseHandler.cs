@@ -7,6 +7,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Falcon.Api.Features.Exercises.AddTestCase;
 
+/// <summary>
+/// Handler that validates and adds a new test case (input/output) to an existing exercise.
+/// </summary>
+/// <remarks>
+/// Throws <see cref="Falcon.Core.Domain.Shared.Exceptions.FormException"/> when input or expected output
+/// are missing, and <see cref="Falcon.Core.Domain.Shared.Exceptions.NotFoundException"/> when the exercise is not found.
+/// </remarks>
 public class AddTestCaseHandler : IRequestHandler<AddTestCaseCommand, AddTestCaseResult>
 {
     private readonly FalconDbContext _dbContext;

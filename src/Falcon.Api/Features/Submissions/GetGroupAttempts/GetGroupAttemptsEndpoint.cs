@@ -5,6 +5,17 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Falcon.Api.Features.Submissions.GetGroupAttempts;
 
+/// <summary>
+/// Endpoint for retrieving all submissions of the caller's group with optional filtering.
+/// </summary>
+/// <remarks>
+/// Filtra por `competitionId` e/ou `exerciseId` quando fornecidos. Retorna lista de tentativas do grupo do usuário.
+/// Exemplo de resposta: { "attempts": [ { "id": "...", "exerciseTitle": "Soma", "accepted": false } ] }
+/// Example curl:
+/// <code>
+/// curl -H "Authorization: Bearer &lt;token&gt;" "https://api.example.com/api/Submission/group?competitionId=00000000-0000-0000-0000-000000000000"
+/// </code>
+/// </remarks>
 public class GetGroupAttemptsEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
@@ -22,4 +33,4 @@ public class GetGroupAttemptsEndpoint : IEndpoint
         .WithTags("Submissions")
         .Produces<GetGroupAttemptsResult>();
     }
-}
+} 

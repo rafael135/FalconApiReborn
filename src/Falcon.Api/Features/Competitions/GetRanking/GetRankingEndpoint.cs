@@ -7,6 +7,13 @@ namespace Falcon.Api.Features.Competitions.GetRanking;
 /// <summary>
 /// Endpoint for getting competition ranking.
 /// </summary>
+/// <remarks>
+/// Example:
+/// <code>
+/// curl -X GET "https://localhost:5001/api/Competition/00000000-0000-0000-0000-000000000000/ranking" \
+///   -H "Authorization: Bearer {token}"
+/// </code>
+/// </remarks>
 public class GetRankingEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
@@ -21,4 +28,4 @@ public class GetRankingEndpoint : IEndpoint
         .WithTags("Competitions")
         .Produces<GetRankingResult>();
     }
-}
+} 

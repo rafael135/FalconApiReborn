@@ -9,6 +9,7 @@ namespace Falcon.Api.Features.Files.DeleteFile;
 
 /// <summary>
 /// Handler for deleting files.
+/// Ensures the file exists and is not attached to any exercises before deleting the physical file and database record.
 /// </summary>
 public class DeleteFileHandler : IRequestHandler<DeleteFileCommand, DeleteFileResult>
 {
@@ -16,6 +17,10 @@ public class DeleteFileHandler : IRequestHandler<DeleteFileCommand, DeleteFileRe
     private readonly IAttachedFileService _attachedFileService;
     private readonly ILogger<DeleteFileHandler> _logger;
 
+    /// <summary>
+    /// Deletes the file record and physical storage. Throws <see cref="NotFoundException"/> if file is not found,
+    /// or <see cref="InvalidOperationException"/> if the file is still attached to exercises.
+    /// </summary>
     public DeleteFileHandler(
         FalconDbContext context,
         IAttachedFileService attachedFileService,

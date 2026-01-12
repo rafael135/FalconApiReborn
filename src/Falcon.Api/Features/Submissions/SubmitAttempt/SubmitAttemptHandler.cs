@@ -14,6 +14,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Falcon.Api.Features.Submissions.SubmitAttempt;
 
+/// <summary>
+/// Handles submission of exercise attempts. Validates the request, ensures group and competition state,
+/// submits code to the judge, persists the attempt, updates ranking, and returns the created attempt summary and updated ranking.
+/// </summary>
 public class SubmitAttemptHandler : IRequestHandler<SubmitAttemptCommand, SubmitAttemptResult>
 {
     private readonly FalconDbContext _dbContext;
@@ -36,6 +40,13 @@ public class SubmitAttemptHandler : IRequestHandler<SubmitAttemptCommand, Submit
         _judgeService = judgeService;
     }
 
+    /// <summary>
+    /// Processes the submit attempt command and returns the created attempt summary and updated ranking.
+    /// May throw <see cref="FormException"/> for validation errors, <see cref="NotFoundException"/> if required entities are missing, or <see cref="UnauthorizedAccessException"/> if the user is not authenticated.
+    /// </summary>
+    /// <param name="request">The submission command with competitionId, exerciseId, code and language.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A <see cref="SubmitAttemptResult"/> containing the created attempt summary and updated ranking.</returns>
     public async Task<SubmitAttemptResult> Handle(SubmitAttemptCommand request, CancellationToken cancellationToken)
     {
         var errors = new Dictionary<string, string>();

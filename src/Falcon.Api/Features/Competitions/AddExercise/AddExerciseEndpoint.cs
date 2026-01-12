@@ -5,6 +5,16 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Falcon.Api.Features.Competitions.AddExercise;
 
+/// <summary>
+/// Endpoint to add an existing exercise to a competition. Requires Teacher or Admin role.
+/// </summary>
+/// <remarks>
+/// Example:
+/// <code>
+/// curl -X POST "https://localhost:5001/api/Competition/00000000-0000-0000-0000-000000000000/exercise/00000000-0000-0000-0000-000000000000" \
+///   -H "Authorization: Bearer {token}"
+/// </code>
+/// </remarks>
 public class AddExerciseEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)

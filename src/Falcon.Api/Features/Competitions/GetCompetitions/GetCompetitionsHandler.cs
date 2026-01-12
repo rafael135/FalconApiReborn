@@ -17,6 +17,12 @@ public class GetCompetitionsHandler : IRequestHandler<GetCompetitionsQuery, GetC
         _dbContext = dbContext;
     }
 
+    /// <summary>
+    /// Handles the <see cref="GetCompetitionsQuery"/> and returns a paginated result of competitions.
+    /// </summary>
+    /// <param name="request">Query containing filter and pagination parameters.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A <see cref="GetCompetitionsResult"/> containing the competitions page and pagination metadata.</returns>
     public async Task<GetCompetitionsResult> Handle(GetCompetitionsQuery request, CancellationToken cancellationToken)
     {
         var query = _dbContext.Competitions.AsNoTracking();

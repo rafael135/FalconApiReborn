@@ -6,8 +6,23 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Falcon.Api.Features.Exercises.UpdateExercise;
 
+/// <summary>
+/// Atualiza um exercício existente. Endpoint que aceita formulário multipart/form-data.
+/// </summary>
+/// <remarks>
+/// Este endpoint espera um formulário multipart onde:
+/// - `metadata` é um campo string contendo o JSON serializado de <see cref="UpdateExerciseRequestDto"/>;
+/// - `file` é um arquivo opcional anexado.
+/// Exemplo de uso via curl:
+/// <code>
+/// curl -X PUT "https://localhost:5001/api/Exercise/00000000-0000-0000-0000-000000000000" \
+///  -F "metadata={ \"id\": \"00000000-0000-0000-0000-000000000000\", \"title\": \"Novo Título\", \"exerciseTypeId\":1 }" \
+///  -F "file=@exercise.pdf"
+/// </code>
+/// </remarks>
 public class UpdateExerciseEndpoint : IEndpoint
 {
+    /// <inheritdoc />
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPut("api/Exercise/{id}", [Authorize(Roles = "Teacher,Admin")] async (
@@ -48,4 +63,4 @@ public class UpdateExerciseEndpoint : IEndpoint
         .Produces<UpdateExerciseResult>()
         .DisableAntiforgery();
     }
-}
+} 

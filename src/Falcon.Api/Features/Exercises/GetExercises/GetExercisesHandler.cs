@@ -12,11 +12,18 @@ public class GetExercisesHandler : IRequestHandler<GetExercisesQuery, GetExercis
 {
     private readonly FalconDbContext _dbContext;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GetExercisesHandler"/> class.
+    /// </summary>
+    /// <param name="dbContext">Database context to query exercises.</param>
     public GetExercisesHandler(FalconDbContext dbContext)
     {
         _dbContext = dbContext;
     }
 
+    /// <summary>
+    /// Handles the query and returns a paginated list of exercise summaries.
+    /// </summary>
     public async Task<GetExercisesResult> Handle(GetExercisesQuery request, CancellationToken cancellationToken)
     {
         IQueryable<Core.Domain.Exercises.Exercise> query = _dbContext.Exercises

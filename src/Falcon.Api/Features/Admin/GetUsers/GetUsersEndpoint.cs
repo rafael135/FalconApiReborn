@@ -11,7 +11,7 @@ public class GetUsersEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/Admin/users", [Authorize(Roles = "Admin")] async (
+        app.MapGet("/api/Admin/users", [Authorize(Roles = "Admin,Teacher")] async (
             IMediator mediator,
             string? role,
             string? search,

@@ -5,4 +5,5 @@ namespace Falcon.Api.Features.Competitions.FinishCompetition;
 /// <summary>
 /// Command to finish a competition.
 /// </summary>
-public record FinishCompetitionCommand(Guid CompetitionId) : IRequest<FinishCompetitionResult>;
+/// <param name="CompetitionId">The competition identifier to finish.</param>
+public record FinishCompetitionCommand(Guid CompetitionId) : IRequest<FinishCompetitionResult>; 

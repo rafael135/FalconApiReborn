@@ -6,8 +6,15 @@ using Microsoft.AspNetCore.Mvc;
 namespace Falcon.Api.Features.Competitions.UnregisterGroup;
 
 /// <summary>
-/// Endpoint for unregistering a group from a competition.
+/// Endpoint for unregistering the current user's group from a competition. Requires authentication and group leadership.
 /// </summary>
+/// <remarks>
+/// Example:
+/// <code>
+/// curl -X DELETE "https://localhost:5001/api/Competition/00000000-0000-0000-0000-000000000000/registration" \
+///   -H "Authorization: Bearer {token}"
+/// </code>
+/// </remarks>
 public class UnregisterGroupEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)

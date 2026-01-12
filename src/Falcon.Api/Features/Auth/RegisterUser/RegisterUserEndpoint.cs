@@ -4,6 +4,14 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Falcon.Api.Features.Auth.RegisterUser;
 
+/// <summary>
+/// Registra um novo usuário e retorna um token de autenticação.
+/// </summary>
+/// <remarks>
+/// Recebe um <see cref="RegisterUserCommand"/> no body. Em caso de sucesso,
+/// grava cookie HttpOnly `CompetitionAuthToken` e retorna informação do usuário e token.
+/// Exemplo request: { "name": "Alice", "email": "alice@example.com", "ra": "12345", "password": "senha123" }
+/// </remarks>
 public class RegisterUserEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)

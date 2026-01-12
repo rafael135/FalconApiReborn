@@ -7,6 +7,10 @@ namespace Falcon.Api.Features.Users.GetUser;
 /// <summary>
 /// Endpoint for retrieving detailed user information.
 /// </summary>
+/// <remarks>
+/// Retorna as informações detalhadas do usuário. Requer autenticação; apenas o próprio usuário ou um Admin podem acessar.
+/// Exemplo de resposta: { "id": "...", "name": "Alice", "email": "alice@example.com", "ra": "12345", "roles": ["Student"] }
+/// </remarks>
 public class GetUserEndpoint : IEndpoint
 {
     /// <summary>

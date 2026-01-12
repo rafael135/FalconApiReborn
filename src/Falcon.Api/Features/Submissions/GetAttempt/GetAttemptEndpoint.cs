@@ -5,6 +5,14 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Falcon.Api.Features.Submissions.GetAttempt;
 
+/// <summary>
+/// Endpoint for retrieving details of a single submission attempt.
+/// </summary>
+/// <remarks>
+/// Retorna detalhes da tentativa, incluindo código, linguagem, tempo de execução e resposta do juiz.
+/// Somente professores/admins ou membros do grupo podem acessar a tentativa.
+/// Exemplo de resposta: { "attempt": { "id": "...", "exerciseTitle": "Soma", "accepted": false } }
+/// </remarks>
 public class GetAttemptEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
@@ -21,4 +29,4 @@ public class GetAttemptEndpoint : IEndpoint
         .WithTags("Submissions")
         .Produces<GetAttemptResult>();
     }
-}
+} 

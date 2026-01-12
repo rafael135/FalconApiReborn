@@ -5,8 +5,18 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Falcon.Api.Features.Exercises.RemoveTestCase;
 
+/// <summary>
+/// Endpoint para remover um caso de teste de um exercício.
+/// </summary>
+/// <remarks>
+/// Exemplo usando curl:
+/// <code>
+/// curl -X DELETE "https://localhost:5001/api/Exercise/{exerciseId}/testcase/{testCaseId}"
+/// </code>
+/// </remarks>
 public class RemoveTestCaseEndpoint : IEndpoint
 {
+    /// <inheritdoc />
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapDelete("api/Exercise/{exerciseId}/testcase/{testCaseId}", [Authorize(Roles = "Teacher,Admin")] async (IMediator mediator, Guid exerciseId, Guid testCaseId) =>
@@ -19,4 +29,4 @@ public class RemoveTestCaseEndpoint : IEndpoint
         .WithTags("Exercises")
         .Produces<RemoveTestCaseResult>();
     }
-}
+} 

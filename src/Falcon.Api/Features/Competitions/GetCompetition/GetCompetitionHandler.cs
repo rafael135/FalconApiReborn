@@ -19,6 +19,13 @@ public class GetCompetitionHandler : IRequestHandler<GetCompetitionQuery, GetCom
         _dbContext = dbContext;
     }
 
+    /// <summary>
+    /// Handles the <see cref="GetCompetitionQuery"/> and returns detailed competition information.
+    /// </summary>
+    /// <param name="request">Query containing the competition id to retrieve.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A <see cref="GetCompetitionResult"/> with full competition details.</returns>
+    /// <exception cref="NotFoundException">Thrown when the competition is not found.</exception>
     public async Task<GetCompetitionResult> Handle(GetCompetitionQuery request, CancellationToken cancellationToken)
     {
         var competition = await _dbContext.Competitions

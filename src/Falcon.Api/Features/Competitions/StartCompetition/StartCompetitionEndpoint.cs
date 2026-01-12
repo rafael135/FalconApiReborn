@@ -6,8 +6,15 @@ using Microsoft.AspNetCore.Mvc;
 namespace Falcon.Api.Features.Competitions.StartCompetition;
 
 /// <summary>
-/// Endpoint for starting a competition.
+/// Endpoint for starting a competition. Only users in the Teacher or Admin roles are authorized to start a competition.
 /// </summary>
+/// <remarks>
+/// Example:
+/// <code>
+/// curl -X POST "https://localhost:5001/api/Competition/00000000-0000-0000-0000-000000000000/start" \
+///   -H "Authorization: Bearer {token}"
+/// </code>
+/// </remarks>
 public class StartCompetitionEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)

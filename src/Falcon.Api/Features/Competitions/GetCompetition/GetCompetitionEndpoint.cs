@@ -5,8 +5,15 @@ using Microsoft.AspNetCore.Mvc;
 namespace Falcon.Api.Features.Competitions.GetCompetition;
 
 /// <summary>
-/// Endpoint for getting detailed competition information.
+/// Endpoint for getting detailed competition information by ID.
 /// </summary>
+/// <remarks>
+/// Example:
+/// <code>
+/// curl -X GET "https://localhost:5001/api/Competition/00000000-0000-0000-0000-000000000000" \
+///   -H "Authorization: Bearer {token}"
+/// </code>
+/// </remarks>
 public class GetCompetitionEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
