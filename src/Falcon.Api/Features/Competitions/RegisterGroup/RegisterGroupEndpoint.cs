@@ -27,6 +27,8 @@ public class RegisterGroupEndpoint : IEndpoint
         })
         .WithName("RegisterGroup")
         .WithTags("Competitions")
+        .WithSummary("Register the current user's group in a competition.")
+        .WithDescription("Registers the calling user's group into the specified competition; returns registration confirmation or error if not eligible.")
         .Produces<RegisterGroupResult>();
     }
 }

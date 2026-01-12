@@ -8,7 +8,7 @@ namespace Falcon.Api.Features.Users.DeleteUser;
 /// Endpoint for soft deleting a user.
 /// </summary>
 /// <remarks>
-/// Executa remoção lógica do usuário (soft delete). Requer autenticação. Exemplo de resposta: { "message": "User soft-deleted" }
+/// Performs a soft delete of the user. Requires authentication. Example response: { "message": "User soft-deleted" }
 /// </remarks>
 public class DeleteUserEndpoint : IEndpoint
 {

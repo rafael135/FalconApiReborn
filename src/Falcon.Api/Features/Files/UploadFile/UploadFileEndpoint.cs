@@ -26,6 +26,8 @@ public class UploadFileEndpoint : IEndpoint
         })
         .WithName("UploadFile")
         .WithTags("Files")
+        .WithSummary("Upload an attached file.")
+        .WithDescription("Upload a file via multipart/form-data using the 'file' field. Supported types: .pdf, .zip, .txt, .md, .jpg, .png. Max 10MB.")
         .Accepts<IFormFile>("multipart/form-data")
         .Produces<UploadFileResult>()
         .DisableAntiforgery();

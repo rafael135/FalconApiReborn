@@ -27,6 +27,8 @@ public class FinishCompetitionEndpoint : IEndpoint
         })
         .WithName("FinishCompetition")
         .WithTags("Competitions")
+        .WithSummary("Finish a competition.")
+        .WithDescription("Marks the competition as finished and finalizes rankings; requires Teacher or Admin role.")
         .Produces<FinishCompetitionResult>();
     }
 }

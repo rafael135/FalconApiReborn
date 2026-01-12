@@ -25,6 +25,8 @@ public class SubmitAttemptEndpoint : IEndpoint
         })
         .WithName("SubmitAttempt")
         .WithTags("Submissions")
+        .WithSummary("Submit an exercise attempt.")
+        .WithDescription("Submit code for an exercise; processing is asynchronous and results are delivered via SignalR.")
         .Produces<SubmitAttemptResult>();
     }
 }

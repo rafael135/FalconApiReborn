@@ -27,28 +27,32 @@ public class CreateExerciseEndpoint : IEndpoint
     {
         app.MapPost("api/Exercise", [Authorize(Roles = "Teacher,Admin")] async (
             IMediator mediator, 
-            [FromForm] IFormFile? file,
-            [FromForm] string metadata) =>
+            [FromForm] CreateExerciseFormDto dto) =>
         {
+            var metadata = dto.Metadata;
+
             var options = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             };
             
-            var metadataDto = JsonSerializer.Deserialize<CreateExerciseRequestDto>(metadata, options);
+            var metadataDto = JsonSerializer.Deserialize<CreateExerciseRequestDto>(metadata ?? string.Empty, options);
             
             if (metadataDto == null)
             {
                 return Results.BadRequest("Invalid metadata");
             }
 
-            var command = new CreateExerciseCommand(metadataDto, file);
+            var command = new CreateExerciseCommand(metadataDto, dto.File);
             var result = await mediator.Send(command);
             return Results.Ok(result);
         })
         .WithName("CreateExercise")
         .WithTags("Exercises")
+        .WithSummary("Create a new exercise.")
+        .WithDescription("Creates a new exercise using multipart/form-data: 'metadata' JSON string and optional 'file' attachment.")
         .DisableAntiforgery()
+        .WithMetadata(new Microsoft.AspNetCore.Mvc.ConsumesAttribute("multipart/form-data"))
         .Produces<CreateExerciseResult>();
     }
 } 

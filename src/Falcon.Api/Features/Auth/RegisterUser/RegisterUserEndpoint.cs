@@ -1,19 +1,24 @@
 using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Auth.RegisterUser;
 
 /// <summary>
-/// Registra um novo usuário e retorna um token de autenticação.
+/// Registers a new user and returns an authentication token.
 /// </summary>
 /// <remarks>
-/// Recebe um <see cref="RegisterUserCommand"/> no body. Em caso de sucesso,
-/// grava cookie HttpOnly `CompetitionAuthToken` e retorna informação do usuário e token.
-/// Exemplo request: { "name": "Alice", "email": "alice@example.com", "ra": "12345", "password": "senha123" }
+/// Accepts a <see cref="RegisterUserCommand"/> in the request body. On success, an HttpOnly cookie
+/// named `CompetitionAuthToken` is appended and the user information with token is returned.
+/// Example request: { "name": "Alice", "email": "alice@example.com", "ra": "12345", "password": "password123" }
 /// </remarks>
 public class RegisterUserEndpoint : IEndpoint
 {
+    /// <summary>
+    /// Maps the register endpoint into the specified <see cref="IEndpointRouteBuilder"/>.
+    /// </summary>
+    /// <param name="app">The route builder to add the endpoint to.</param>
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("api/Auth/register", async (IMediator mediator, HttpContext httpContext, [FromBody] RegisterUserCommand command) =>
@@ -33,6 +38,10 @@ public class RegisterUserEndpoint : IEndpoint
             return Results.Ok(new { user = result, token = result.Token });
         })
         .WithName("RegisterUser")
-        .WithTags("Auth");
+        .WithTags("Auth")
+        .WithSummary("Register a new user (student or teacher).")
+        .WithDescription("Creates a new user account. For teacher role, supply a valid access code. Returns the created user and an authentication token; sets an HttpOnly cookie named 'CompetitionAuthToken'.")
+        .Produces<RegisterUserResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status400BadRequest);
     }
 }

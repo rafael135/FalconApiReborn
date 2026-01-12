@@ -16,6 +16,10 @@ namespace Falcon.Api.Features.Competitions.GetCompetition;
 /// </remarks>
 public class GetCompetitionEndpoint : IEndpoint
 {
+    /// <summary>
+    /// Maps the endpoint to return detailed competition information by id.
+    /// </summary>
+    /// <param name="app">The route builder to map the endpoint into.</param>
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("api/Competition/{id}", async (IMediator mediator, Guid id) =>
@@ -26,6 +30,8 @@ public class GetCompetitionEndpoint : IEndpoint
         })
         .WithName("GetCompetition")
         .WithTags("Competitions")
+        .WithSummary("Get competition details by ID.")
+        .WithDescription("Returns detailed information about a specific competition, including exercises and schedule.")
         .Produces<GetCompetitionResult>();
     }
 }

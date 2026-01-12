@@ -9,7 +9,7 @@ namespace Falcon.Api.Features.Users.GetCompetitionHistory;
 /// Endpoint for retrieving a user's competition participation history.
 /// </summary>
 /// <remarks>
-/// Suporta paginação via `skip` e `take`. Exemplo de resposta: { "history": [ { "competitionId": "...", "competitionName": "ICPC" } ], "totalCount": 12 }
+/// Supports pagination via `skip` and `take`. Example response: { "history": [ { "competitionId": "...", "competitionName": "ICPC" } ], "totalCount": 12 }
 /// </remarks>
 public class GetCompetitionHistoryEndpoint : IEndpoint
 {

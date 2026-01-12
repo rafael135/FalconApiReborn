@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Identity;
 namespace Falcon.Api.Features.Auth.RegisterUser;
 
 /// <summary>
-/// Handler responsável por processar o registro de novos usuários.
+/// Handler responsible for processing user registration requests.
 /// </summary>
 public class RegisterUserHandler : IRequestHandler<RegisterUserCommand, RegisterUserResult>
 {
@@ -37,12 +37,12 @@ public class RegisterUserHandler : IRequestHandler<RegisterUserCommand, Register
     }
 
     /// <summary>
-    /// Processa o comando de registro e retorna informações do usuário criado com token.
+    /// Processes the registration command and returns the created user's information with JWT token.
     /// </summary>
-    /// <param name="request">Comando contendo dados de registro.</param>
-    /// <param name="cancellationToken">Token de cancelamento.</param>
-    /// <returns>Resultado com informações do usuário e token.</returns>
-    /// <exception cref="FormException">Quando validação falha (e-mail/RA duplicados, código de acesso inválido, erro de identidade).</exception>
+    /// <param name="request">The registration command containing user details.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A <see cref="RegisterUserResult"/> containing user information and token.</returns>
+    /// <exception cref="FormException">Thrown when validation fails (duplicate email/RA, invalid access code, identity errors).</exception>
     public async Task<RegisterUserResult> Handle(
         RegisterUserCommand request,
         CancellationToken cancellationToken

@@ -27,6 +27,8 @@ public class StartCompetitionEndpoint : IEndpoint
         })
         .WithName("StartCompetition")
         .WithTags("Competitions")
+        .WithSummary("Start a competition.")
+        .WithDescription("Starts the specified competition immediately; requires Teacher or Admin role.")
         .Produces<StartCompetitionResult>();
     }
 }

@@ -24,6 +24,8 @@ public class GetUsersEndpoint : IEndpoint
         })
         .WithName("GetUsers")
         .WithTags("Admin")
+        .WithSummary("Get a paginated list of users.")
+        .WithDescription("Returns users filtered by role and search text; requires Admin or Teacher role.")
         .Produces<GetUsersResult>();
     }
 }

@@ -31,6 +31,8 @@ public class GetAttemptsEndpoint : IEndpoint
         })
         .WithName("GetAllAttempts")
         .WithTags("Competitions")
+        .WithSummary("List attempts for a competition.")
+        .WithDescription("Returns paginated submission attempts for the specified competition. Restricted to Teacher and Admin roles.")
         .Produces<GetAttemptsResult>();
     }
 } 

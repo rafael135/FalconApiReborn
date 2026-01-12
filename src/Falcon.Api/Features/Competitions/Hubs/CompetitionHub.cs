@@ -26,6 +26,13 @@ public class CompetitionHub : Hub
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly ILogger<CompetitionHub> _logger;
 
+    /// <summary>
+    /// Creates a new instance of <see cref="CompetitionHub"/>.
+    /// </summary>
+    /// <param name="dbContext">Database context for reads/writes.</param>
+    /// <param name="userManager">Identity user manager to resolve user information and roles.</param>
+    /// <param name="publishEndpoint">MassTransit publish endpoint used to publish submission commands to the worker.</param>
+    /// <param name="logger">Logger instance.</param>
     public CompetitionHub(
         FalconDbContext dbContext,
         UserManager<User> userManager,
@@ -38,6 +45,9 @@ public class CompetitionHub : Hub
         _logger = logger;
     }
 
+    /// <summary>
+    /// Called when a client connects to the hub; verifies identity and assigns the connection to role/group groups.
+    /// </summary>
     public override async Task OnConnectedAsync()
     {
         var userName = Context.User?.Identity?.Name;
@@ -246,6 +256,9 @@ public class CompetitionHub : Hub
         await Clients.Caller.SendAsync("OnConnectionResponse", response);
     }
 
+    /// <summary>
+    /// Simple ping method to check connectivity; replies with a Pong message and timestamp.
+    /// </summary>
     public async Task Ping()
     {
         await Clients.Caller.SendAsync("Pong", new { message = "Pong", timestamp = DateTime.UtcNow });

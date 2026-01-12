@@ -29,6 +29,8 @@ public class PromoteTemplateEndpoint : IEndpoint
         })
         .WithName("PromoteTemplate")
         .WithTags("Competitions")
+        .WithSummary("Promote a competition template to active competition.")
+        .WithDescription("Promotes the provided template into an active competition; only Teacher or Admin can perform this action.")
         .Produces<PromoteTemplateResult>();
     }
 }

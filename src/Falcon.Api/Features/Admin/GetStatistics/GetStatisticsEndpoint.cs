@@ -20,6 +20,8 @@ public class GetStatisticsEndpoint : IEndpoint
         })
         .WithName("GetStatistics")
         .WithTags("Admin")
+        .WithSummary("Get system statistics for admin dashboard.")
+        .WithDescription("Provides aggregated user, competition, exercise and submission statistics; Admin only.")
         .Produces<GetStatisticsResult>();
     }
 }

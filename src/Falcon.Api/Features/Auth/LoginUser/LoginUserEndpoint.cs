@@ -1,18 +1,23 @@
 using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace Falcon.Api.Features.Auth.LoginUser;
 
 /// <summary>
-/// Autentica um usuário e retorna token de autenticação.
+/// Authenticates a user and returns an authentication token.
 /// </summary>
 /// <remarks>
-/// Recebe um <see cref="LoginUserCommand"/> no body e grava cookie HttpOnly `CompetitionAuthToken` em caso de sucesso.
-/// Exemplo request: { "email": "alice@example.com", "password": "senha123" }
+/// Accepts a <see cref="LoginUserCommand"/> in the request body and appends the HttpOnly cookie
+/// `CompetitionAuthToken` on success. Example request: { "email": "alice@example.com", "password": "password123" }
 /// </remarks>
 public class LoginUserEndpoint : IEndpoint
 {
+    /// <summary>
+    /// Maps the login endpoint into the provided <see cref="IEndpointRouteBuilder"/>.
+    /// </summary>
+    /// <param name="app">The route builder to add the endpoint to.</param>
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("api/Auth/login", async (IMediator mediator, HttpContext httpContext, [FromBody] LoginUserCommand command) =>
@@ -32,6 +37,10 @@ public class LoginUserEndpoint : IEndpoint
             return Results.Ok(new { user = result, token = result.Token });
         })
         .WithName("LoginUser")
-        .WithTags("Auth");
+        .WithTags("Auth")
+        .WithSummary("Authenticate a user and return tokens.")
+        .WithDescription("Authenticates the user and sets an HttpOnly 'CompetitionAuthToken' cookie; returns user information and token.")
+        .Produces<LoginUserResult>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status400BadRequest);
     }
 }

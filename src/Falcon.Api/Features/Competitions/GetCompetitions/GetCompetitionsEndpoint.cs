@@ -17,6 +17,10 @@ namespace Falcon.Api.Features.Competitions.GetCompetitions;
 /// </remarks>
 public class GetCompetitionsEndpoint : IEndpoint
 {
+    /// <summary>
+    /// Maps the competitions listing endpoint with optional status filter and pagination.
+    /// </summary>
+    /// <param name="app">The route builder to map the endpoint into.</param>
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("api/Competition", async (IMediator mediator, CompetitionStatus? status, int skip = 0, int take = 10) =>
@@ -27,6 +31,8 @@ public class GetCompetitionsEndpoint : IEndpoint
         })
         .WithName("GetCompetitions")
         .WithTags("Competitions")
+        .WithSummary("List competitions with optional status filter and pagination.")
+        .WithDescription("Returns a paginated list of competitions. Filter by status when provided.")
         .Produces<GetCompetitionsResult>();
     }
 }

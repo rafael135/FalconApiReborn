@@ -26,6 +26,8 @@ public class GetRankingEndpoint : IEndpoint
         })
         .WithName("GetRanking")
         .WithTags("Competitions")
+        .WithSummary("Get ranking for a competition.")
+        .WithDescription("Returns the ranking table (groups and scores) for the specified competition.")
         .Produces<GetRankingResult>();
     }
 } 

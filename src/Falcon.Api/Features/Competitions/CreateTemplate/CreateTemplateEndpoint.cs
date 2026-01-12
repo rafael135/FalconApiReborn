@@ -19,6 +19,8 @@ public class CreateTemplateEndpoint : IEndpoint
         })
         .WithName("CreateTemplate")
         .WithTags("Competitions")
+        .WithSummary("Create a competition template.")
+        .WithDescription("Creates a new competition template which can later be promoted to an active competition by a Teacher or Admin.")
         .Produces<CreateTemplateResult>();
     }
 }
