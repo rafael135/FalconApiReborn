@@ -1,0 +1,52 @@
+name: Build and Publish XML Docs
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-docs:
+    name: Build docs and publish XML
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore & Build (Release)
+        run: dotnet build -c Release
+
+      - name: Run docs bundling script
+        run: |
+          echo "Running scripts/build-docs.sh..."
+          bash ./scripts/build-docs.sh -c Release
+
+      - name: Validate generated XML artifacts
+        run: |
+          expected=("Falcon.Api.xml" "Falcon.Core.xml" "Falcon.Infrastructure.xml")
+          missing=()
+          for f in "${expected[@]}"; do
+            if [ ! -f "docs/api/$f" ]; then
+              missing+=("$f")
+            fi
+          done
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "Missing XML docs: ${missing[*]}" >&2
+            exit 1
+          fi
+          echo "All expected XML docs present in docs/api"
+      - name: Upload docs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-xml
+          path: docs/api
+
+      - name: Done
+        run: Write-Host "Docs build and validation completed successfully."

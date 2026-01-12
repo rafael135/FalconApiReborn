@@ -3,6 +3,7 @@
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2B%20DDD-brightgreen)](docs/SIGNALR_RABBITMQ_ARCHITECTURE.md)
+[![Docs: build-docs](https://github.com/rafael135/FalconApiReborn/actions/workflows/build-docs.yml/badge.svg?branch=main)](https://github.com/rafael135/FalconApiReborn/actions/workflows/build-docs.yml)
 
 **Falcon API Reborn** é uma reescrita completa do backend da plataforma Falcon Competition, implementando práticas modernas de engenharia de software com **Clean Architecture**, **Domain-Driven Design** e **Vertical Slice Architecture**. Este sistema fornece infraestrutura robusta para competições de programação em tempo real com avaliação automática de código, processamento assíncrono e gerenciamento abrangente de usuários, grupos e exercícios.
 
