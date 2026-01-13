@@ -100,7 +100,7 @@ public class CreateExerciseHandler : IRequestHandler<CreateExerciseCommand, Crea
         }
 
         // Create exercise in Judge system
-        var judgeUuid = await _judgeService.CreateExerciseAsync(
+        string? judgeUuid = await _judgeService.CreateExerciseAsync(
             metadata.Title,
             metadata.Description ?? "",
             judgeTestCases

@@ -1,14 +1,15 @@
 using System.Reflection;
-using Falcon.Api.Features.Submissions.Consumers;
 using Falcon.Api.Extensions;
 using Falcon.Api.Features.Competitions.Hubs;
+using Falcon.Api.Features.Submissions.Consumers;
 using Falcon.Api.Infrastructure;
 using Falcon.Infrastructure;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add infrastructure services
+
+// Add infrastructure services (now includes JWT authentication configuration)
 builder.Services.AddInfrastructure(builder.Configuration);
 
 // Add MassTransit with API-specific consumers
@@ -35,13 +36,17 @@ builder.Services.AddSignalR();
 // CORS for SignalR
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", policy =>
-    {
-        policy.WithOrigins("http://localhost:3000", "http://localhost:5173")
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
-    });
+    options.AddPolicy(
+        "AllowFrontend",
+        policy =>
+        {
+            policy
+                .WithOrigins("http://localhost:3000", "http://localhost:5173")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        }
+    );
 });
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -61,6 +66,26 @@ if (app.Environment.IsDevelopment())
         options.WithTitle("Falcon API - Documentation");
         options.WithTheme(ScalarTheme.Purple);
         options.WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
+        options.AddPreferredSecuritySchemes("JWT Bearer Token", "Token");
+
+        options.AddAuthorizationCodeFlow(
+            "JWT Bearer Token",
+            flow =>
+            {
+                flow.Token = "CompetitionAuthToken";
+                flow.SelectedScopes = new[] { "api.read", "api.write" };
+            }
+        );
+
+        options.AddAuthorizationCodeFlow(
+            "token",
+            flow =>
+            {
+                flow.WithCredentialsLocation(CredentialsLocation.Body);
+                flow.AddQueryParameter("token", "The JWT token");
+                flow.SelectedScopes = new[] { "api.read", "api.write" };
+            }
+        );
     });
 
     app.MapGet("/", () => Results.Redirect("/scalar/v1")).ExcludeFromDescription();

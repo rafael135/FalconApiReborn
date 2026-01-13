@@ -10,17 +10,47 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Falcon.Infrastructure.Auth;
 
+/// <summary>
+/// Implementation of the <see cref="ITokenService"/> for JWT token management. 
+/// </summary>
 public class TokenService : ITokenService
 {
+    /// <summary>
+    /// The secret key used for signing JWT tokens.
+    /// </summary>
     private readonly string _secretKey;
+
+    /// <summary>
+    /// The issuer of the JWT tokens.
+    /// </summary>
     private readonly string _issuer;
+
+    /// <summary>
+    /// The audience for the JWT tokens.
+    /// </summary>
     private readonly string _audience;
 
+    /// <summary>
+    /// The memory cache for storing temporary tokens.
+    /// </summary>
     private readonly IMemoryCache _memoryCache;
 
+    /// <summary>
+    /// The cache key for the private access token.
+    /// </summary>
     private const string PrivateTokenKey = "privateAccessToken";
+
+    /// <summary>
+    /// The logger instance.
+    /// </summary>
     private readonly ILogger<TokenService> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TokenService"/> class.
+    /// </summary>
+    /// <param name="configuration">The application configuration.</param>
+    /// <param name="memoryCache">The memory cache instance.</param>
+    /// <param name="logger">The logger instance.</param>
     public TokenService(
         IConfiguration configuration,
         IMemoryCache memoryCache,
@@ -36,6 +66,10 @@ public class TokenService : ITokenService
         _logger = logger;
     }
 
+    /// <summary>
+    /// Fetches the private access token from the memory cache.
+    /// </summary>
+    /// <returns>The private access token if it exists; otherwise, null.</returns>
     public string? FetchPrivateAccessToken()
     {
         if (this._memoryCache.TryGetValue(PrivateTokenKey, out string? token))

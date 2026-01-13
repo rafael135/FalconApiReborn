@@ -4,15 +4,28 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Falcon.Api.Infrastructure;
 
+/// <summary>
+/// Handles exceptions globally and returns appropriate HTTP responses with problem details.
+/// </summary>
 public class GlobalExceptionHandler : IExceptionHandler
 {
+    /// <summary>
+    /// Logger for logging exceptions.
+    /// </summary>
     private readonly ILogger<GlobalExceptionHandler> _logger;
-
+    
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GlobalExceptionHandler"/> class.
+    /// </summary>
+    /// <param name="logger">The logger to be used for logging exceptions.</param>
     public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger)
     {
         _logger = logger;
     }
 
+    /// <summary>
+    /// Attempts to handle the specified exception and write an appropriate <see cref="ProblemDetails"/> response to the HTTP context.
+    /// </summary>
     public async ValueTask<bool> TryHandleAsync(
         HttpContext httpContext,
         Exception exception,

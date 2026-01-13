@@ -16,8 +16,18 @@ using Microsoft.Extensions.Logging;
 
 namespace Falcon.Infrastructure;
 
+/// <summary>
+/// Extension methods for registering infrastructure services.
+/// </summary>
 public static class DependencyInjection
 {
+    /// <summary>
+    /// Adds infrastructure services to the service collection.
+    /// </summary>
+    /// <param name="services">The service collection to add infrastructure services to.</param>
+    /// <param name="configuration">The application configuration.</param>
+    /// <returns>The updated service collection.</returns>
+    /// <exception cref="InvalidOperationException">If the FalconDbContext is not configured properly.</exception>
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
         IConfiguration configuration
@@ -84,7 +94,46 @@ public static class DependencyInjection
             .AddSignInManager<SignInManager<User>>()
             .AddDefaultTokenProviders();
 
-        services.AddAuthentication();
+        // Add JWT authentication with query string support for SignalR
+        if (environment != "Testing" && environment != "Test")
+        {
+            services
+                .AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = "Bearer";
+                    options.DefaultChallengeScheme = "Bearer";
+                })
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters =
+                        new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                        {
+                            ValidateIssuerSigningKey = true,
+                            IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
+                                System.Text.Encoding.UTF8.GetBytes(configuration["Jwt:SecretKey"] ?? "")
+                            ),
+                            ValidateIssuer = true,
+                            ValidIssuer = configuration["Jwt:Issuer"],
+                            ValidateAudience = true,
+                            ValidAudience = configuration["Jwt:Audience"],
+                            ValidateLifetime = true,
+                            ClockSkew = TimeSpan.Zero,
+                        };
+                    options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            var accessToken = context.Request.Query["token"];
+                            var path = context.HttpContext.Request.Path;
+                            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/competition"))
+                            {
+                                context.Token = accessToken;
+                            }
+                            return Task.CompletedTask;
+                        }
+                    };
+                });
+        }
 
         // Configure HttpClient for Judge API
         var judgeApiUrl = configuration["JudgeApi:Url"];

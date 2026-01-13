@@ -23,7 +23,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     public const string TestJwtSecretKey = "TestSecretKeyForIntegrationTests_Minimum32Characters!";
     public const string TestJwtIssuer = "TestIssuer";
     public const string TestJwtAudience = "TestAudience";
-    
+
     // Use a unique database name per factory instance to ensure isolation
     // Each test class gets its own factory instance (IClassFixture), so tests within a class share the same DB
     // but different test classes are isolated
@@ -35,37 +35,51 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         builder.UseEnvironment("Testing");
 
         // Configure app settings to remove SQL Server connection string
-        builder.ConfigureAppConfiguration((context, config) =>
-        {
-            config.AddInMemoryCollection(new Dictionary<string, string>
+        builder.ConfigureAppConfiguration(
+            (context, config) =>
             {
-                ["ConnectionStrings:DefaultConnection"] = "", // Empty to prevent SQL Server registration
-                ["Environment"] = "Testing"
-            }!);
-        });
+                config.AddInMemoryCollection(
+                    new Dictionary<string, string>
+                    {
+                        ["ConnectionStrings:DefaultConnection"] = "", // Empty to prevent SQL Server registration
+                        ["Environment"] = "Testing",
+                    }!
+                );
+            }
+        );
 
         builder.ConfigureTestServices(services =>
         {
             // Remove all DbContext registrations (this runs AFTER the app's ConfigureServices)
             // Remove by service type
-            var dbContextOptionsDescriptors = services.Where(d => d.ServiceType == typeof(DbContextOptions<FalconDbContext>)).ToList();
+            var dbContextOptionsDescriptors = services
+                .Where(d => d.ServiceType == typeof(DbContextOptions<FalconDbContext>))
+                .ToList();
             foreach (var descriptor in dbContextOptionsDescriptors)
             {
                 services.Remove(descriptor);
             }
 
-            var dbContextDescriptors = services.Where(d => d.ServiceType == typeof(FalconDbContext)).ToList();
+            var dbContextDescriptors = services
+                .Where(d => d.ServiceType == typeof(FalconDbContext))
+                .ToList();
             foreach (var descriptor in dbContextDescriptors)
             {
                 services.Remove(descriptor);
             }
 
             // Remove SQL Server specific services
-            var sqlServerDescriptors = services.Where(d => 
-                d.ServiceType != null && 
-                (d.ServiceType.FullName?.Contains("SqlServer") == true ||
-                 d.ImplementationType?.FullName?.Contains("SqlServer") == true ||
-                 d.ImplementationFactory?.Method?.ReturnType?.FullName?.Contains("SqlServer") == true))
+            var sqlServerDescriptors = services
+                .Where(d =>
+                    d.ServiceType != null
+                    && (
+                        d.ServiceType.FullName?.Contains("SqlServer") == true
+                        || d.ImplementationType?.FullName?.Contains("SqlServer") == true
+                        || d.ImplementationFactory?.Method?.ReturnType?.FullName?.Contains(
+                            "SqlServer"
+                        ) == true
+                    )
+                )
                 .ToList();
             foreach (var descriptor in sqlServerDescriptors)
             {
@@ -81,14 +95,19 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             });
 
             // Remove MassTransit/RabbitMQ services and hosted services
-            var massTransitDescriptors = services.Where(d => 
-                d.ServiceType.Name.Contains("MassTransit") || 
-                d.ServiceType.Name.Contains("IBus") ||
-                d.ServiceType.Name.Contains("IPublishEndpoint") ||
-                d.ServiceType.Name.Contains("ISendEndpointProvider") ||
-                d.ServiceType.Name.Contains("IBusDepot") ||
-                d.ServiceType.Name.Contains("IBusControl") ||
-                (d.ImplementationType != null && d.ImplementationType.Name.Contains("MassTransit")))
+            var massTransitDescriptors = services
+                .Where(d =>
+                    d.ServiceType.Name.Contains("MassTransit")
+                    || d.ServiceType.Name.Contains("IBus")
+                    || d.ServiceType.Name.Contains("IPublishEndpoint")
+                    || d.ServiceType.Name.Contains("ISendEndpointProvider")
+                    || d.ServiceType.Name.Contains("IBusDepot")
+                    || d.ServiceType.Name.Contains("IBusControl")
+                    || (
+                        d.ImplementationType != null
+                        && d.ImplementationType.Name.Contains("MassTransit")
+                    )
+                )
                 .ToList();
             foreach (var massTransitDescriptor in massTransitDescriptors)
             {
@@ -96,10 +115,12 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             }
 
             // Remove MassTransit hosted services
-            var hostedServices = services.Where(d => 
-                d.ServiceType == typeof(Microsoft.Extensions.Hosting.IHostedService) &&
-                d.ImplementationType != null &&
-                d.ImplementationType.Name.Contains("MassTransit"))
+            var hostedServices = services
+                .Where(d =>
+                    d.ServiceType == typeof(Microsoft.Extensions.Hosting.IHostedService)
+                    && d.ImplementationType != null
+                    && d.ImplementationType.Name.Contains("MassTransit")
+                )
                 .ToList();
             foreach (var hostedService in hostedServices)
             {
@@ -112,34 +133,52 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             services.AddSingleton(mockPublishEndpoint);
 
             // Mock Judge Service
-            var judgeServiceDescriptor = services.FirstOrDefault(s => s.ServiceType == typeof(IJudgeService));
+            var judgeServiceDescriptor = services.FirstOrDefault(s =>
+                s.ServiceType == typeof(IJudgeService)
+            );
             if (judgeServiceDescriptor != null)
             {
                 services.Remove(judgeServiceDescriptor);
             }
             var mockJudgeService = new Mock<IJudgeService>();
             // Setup CreateExerciseAsync to return a valid UUID
-            mockJudgeService.Setup(x => x.CreateExerciseAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<Falcon.Core.Interfaces.TestCase>>()))
+            mockJudgeService
+                .Setup(x =>
+                    x.CreateExerciseAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<List<Falcon.Core.Interfaces.TestCase>>()
+                    )
+                )
                 .ReturnsAsync(Guid.NewGuid().ToString());
             // Setup other methods as needed
-            mockJudgeService.Setup(x => x.SubmitCodeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync(new Falcon.Core.Interfaces.JudgeSubmissionResult(
-                    Guid.NewGuid().ToString(),
-                    Falcon.Core.Domain.Shared.Enums.JudgeSubmissionResponse.Accepted,
-                    TimeSpan.FromSeconds(1),
-                    1024
-                ));
+            mockJudgeService
+                .Setup(x =>
+                    x.SubmitCodeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())
+                )
+                .ReturnsAsync(
+                    new Falcon.Core.Interfaces.JudgeSubmissionResult(
+                        Guid.NewGuid().ToString(),
+                        Falcon.Core.Domain.Shared.Enums.JudgeSubmissionResponse.Accepted,
+                        TimeSpan.FromSeconds(1),
+                        1024
+                    )
+                );
             services.AddScoped(_ => mockJudgeService.Object);
             services.AddSingleton(mockJudgeService);
 
             // Replace FileStorageService with temporary directory
-            var fileStorageDescriptor = services.FirstOrDefault(
-                d => d.ServiceType == typeof(IFileStorageService));
+            var fileStorageDescriptor = services.FirstOrDefault(d =>
+                d.ServiceType == typeof(IFileStorageService)
+            );
             if (fileStorageDescriptor != null)
             {
                 services.Remove(fileStorageDescriptor);
             }
-            var tempDir = Path.Combine(Path.GetTempPath(), "FalconApiTests_" + Guid.NewGuid().ToString());
+            var tempDir = Path.Combine(
+                Path.GetTempPath(),
+                "FalconApiTests_" + Guid.NewGuid().ToString()
+            );
             Directory.CreateDirectory(tempDir);
             services.AddSingleton<IFileStorageService>(sp =>
             {
@@ -148,38 +187,45 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             });
 
             // Configure JWT Authentication for tests
-            services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
+            services
+                .AddAuthentication(options =>
                 {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(TestJwtSecretKey)),
-                    ValidateIssuer = true,
-                    ValidIssuer = TestJwtIssuer,
-                    ValidateAudience = true,
-                    ValidAudience = TestJwtAudience,
-                    ValidateLifetime = true,
-                    ClockSkew = TimeSpan.Zero
-                };
-            });
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(
+                            Encoding.UTF8.GetBytes(TestJwtSecretKey)
+                        ),
+                        ValidateIssuer = true,
+                        ValidIssuer = TestJwtIssuer,
+                        ValidateAudience = true,
+                        ValidAudience = TestJwtAudience,
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.Zero,
+                    };
+                });
         });
 
-        builder.ConfigureAppConfiguration((context, config) =>
-        {
-            config.AddInMemoryCollection(new Dictionary<string, string?>
+        builder.ConfigureAppConfiguration(
+            (context, config) =>
             {
-                { "Jwt:SecretKey", TestJwtSecretKey },
-                { "Jwt:Issuer", TestJwtIssuer },
-                { "Jwt:Audience", TestJwtAudience },
-                { "ConnectionStrings:DefaultConnection", "" }, // Empty connection string to prevent SQL Server registration
-                { "ASPNETCORE_ENVIRONMENT", "Testing" } // Set environment to Testing
-            });
-        });
+                config.AddInMemoryCollection(
+                    new Dictionary<string, string?>
+                    {
+                        { "Jwt:SecretKey", TestJwtSecretKey },
+                        { "Jwt:Issuer", TestJwtIssuer },
+                        { "Jwt:Audience", TestJwtAudience },
+                        { "ConnectionStrings:DefaultConnection", "" }, // Empty connection string to prevent SQL Server registration
+                        { "ASPNETCORE_ENVIRONMENT", "Testing" }, // Set environment to Testing
+                    }
+                );
+            }
+        );
 
         builder.ConfigureLogging(logging =>
         {
@@ -204,7 +250,11 @@ internal class TestFileStorageService : IFileStorageService
         Directory.CreateDirectory(_baseDirectory);
     }
 
-    public async Task<string> SaveFileAsync(Stream fileStream, string fileName, CancellationToken cancellationToken = default)
+    public async Task<string> SaveFileAsync(
+        Stream fileStream,
+        string fileName,
+        CancellationToken cancellationToken = default
+    )
     {
         var extension = Path.GetExtension(fileName);
         var uniqueFileName = $"{Guid.NewGuid()}{extension}";
@@ -228,7 +278,10 @@ internal class TestFileStorageService : IFileStorageService
         return relativePath;
     }
 
-    public async Task<Stream> GetFileAsync(string filePath, CancellationToken cancellationToken = default)
+    public async Task<Stream> GetFileAsync(
+        string filePath,
+        CancellationToken cancellationToken = default
+    )
     {
         var fullPath = Path.Combine(_baseDirectory, filePath);
         if (!File.Exists(fullPath))
@@ -255,7 +308,10 @@ internal class TestFileStorageService : IFileStorageService
         return Task.CompletedTask;
     }
 
-    public Task<bool> FileExistsAsync(string filePath, CancellationToken cancellationToken = default)
+    public Task<bool> FileExistsAsync(
+        string filePath,
+        CancellationToken cancellationToken = default
+    )
     {
         var fullPath = Path.Combine(_baseDirectory, filePath);
         return Task.FromResult(File.Exists(fullPath));
@@ -275,7 +331,8 @@ internal class RoleSeederService : Microsoft.Extensions.Hosting.IHostedService
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         using var scope = _serviceProvider.CreateScope();
-        var roleManager = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.RoleManager<Microsoft.AspNetCore.Identity.IdentityRole>>();
+        var roleManager =
+            scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.RoleManager<Microsoft.AspNetCore.Identity.IdentityRole>>();
         var dbContext = scope.ServiceProvider.GetRequiredService<FalconDbContext>();
 
         // Ensure database is created
@@ -287,7 +344,9 @@ internal class RoleSeederService : Microsoft.Extensions.Hosting.IHostedService
         {
             if (!await roleManager.RoleExistsAsync(roleName))
             {
-                await roleManager.CreateAsync(new Microsoft.AspNetCore.Identity.IdentityRole(roleName));
+                await roleManager.CreateAsync(
+                    new Microsoft.AspNetCore.Identity.IdentityRole(roleName)
+                );
             }
         }
     }

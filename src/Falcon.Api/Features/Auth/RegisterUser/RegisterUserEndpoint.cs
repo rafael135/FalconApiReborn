@@ -1,7 +1,7 @@
 using Falcon.Api.Extensions;
 using MediatR;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Falcon.Api.Features.Auth.RegisterUser;
 
@@ -21,29 +21,42 @@ public class RegisterUserEndpoint : IEndpoint
     /// <param name="app">The route builder to add the endpoint to.</param>
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("api/Auth/register", async (IMediator mediator, HttpContext httpContext, [FromBody] RegisterUserCommand command) =>
-        {
-            var result = await mediator.Send(command);
+        app.MapPost(
+                "api/Auth/register",
+                async (
+                    IMediator mediator,
+                    HttpContext httpContext,
+                    [FromBody] RegisterUserCommand command
+                ) =>
+                {
+                    var result = await mediator.Send(command);
 
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                Expires = DateTime.UtcNow.AddDays(1),
-                SameSite = SameSiteMode.Lax,
-                Path = "/",
-            };
-            httpContext.Response.Cookies.Append("CompetitionAuthToken", result.Token, cookieOptions);
+                    var cookieOptions = new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = true,
+                        Expires = DateTime.UtcNow.AddDays(1),
+                        SameSite = SameSiteMode.Lax,
+                        Path = "/",
+                    };
+                    httpContext.Response.Cookies.Append(
+                        "CompetitionAuthToken",
+                        result.Token,
+                        cookieOptions
+                    );
 
-            return Results.Ok(new { user = result, token = result.Token });
-        })
-        .WithName("RegisterUser")
-        .WithTags("Auth")
-        .WithSummary("Register a new user (student or teacher).")
-        .WithDescription("Creates a new user account. For teacher role, supply a valid access code. Returns the created user and an authentication token; sets an HttpOnly cookie named 'CompetitionAuthToken'.")
-        .Produces<RegisterUserResult>(StatusCodes.Status200OK)
-        .Produces(StatusCodes.Status400BadRequest)
-        .Produces(StatusCodes.Status401Unauthorized)
-        .Produces(StatusCodes.Status422UnprocessableEntity);
+                    return Results.Ok(new { user = result, token = result.Token });
+                }
+            )
+            .WithName("RegisterUser")
+            .WithTags("Auth")
+            .WithSummary("Register a new user (student or teacher).")
+            .WithDescription(
+                "Creates a new user account. For teacher role, supply a valid access code. Returns the created user and an authentication token; sets an HttpOnly cookie named 'CompetitionAuthToken'."
+            )
+            .Produces<RegisterUserResult>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status422UnprocessableEntity);
     }
 }
