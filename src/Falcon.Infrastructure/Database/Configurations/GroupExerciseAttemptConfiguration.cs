@@ -4,8 +4,14 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Falcon.Infrastructure.Database.Configurations;
 
+/// <summary>
+/// EF Core configuration for the <see cref="GroupExerciseAttempt"/> entity.
+/// </summary>
 public class GroupExerciseAttemptConfiguration : IEntityTypeConfiguration<GroupExerciseAttempt>
 {
+    /// <summary>
+    /// Configures the entity mapping for <see cref="GroupExerciseAttempt"/>.
+    /// </summary>
     public void Configure(EntityTypeBuilder<GroupExerciseAttempt> builder)
     {
         builder.ToTable("GroupExerciseAttempts");

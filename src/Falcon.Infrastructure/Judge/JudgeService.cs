@@ -20,6 +20,13 @@ public class JudgeService : IJudgeService
     private readonly ILogger<JudgeService> _logger;
     private const string JudgeMemoryTokenKey = "JudgeJwtToken";
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="JudgeService"/> class.
+    /// </summary>
+    /// <param name="httpClientFactory">The factory to create HTTP clients configured for the Judge API.</param>
+    /// <param name="tokenService">The token service used to generate/validate tokens for Judge.</param>
+    /// <param name="memoryCache">Memory cache for storing tokens to avoid frequent authentication calls.</param>
+    /// <param name="logger">Logger instance.</param>
     public JudgeService(
         IHttpClientFactory httpClientFactory,
         ITokenService tokenService,
@@ -32,6 +39,10 @@ public class JudgeService : IJudgeService
         _logger = logger;
     }
 
+    /// <summary>
+    /// Authenticates against the Judge API using the internal judge token and returns the access token.
+    /// </summary>
+    /// <returns>An access token string if authentication succeeds; otherwise null.</returns>
     public async Task<string?> AuthenticateJudgeAsync()
     {
         string generatedToken = _tokenService.GenerateJudgeToken();
@@ -59,6 +70,11 @@ public class JudgeService : IJudgeService
         }
     }
 
+    /// <summary>
+    /// Fetches a cached judge token from memory cache or authenticates to obtain a fresh one.
+    /// Tokens are cached for one hour by default.
+    /// </summary>
+    /// <returns>A valid judge access token or null if authentication fails.</returns>
     public async Task<string?> FetchJudgeTokenAsync()
     {
         if (_memoryCache.TryGetValue(JudgeMemoryTokenKey, out string? cachedToken) && !string.IsNullOrEmpty(cachedToken))
@@ -79,6 +95,13 @@ public class JudgeService : IJudgeService
         return newToken;
     }
 
+    /// <summary>
+    /// Creates an exercise in the Judge API using provided title, description and test cases.
+    /// </summary>
+    /// <param name="title">The exercise title.</param>
+    /// <param name="description">The exercise description.</param>
+    /// <param name="testCases">A list of test cases used to generate data entry/output.</param>
+    /// <returns>The UUID of the created exercise in Judge if successful; otherwise null.</returns>
     public async Task<string?> CreateExerciseAsync(string title, string description, List<TestCase> testCases)
     {
         string? token = await FetchJudgeTokenAsync();
@@ -127,6 +150,13 @@ public class JudgeService : IJudgeService
         return null;
     }
 
+    /// <summary>
+    /// Submits code to the Judge API for execution and returns a <see cref="JudgeSubmissionResult"/>.
+    /// </summary>
+    /// <param name="code">The source code to submit.</param>
+    /// <param name="language">The programming language identifier.</param>
+    /// <param name="exerciseUuid">The Judge exercise UUID.</param>
+    /// <returns>A <see cref="JudgeSubmissionResult"/> representing the submission outcome.</returns>
     public async Task<JudgeSubmissionResult> SubmitCodeAsync(string code, string language, string exerciseUuid)
     {
         string? token = await FetchJudgeTokenAsync();
@@ -198,6 +228,11 @@ public class JudgeService : IJudgeService
             0);
     }
 
+    /// <summary>
+    /// Retrieves exercise information from Judge by UUID.
+    /// </summary>
+    /// <param name="judgeUuid">The Judge exercise UUID.</param>
+    /// <returns>A <see cref="JudgeExerciseInfo"/> if found; otherwise null.</returns>
     public async Task<JudgeExerciseInfo?> GetExerciseByUuidAsync(string judgeUuid)
     {
         string? token = await FetchJudgeTokenAsync();
@@ -231,6 +266,14 @@ public class JudgeService : IJudgeService
         return null;
     }
 
+    /// <summary>
+    /// Updates an existing exercise in Judge API.
+    /// </summary>
+    /// <param name="judgeUuid">The Judge exercise UUID.</param>
+    /// <param name="title">The new title.</param>
+    /// <param name="description">The new description.</param>
+    /// <param name="testCases">The new list of test cases.</param>
+    /// <returns>True if update succeeded; otherwise false.</returns>
     public async Task<bool> UpdateExerciseAsync(string judgeUuid, string title, string description, List<TestCase> testCases)
     {
         string? token = await FetchJudgeTokenAsync();

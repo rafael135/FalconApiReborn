@@ -4,8 +4,14 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Falcon.Infrastructure.Database.Configurations;
 
+/// <summary>
+/// EF Core configuration for the <see cref="GroupInvite"/> entity.
+/// </summary>
 public class GroupInviteConfiguration : IEntityTypeConfiguration<GroupInvite>
 {
+    /// <summary>
+    /// Configures the entity mapping for <see cref="GroupInvite"/>.
+    /// </summary>
     public void Configure(EntityTypeBuilder<GroupInvite> builder)
     {
         builder.ToTable("GroupInvites");

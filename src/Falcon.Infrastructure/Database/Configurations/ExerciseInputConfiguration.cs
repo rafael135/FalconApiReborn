@@ -4,8 +4,14 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Falcon.Infrastructure.Database.Configurations;
 
+/// <summary>
+/// EF Core configuration for the <see cref="ExerciseInput"/> entity.
+/// </summary>
 public class ExerciseInputConfiguration : IEntityTypeConfiguration<ExerciseInput>
 {
+    /// <summary>
+    /// Configures the entity mapping for <see cref="ExerciseInput"/>.
+    /// </summary>
     public void Configure(EntityTypeBuilder<ExerciseInput> builder)
     {
         builder.ToTable("ExerciseInputs");

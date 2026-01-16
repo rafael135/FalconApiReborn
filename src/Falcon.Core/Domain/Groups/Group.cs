@@ -5,39 +5,86 @@ using Falcon.Core.Domain.Users;
 namespace Falcon.Core.Domain.Groups;
 
 /// <summary>
-/// Represents a group in the system.
+/// Represents a group of users used for participating in competitions and sharing resources.
 /// </summary>
 public class Group : Entity
 {
+    /// <summary>
+    /// The group's display name.
+    /// </summary>
     public string Name { get; private set; }
+
+    /// <summary>
+    /// The identifier of the group's leader (user id).
+    /// </summary>
     public string LeaderId { get; private set; }
+
+    /// <summary>
+    /// Row version used for optimistic concurrency.
+    /// </summary>
     public byte[]? RowVersion { get; private set; }
 
     private readonly List<User> _users = new();
+
+    /// <summary>
+    /// Read-only collection of users who are members of the group.
+    /// </summary>
     public virtual IReadOnlyCollection<User> Users => _users.AsReadOnly();
 
     private readonly List<GroupInvite> _invites = new();
+
+    /// <summary>
+    /// Pending invites for the group.
+    /// </summary>
     public virtual IReadOnlyCollection<GroupInvite> Invites => _invites.AsReadOnly();
 
     private readonly List<GroupInCompetition> _groupsInCompetitions = new();
+
+    /// <summary>
+    /// Associations between this group and competitions.
+    /// </summary>
     public virtual IReadOnlyCollection<GroupInCompetition> GroupsInCompetitions => _groupsInCompetitions.AsReadOnly();
 
     private readonly List<Competition> _competitions = new();
+
+    /// <summary>
+    /// Competitions where this group participates.
+    /// </summary>
     public virtual IReadOnlyCollection<Competition> Competitions => _competitions.AsReadOnly();
 
     private readonly List<Competitions.CompetitionRanking> _rankings = new();
+
+    /// <summary>
+    /// Ranking entries for this group across competitions.
+    /// </summary>
     public virtual IReadOnlyCollection<Competitions.CompetitionRanking> Rankings => _rankings.AsReadOnly();
 
     private readonly List<Exercises.GroupExerciseAttempt> _attempts = new();
+
+    /// <summary>
+    /// Attempts performed by this group.
+    /// </summary>
     public virtual IReadOnlyCollection<Exercises.GroupExerciseAttempt> Attempts => _attempts.AsReadOnly();
 
     private readonly List<Auditing.Log> _logs = new();
+
+    /// <summary>
+    /// Audit logs related to this group.
+    /// </summary>
     public virtual IReadOnlyCollection<Auditing.Log> Logs => _logs.AsReadOnly();
 
 #pragma warning disable CS8618
     protected Group() { }
 #pragma warning restore CS8618
 
+    /// <summary>
+    /// Creates a new group with the provided <paramref name="name"/> and leader.
+    /// The leader is automatically added to the group's members.
+    /// </summary>
+    /// <param name="name">The group name.</param>
+    /// <param name="leader">The initial leader and member.</param>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="name"/> is null or empty.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="leader"/> is null.</exception>
     public Group(string name, User leader)
     {
         if (string.IsNullOrWhiteSpace(name))
@@ -48,10 +95,14 @@ public class Group : Entity
         Name = name;
         LeaderId = leader.Id;
 
-        // Regra de Negócio: O Líder já entra como membro automaticamente?
+        // The leader is added as a member by default
         _users.Add(leader);
     }
 
+    /// <summary>
+    /// Renames the group.
+    /// </summary>
+    /// <param name="newName">The new name for the group.</param>
     public void Rename(string newName)
     {
         if (string.IsNullOrWhiteSpace(newName))
@@ -61,6 +112,10 @@ public class Group : Entity
         Name = newName;
     }
 
+    /// <summary>
+    /// Adds a member to the group. Enforces the business rule limiting group size.
+    /// </summary>
+    /// <param name="user">The user to add.</param>
     public void AddMember(User user)
     {
         if (user == null)
@@ -78,6 +133,10 @@ public class Group : Entity
         _users.Add(user);
     }
 
+    /// <summary>
+    /// Removes a member from the group.
+    /// </summary>
+    /// <param name="user">The member to remove.</param>
     public void RemoveMember(User user)
     {
         if (user == null)
@@ -89,9 +148,9 @@ public class Group : Entity
     }
 
     /// <summary>
-    /// Transfers group leadership to another member.
+    /// Transfers group leadership to another existing member.
     /// </summary>
-    /// <param name="newLeader">The new leader of the group. Must be an existing member.</param>
+    /// <param name="newLeader">The new leader of the group (must be a member).</param>
     public void TransferLeadership(User newLeader)
     {
         if (newLeader == null)
@@ -108,7 +167,7 @@ public class Group : Entity
     }
 
     /// <summary>
-    /// Disbands the group by removing all members and clearing their group association.
+    /// Disbands the group and clears group associations from its members.
     /// </summary>
     public void Disband()
     {

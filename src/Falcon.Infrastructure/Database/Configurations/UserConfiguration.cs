@@ -4,8 +4,14 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Falcon.Infrastructure.Database.Configurations;
 
+/// <summary>
+/// EF Core configuration for the <see cref="User"/> (Identity user) entity.
+/// </summary>
 public class UserConfiguration : IEntityTypeConfiguration<User>
 {
+    /// <summary>
+    /// Configures the entity mapping for <see cref="User"/>.
+    /// </summary>
     public void Configure(EntityTypeBuilder<User> builder)
     {
         builder.ToTable("AspNetUsers");

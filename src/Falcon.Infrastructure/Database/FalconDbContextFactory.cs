@@ -10,6 +10,12 @@ namespace Falcon.Infrastructure.Database;
 /// </summary>
 public class FalconDbContextFactory : IDesignTimeDbContextFactory<FalconDbContext>
 {
+    /// <summary>
+    /// Creates a <see cref="FalconDbContext"/> instance for design-time tools such as migrations.
+    /// The factory reads configuration files from the API project folder to obtain the connection string.
+    /// </summary>
+    /// <param name="args">Design-time arguments (not used).</param>
+    /// <returns>An initialized <see cref="FalconDbContext"/>.</returns>
     public FalconDbContext CreateDbContext(string[] args)
     {
         // 1. Configures where to read the connection string

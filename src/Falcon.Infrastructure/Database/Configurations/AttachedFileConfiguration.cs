@@ -4,8 +4,14 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Falcon.Infrastructure.Database.Configurations;
 
+/// <summary>
+/// EF Core configuration for the <see cref="AttachedFile"/> entity.
+/// </summary>
 public class AttachedFileConfiguration : IEntityTypeConfiguration<AttachedFile>
 {
+    /// <summary>
+    /// Configures the entity mapping for <see cref="AttachedFile"/>.
+    /// </summary>
     public void Configure(EntityTypeBuilder<AttachedFile> builder)
     {
         builder.ToTable("AttachedFiles");

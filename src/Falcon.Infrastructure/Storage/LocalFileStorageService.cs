@@ -12,6 +12,12 @@ public class LocalFileStorageService : IFileStorageService
     private readonly string _baseDirectory;
     private readonly ILogger<LocalFileStorageService> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="LocalFileStorageService"/> using the
+    /// provided <see cref="IWebHostEnvironment"/>.
+    /// </summary>
+    /// <param name="environment">The web host environment containing the web root path.</param>
+    /// <param name="logger">The logger instance.</param>
     public LocalFileStorageService(
         IWebHostEnvironment environment,
         ILogger<LocalFileStorageService> logger
@@ -28,6 +34,11 @@ public class LocalFileStorageService : IFileStorageService
         }
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="LocalFileStorageService"/> using an explicit base directory.
+    /// </summary>
+    /// <param name="baseDirectory">The base directory where files will be stored.</param>
+    /// <param name="logger">The logger instance.</param>
     public LocalFileStorageService(string baseDirectory, ILogger<LocalFileStorageService> logger)
     {
         _baseDirectory = baseDirectory;
@@ -35,6 +46,9 @@ public class LocalFileStorageService : IFileStorageService
         EnsureBaseDirectoryExists();
     }
 
+    /// <summary>
+    /// Ensures the base directory exists, creating it if missing.
+    /// </summary>
     private void EnsureBaseDirectoryExists()
     {
         if (!Directory.Exists(_baseDirectory))
@@ -44,6 +58,14 @@ public class LocalFileStorageService : IFileStorageService
         }
     }
 
+    /// <summary>
+    /// Saves the provided file stream to a unique path under the configured base directory.
+    /// The file is stored in a year/month folder and a GUID-prefixed filename is generated.
+    /// </summary>
+    /// <param name="fileStream">The source stream of the file to save.</param>
+    /// <param name="fileName">The original filename (used to infer extension).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The relative path where the file was saved.</returns>
     public async Task<string> SaveFileAsync(
         Stream fileStream,
         string fileName,
@@ -80,6 +102,13 @@ public class LocalFileStorageService : IFileStorageService
         return relativePath;
     }
 
+    /// <summary>
+    /// Retrieves a file from storage as a <see cref="Stream"/>.
+    /// </summary>
+    /// <param name="filePath">The relative path of the file to retrieve.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A stream containing the file contents.</returns>
+    /// <exception cref="FileNotFoundException">Thrown when the file does not exist at the expected path.</exception>
     public async Task<Stream> GetFileAsync(
         string filePath,
         CancellationToken cancellationToken = default
@@ -102,6 +131,11 @@ public class LocalFileStorageService : IFileStorageService
         return memoryStream;
     }
 
+    /// <summary>
+    /// Deletes a file from local storage if it exists.
+    /// </summary>
+    /// <param name="filePath">The relative path of the file to delete.</param>
+    /// <param name="cancellationToken">Cancellation token (not used but provided for interface completeness).</param>
     public Task DeleteFileAsync(string filePath, CancellationToken cancellationToken = default)
     {
         var fullPath = Path.Combine(_baseDirectory, filePath);
@@ -115,6 +149,12 @@ public class LocalFileStorageService : IFileStorageService
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Checks whether a file exists in storage.
+    /// </summary>
+    /// <param name="filePath">The relative path of the file.</param>
+    /// <param name="cancellationToken">Cancellation token (not used but provided for interface completeness).</param>
+    /// <returns>True if the file exists; otherwise false.</returns>
     public Task<bool> FileExistsAsync(
         string filePath,
         CancellationToken cancellationToken = default

@@ -4,8 +4,14 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Falcon.Infrastructure.Database.Configurations;
 
+/// <summary>
+/// EF Core configuration for the <see cref="Answer"/> entity.
+/// </summary>
 public class AnswerConfiguration : IEntityTypeConfiguration<Answer>
 {
+    /// <summary>
+    /// Configures the entity mapping for <see cref="Answer"/>.
+    /// </summary>
     public void Configure(EntityTypeBuilder<Answer> builder)
     {
         builder.ToTable("Answers");

@@ -7,9 +7,15 @@ namespace Falcon.Infrastructure.Judge.Models;
 /// </summary>
 public class JudgeSubmissionResponseDto
 {
+    /// <summary>
+    /// The status string returned by Judge (e.g., "ACCEPTED", "WRONG ANSWER").
+    /// </summary>
     [JsonPropertyName("status")]
     public string Status { get; set; } = string.Empty;
 
+    /// <summary>
+    /// The execution time in milliseconds reported by Judge.
+    /// </summary>
     [JsonPropertyName("execution_time")]
     public double ExecutionTime { get; set; }
 }

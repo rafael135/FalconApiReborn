@@ -4,8 +4,14 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Falcon.Infrastructure.Database.Configurations;
 
+/// <summary>
+/// EF Core configuration for the <see cref="Group"/> entity.
+/// </summary>
 public class GroupConfiguration : IEntityTypeConfiguration<Group>
 {
+    /// <summary>
+    /// Configures the entity mapping for <see cref="Group"/>.
+    /// </summary>
     public void Configure(EntityTypeBuilder<Group> builder)
     {
         builder.ToTable("Groups");

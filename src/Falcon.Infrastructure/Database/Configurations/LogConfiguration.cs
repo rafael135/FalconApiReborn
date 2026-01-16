@@ -4,8 +4,14 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Falcon.Infrastructure.Database.Configurations;
 
+/// <summary>
+/// EF Core configuration for the <see cref="Log"/> entity.
+/// </summary>
 public class LogConfiguration : IEntityTypeConfiguration<Log>
 {
+    /// <summary>
+    /// Configures the entity mapping for <see cref="Log"/>.
+    /// </summary>
     public void Configure(EntityTypeBuilder<Log> builder)
     {
         builder.ToTable("Logs");

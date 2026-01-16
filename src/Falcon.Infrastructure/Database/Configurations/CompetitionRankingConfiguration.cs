@@ -4,8 +4,14 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Falcon.Infrastructure.Database.Configurations;
 
+/// <summary>
+/// EF Core configuration for the <see cref="CompetitionRanking"/> entity.
+/// </summary>
 public class CompetitionRankingConfiguration : IEntityTypeConfiguration<CompetitionRanking>
 {
+    /// <summary>
+    /// Configures the entity mapping for <see cref="CompetitionRanking"/>.
+    /// </summary>
     public void Configure(EntityTypeBuilder<CompetitionRanking> builder)
     {
         builder.ToTable("CompetitionRankings");

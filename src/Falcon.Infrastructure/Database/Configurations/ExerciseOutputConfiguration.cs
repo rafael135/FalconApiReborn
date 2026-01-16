@@ -4,8 +4,14 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Falcon.Infrastructure.Database.Configurations;
 
+/// <summary>
+/// EF Core configuration for the <see cref="ExerciseOutput"/> entity.
+/// </summary>
 public class ExerciseOutputConfiguration : IEntityTypeConfiguration<ExerciseOutput>
 {
+    /// <summary>
+    /// Configures the entity mapping for <see cref="ExerciseOutput"/>.
+    /// </summary>
     public void Configure(EntityTypeBuilder<ExerciseOutput> builder)
     {
         builder.ToTable("ExerciseOutputs");

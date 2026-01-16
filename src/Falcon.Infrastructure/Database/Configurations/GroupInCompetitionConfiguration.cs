@@ -4,8 +4,14 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Falcon.Infrastructure.Database.Configurations;
 
+/// <summary>
+/// EF Core configuration for the <see cref="GroupInCompetition"/> entity.
+/// </summary>
 public class GroupInCompetitionConfiguration : IEntityTypeConfiguration<GroupInCompetition>
 {
+    /// <summary>
+    /// Configures the entity mapping for <see cref="GroupInCompetition"/>.
+    /// </summary>
     public void Configure(EntityTypeBuilder<GroupInCompetition> builder)
     {
         builder.ToTable("GroupsInCompetitions");

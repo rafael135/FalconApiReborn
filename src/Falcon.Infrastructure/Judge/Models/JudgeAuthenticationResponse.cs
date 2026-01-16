@@ -7,6 +7,9 @@ namespace Falcon.Infrastructure.Judge.Models;
 /// </summary>
 public class JudgeAuthenticationResponse
 {
+    /// <summary>
+    /// The access token returned by Judge API authentication endpoint.
+    /// </summary>
     [JsonPropertyName("access_token")]
     public string AccessToken { get; set; } = string.Empty;
 }
