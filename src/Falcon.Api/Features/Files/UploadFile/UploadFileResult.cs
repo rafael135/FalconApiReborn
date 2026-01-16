@@ -14,4 +14,4 @@ public record UploadFileResult(
     string FileType,
     long FileSize,
     DateTime CreatedAt
-); 
+);

@@ -7,9 +7,4 @@ namespace Falcon.Api.Features.Exercises.Shared;
 /// <param name="OutputId">ID do output associado.</param>
 /// <param name="InputContent">Conteúdo da entrada.</param>
 /// <param name="ExpectedOutput">Saída esperada do caso de teste.</param>
-public record TestCaseDto(
-    Guid InputId,
-    Guid OutputId,
-    string InputContent,
-    string ExpectedOutput
-);
+public record TestCaseDto(Guid InputId, Guid OutputId, string InputContent, string ExpectedOutput);

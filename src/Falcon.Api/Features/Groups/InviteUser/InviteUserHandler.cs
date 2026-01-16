@@ -22,7 +22,8 @@ public class InviteUserHandler : IRequestHandler<InviteUserCommand, InviteUserRe
         UserManager<Core.Domain.Users.User> userManager,
         FalconDbContext dbContext,
         IHttpContextAccessor httpContextAccessor,
-        ILogger<InviteUserHandler> logger)
+        ILogger<InviteUserHandler> logger
+    )
     {
         _userManager = userManager;
         _dbContext = dbContext;
@@ -30,18 +31,23 @@ public class InviteUserHandler : IRequestHandler<InviteUserCommand, InviteUserRe
         _logger = logger;
     }
 
-    public async Task<InviteUserResult> Handle(InviteUserCommand request, CancellationToken cancellationToken)
+    public async Task<InviteUserResult> Handle(
+        InviteUserCommand request,
+        CancellationToken cancellationToken
+    )
     {
         // Get logged-in user
-        var httpContext = _httpContextAccessor.HttpContext 
+        var httpContext =
+            _httpContextAccessor.HttpContext
             ?? throw new UnauthorizedAccessException("Usuário não autenticado");
 
-        var currentUserId = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+        var currentUserId =
+            httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
             ?? throw new UnauthorizedAccessException("ID do usuário não encontrado");
 
         // Get group with users and invites
-        var group = await _dbContext.Groups
-            .Include(g => g.Users)
+        var group = await _dbContext
+            .Groups.Include(g => g.Users)
             .Include(g => g.Invites)
             .FirstOrDefaultAsync(g => g.Id == request.GroupId, cancellationToken);
 
@@ -57,33 +63,35 @@ public class InviteUserHandler : IRequestHandler<InviteUserCommand, InviteUserRe
         }
 
         // Get target user by RA
-        var targetUser = await _userManager.Users
-            .Include(u => u.Group)
+        var targetUser = await _userManager
+            .Users.Include(u => u.Group)
             .FirstOrDefaultAsync(u => u.RA == request.RA, cancellationToken);
 
         if (targetUser == null)
         {
-            var errors = new Dictionary<string, string> { { "ra", "Usuário não encontrado com este RA" } };
+            var errors = new Dictionary<string, string>
+            {
+                { "ra", "Usuário não encontrado com este RA" },
+            };
             throw new FormException(errors);
         }
 
         // Validate target user is not already in a group
         if (targetUser.GroupId != null)
         {
-            var errors = new Dictionary<string, string> 
-            { 
-                { "ra", "Usuário já está em um grupo" } 
-            };
+            var errors = new Dictionary<string, string> { { "ra", "Usuário já está em um grupo" } };
             throw new FormException(errors);
         }
 
         // Check if user already has a pending invite for this group
-        var existingInvite = group.Invites.FirstOrDefault(i => i.UserId == targetUser.Id && !i.Accepted);
+        var existingInvite = group.Invites.FirstOrDefault(i =>
+            i.UserId == targetUser.Id && !i.Accepted
+        );
         if (existingInvite != null)
         {
-            var errors = new Dictionary<string, string> 
-            { 
-                { "ra", "Usuário já tem um convite pendente para este grupo" } 
+            var errors = new Dictionary<string, string>
+            {
+                { "ra", "Usuário já tem um convite pendente para este grupo" },
             };
             throw new FormException(errors);
         }
@@ -91,12 +99,12 @@ public class InviteUserHandler : IRequestHandler<InviteUserCommand, InviteUserRe
         // Validate max members rule (current members + pending invites + this invite)
         var pendingInvitesCount = group.Invites.Count(i => !i.Accepted);
         var totalCount = group.Users.Count + pendingInvitesCount + 1;
-        
+
         if (totalCount >= 3)
         {
-            var errors = new Dictionary<string, string> 
-            { 
-                { "group", "Grupo não pode ter mais de 3 membros (incluindo convites pendentes)" } 
+            var errors = new Dictionary<string, string>
+            {
+                { "group", "Grupo não pode ter mais de 3 membros (incluindo convites pendentes)" },
             };
             throw new FormException(errors);
         }
@@ -107,8 +115,12 @@ public class InviteUserHandler : IRequestHandler<InviteUserCommand, InviteUserRe
         await _dbContext.GroupInvites.AddAsync(invite, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("User {UserId} invited to group {GroupId} by {LeaderId}", 
-            targetUser.Id, request.GroupId, currentUserId);
+        _logger.LogInformation(
+            "User {UserId} invited to group {GroupId} by {LeaderId}",
+            targetUser.Id,
+            request.GroupId,
+            currentUserId
+        );
 
         var inviteDto = new GroupInviteDto(
             invite.Id,

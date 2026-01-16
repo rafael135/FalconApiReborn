@@ -9,16 +9,19 @@ public class GroupExerciseAttempt : Entity
 {
     /// <summary>Identifier of the linked exercise.</summary>
     public Guid ExerciseId { get; private set; }
+
     /// <summary>Exercise navigation property.</summary>
     public virtual Exercise Exercise { get; private set; }
 
     /// <summary>Identifier of the submitting group.</summary>
     public Guid GroupId { get; private set; }
+
     /// <summary>Group navigation property.</summary>
     public virtual Groups.Group Group { get; private set; }
 
     /// <summary>Identifier of the competition context.</summary>
     public Guid CompetitionId { get; private set; }
+
     /// <summary>Competition navigation property.</summary>
     public virtual Competitions.Competition Competition { get; private set; }
 
@@ -50,7 +53,8 @@ public class GroupExerciseAttempt : Entity
         Groups.Group group,
         Competitions.Competition competition,
         string code,
-        LanguageType language)
+        LanguageType language
+    )
     {
         if (exercise == null)
             throw new ArgumentNullException(nameof(exercise));

@@ -13,15 +13,12 @@ namespace Falcon.Infrastructure.Migrations
         {
             migrationBuilder.DropForeignKey(
                 name: "FK_Competitions_Groups_GroupId",
-                table: "Competitions");
+                table: "Competitions"
+            );
 
-            migrationBuilder.DropIndex(
-                name: "IX_Competitions_GroupId",
-                table: "Competitions");
+            migrationBuilder.DropIndex(name: "IX_Competitions_GroupId", table: "Competitions");
 
-            migrationBuilder.DropColumn(
-                name: "GroupId",
-                table: "Competitions");
+            migrationBuilder.DropColumn(name: "GroupId", table: "Competitions");
         }
 
         /// <inheritdoc />
@@ -31,20 +28,22 @@ namespace Falcon.Infrastructure.Migrations
                 name: "GroupId",
                 table: "Competitions",
                 type: "uniqueidentifier",
-                nullable: true);
+                nullable: true
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_Competitions_GroupId",
                 table: "Competitions",
-                column: "GroupId");
+                column: "GroupId"
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Competitions_Groups_GroupId",
                 table: "Competitions",
                 column: "GroupId",
                 principalTable: "Groups",
-                principalColumn: "Id");
+                principalColumn: "Id"
+            );
         }
     }
 }
-

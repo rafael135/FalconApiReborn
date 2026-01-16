@@ -22,4 +22,4 @@ public record PromoteTemplateCommand(
     TimeSpan StopRanking,
     TimeSpan BlockSubmissions,
     TimeSpan Penalty
-) : IRequest<PromoteTemplateResult>; 
+) : IRequest<PromoteTemplateResult>;

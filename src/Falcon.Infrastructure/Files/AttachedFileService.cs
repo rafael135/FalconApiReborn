@@ -4,7 +4,6 @@ using Falcon.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-
 namespace Falcon.Infrastructure.Files;
 
 /// <summary>
@@ -12,7 +11,6 @@ namespace Falcon.Infrastructure.Files;
 /// </summary>
 public class AttachedFileService : IAttachedFileService
 {
-
     /// <summary>
     /// The database context for accessing attached files.
     /// </summary>
@@ -28,7 +26,6 @@ public class AttachedFileService : IAttachedFileService
     /// </summary>
     private readonly ILogger<AttachedFileService> _logger;
 
-
     /// <summary>
     /// Initializes a new instance of the <see cref="AttachedFileService"/> class.
     /// </summary>
@@ -38,7 +35,8 @@ public class AttachedFileService : IAttachedFileService
     public AttachedFileService(
         FalconDbContext dbContext,
         IFileStorageService fileStorageService,
-        ILogger<AttachedFileService> logger)
+        ILogger<AttachedFileService> logger
+    )
     {
         _dbContext = dbContext;
         _fileStorageService = fileStorageService;
@@ -54,13 +52,27 @@ public class AttachedFileService : IAttachedFileService
     /// <param name="length">The length of the file in bytes.</param>
     /// <param name="cancellationToken">An optional cancellation token.</param>
     /// <returns>The created <see cref="AttachedFile"/> entity.</returns>
-    public async Task<AttachedFile> CreateAttachedFileAsync(Stream fileStream, string fileName, string contentType, long length, CancellationToken cancellationToken = default)
+    public async Task<AttachedFile> CreateAttachedFileAsync(
+        Stream fileStream,
+        string fileName,
+        string contentType,
+        long length,
+        CancellationToken cancellationToken = default
+    )
     {
-        var relativePath = await _fileStorageService.SaveFileAsync(fileStream, fileName, cancellationToken);
+        var relativePath = await _fileStorageService.SaveFileAsync(
+            fileStream,
+            fileName,
+            cancellationToken
+        );
         var attachedFile = new AttachedFile(fileName, contentType, length, relativePath);
         _dbContext.AttachedFiles.Add(attachedFile);
         await _dbContext.SaveChangesAsync(cancellationToken);
-        _logger.LogInformation("AttachedFile created: {FileName} (ID: {Id})", fileName, attachedFile.Id);
+        _logger.LogInformation(
+            "AttachedFile created: {FileName} (ID: {Id})",
+            fileName,
+            attachedFile.Id
+        );
         return attachedFile;
     }
 
@@ -69,16 +81,19 @@ public class AttachedFileService : IAttachedFileService
     /// </summary>
     /// <param name="file">The <see cref="AttachedFile"/> entity to delete.</param>
     /// <param name="cancellationToken">An optional cancellation token.</param>
-    public async Task DeleteAttachedFileAsync(AttachedFile file, CancellationToken cancellationToken = default)
+    public async Task DeleteAttachedFileAsync(
+        AttachedFile file,
+        CancellationToken cancellationToken = default
+    )
     {
-        try 
+        try
         {
             await _fileStorageService.DeleteFileAsync(file.FilePath, cancellationToken);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting file from storage: {FilePath}", file.FilePath);
-            throw; 
+            throw;
         }
         _dbContext.AttachedFiles.Remove(file);
         await _dbContext.SaveChangesAsync(cancellationToken);
@@ -95,10 +110,23 @@ public class AttachedFileService : IAttachedFileService
     /// <param name="newLength">The length of the new file in bytes.</param>
     /// <param name="cancellationToken">An optional cancellation token.</param>
     /// <returns>The new <see cref="AttachedFile"/> entity.</returns>
-    public async Task<AttachedFile> ReplaceAttachedFileAsync(AttachedFile existingFile, Stream newFileStream, string newFileName, string newContentType, long newLength, CancellationToken cancellationToken = default)
+    public async Task<AttachedFile> ReplaceAttachedFileAsync(
+        AttachedFile existingFile,
+        Stream newFileStream,
+        string newFileName,
+        string newContentType,
+        long newLength,
+        CancellationToken cancellationToken = default
+    )
     {
         await DeleteAttachedFileAsync(existingFile, cancellationToken);
-        return await CreateAttachedFileAsync(newFileStream, newFileName, newContentType, newLength, cancellationToken);
+        return await CreateAttachedFileAsync(
+            newFileStream,
+            newFileName,
+            newContentType,
+            newLength,
+            cancellationToken
+        );
     }
 
     /// <summary>
@@ -119,7 +147,10 @@ public class AttachedFileService : IAttachedFileService
     /// <param name="file">The <see cref="AttachedFile"/> entity whose file to retrieve.</param>
     /// <param name="cancellationToken">An optional cancellation token.</param>
     /// <returns>A <see cref="Stream"/> containing the file data.</returns>
-    public async Task<Stream> GetFileStreamAsync(AttachedFile file, CancellationToken cancellationToken = default)
+    public async Task<Stream> GetFileStreamAsync(
+        AttachedFile file,
+        CancellationToken cancellationToken = default
+    )
     {
         return await _fileStorageService.GetFileAsync(file.FilePath, cancellationToken);
     }

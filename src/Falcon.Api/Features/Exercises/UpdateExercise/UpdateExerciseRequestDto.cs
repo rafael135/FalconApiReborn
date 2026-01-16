@@ -57,7 +57,7 @@ public class UpdateExerciseRequestDto
     /// </summary>
     [JsonPropertyName("outputs")]
     public List<UpdateExerciseOutputDto> Outputs { get; set; } = new();
-} 
+}
 
 /// <summary>
 /// Representa uma entrada (input) do exercício para atualização.
@@ -105,4 +105,4 @@ public class UpdateExerciseOutputDto
     /// </summary>
     [JsonPropertyName("output")]
     public string Output { get; set; } = string.Empty;
-}  
+}

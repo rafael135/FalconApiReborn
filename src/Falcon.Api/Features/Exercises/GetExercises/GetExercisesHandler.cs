@@ -24,10 +24,13 @@ public class GetExercisesHandler : IRequestHandler<GetExercisesQuery, GetExercis
     /// <summary>
     /// Handles the query and returns a paginated list of exercise summaries.
     /// </summary>
-    public async Task<GetExercisesResult> Handle(GetExercisesQuery request, CancellationToken cancellationToken)
+    public async Task<GetExercisesResult> Handle(
+        GetExercisesQuery request,
+        CancellationToken cancellationToken
+    )
     {
-        IQueryable<Core.Domain.Exercises.Exercise> query = _dbContext.Exercises
-            .AsNoTracking()
+        IQueryable<Core.Domain.Exercises.Exercise> query = _dbContext
+            .Exercises.AsNoTracking()
             .Include(e => e.ExerciseType);
 
         // Filter by ExerciseType if provided
@@ -52,11 +55,6 @@ public class GetExercisesHandler : IRequestHandler<GetExercisesQuery, GetExercis
             ))
             .ToListAsync(cancellationToken);
 
-        return new GetExercisesResult(
-            exercises,
-            totalCount,
-            request.Skip,
-            request.Take
-        );
+        return new GetExercisesResult(exercises, totalCount, request.Skip, request.Take);
     }
 }

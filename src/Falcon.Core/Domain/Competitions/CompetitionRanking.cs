@@ -41,21 +41,21 @@ public class CompetitionRanking : Entity
     public void UpdatePoints(double points)
     {
         CheckRule(new PointsCannotBeNegativeRule(points));
-        
+
         Points = points;
     }
 
     public void AddPenalty(double penalty)
     {
         CheckRule(new PenaltyCannotBeNegativeRule(penalty));
-        
+
         Penalty += penalty;
     }
 
     public void UpdateRankOrder(int order)
     {
         CheckRule(new RankOrderMustBePositiveRule(order));
-        
+
         RankOrder = order;
     }
 }

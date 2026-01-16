@@ -1,7 +1,7 @@
 using Falcon.Api.Extensions;
 using MediatR;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Falcon.Api.Features.Competitions.GetRanking;
 
@@ -19,18 +19,22 @@ public class GetRankingEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("api/Competition/{id}/ranking", async (IMediator mediator, Guid id) =>
-        {
-            var query = new GetRankingQuery(id);
-            var result = await mediator.Send(query);
-            return Results.Ok(result);
-        })
-        .WithName("GetRanking")
-        .WithTags("Competitions")
-        .WithSummary("Get ranking for a competition.")
-        .WithDescription("Returns the ranking table (groups and scores) for the specified competition.")
-        .Produces<GetRankingResult>(StatusCodes.Status200OK)
-        .Produces(StatusCodes.Status404NotFound);
-
+        app.MapGet(
+                "api/Competition/{id}/ranking",
+                async (IMediator mediator, Guid id) =>
+                {
+                    var query = new GetRankingQuery(id);
+                    var result = await mediator.Send(query);
+                    return Results.Ok(result);
+                }
+            )
+            .WithName("GetRanking")
+            .WithTags("Competitions")
+            .WithSummary("Get ranking for a competition.")
+            .WithDescription(
+                "Returns the ranking table (groups and scores) for the specified competition."
+            )
+            .Produces<GetRankingResult>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound);
     }
-} 
+}

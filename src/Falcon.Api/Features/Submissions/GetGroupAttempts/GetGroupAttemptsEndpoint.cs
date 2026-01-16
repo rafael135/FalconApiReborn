@@ -20,21 +20,24 @@ public class GetGroupAttemptsEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("api/Submission/group", [Authorize] async (
-            IMediator mediator,
-            Guid? competitionId,
-            Guid? exerciseId) =>
-        {
-            var query = new GetGroupAttemptsQuery(competitionId, exerciseId);
-            var result = await mediator.Send(query);
-            return Results.Ok(result);
-        })
-        .WithName("GetGroupAttempts")
-        .WithTags("Submissions")
-        .WithSummary("List group attempts.")
-        .WithDescription("Returns attempts submitted by the authenticated user's group. Requires authentication.")
-        .Produces<GetGroupAttemptsResult>(StatusCodes.Status200OK)
-        .Produces(StatusCodes.Status401Unauthorized)
-        .Produces(StatusCodes.Status403Forbidden);
+        app.MapGet(
+                "api/Submission/group",
+                [Authorize]
+                async (IMediator mediator, Guid? competitionId, Guid? exerciseId) =>
+                {
+                    var query = new GetGroupAttemptsQuery(competitionId, exerciseId);
+                    var result = await mediator.Send(query);
+                    return Results.Ok(result);
+                }
+            )
+            .WithName("GetGroupAttempts")
+            .WithTags("Submissions")
+            .WithSummary("List group attempts.")
+            .WithDescription(
+                "Returns attempts submitted by the authenticated user's group. Requires authentication."
+            )
+            .Produces<GetGroupAttemptsResult>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden);
     }
-} 
+}

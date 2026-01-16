@@ -31,7 +31,8 @@ public class DeleteUserHandler : IRequestHandler<DeleteUserCommand, DeleteUserRe
         UserManager<Core.Domain.Users.User> userManager,
         FalconDbContext dbContext,
         IHttpContextAccessor httpContextAccessor,
-        ILogger<DeleteUserHandler> logger)
+        ILogger<DeleteUserHandler> logger
+    )
     {
         _userManager = userManager;
         _dbContext = dbContext;
@@ -48,10 +49,14 @@ public class DeleteUserHandler : IRequestHandler<DeleteUserCommand, DeleteUserRe
     /// <exception cref="UnauthorizedAccessException">Thrown when the user is not authorized to delete the account.</exception>
     /// <exception cref="NotFoundException">Thrown when the user is not found.</exception>
     /// <exception cref="BusinessRuleException">Thrown when business rules prevent deletion.</exception>
-    public async Task<DeleteUserResult> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
+    public async Task<DeleteUserResult> Handle(
+        DeleteUserCommand request,
+        CancellationToken cancellationToken
+    )
     {
         // Get current user ID from claims
-        var httpContext = _httpContextAccessor.HttpContext
+        var httpContext =
+            _httpContextAccessor.HttpContext
             ?? throw new UnauthorizedAccessException("Usuário não autenticado");
 
         var currentUserId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -64,8 +69,10 @@ public class DeleteUserHandler : IRequestHandler<DeleteUserCommand, DeleteUserRe
         }
 
         // Fetch user from DbContext to ensure EF Core tracks changes
-        var user = await _dbContext.Users
-            .FirstOrDefaultAsync(u => u.Id == request.UserId, cancellationToken);
+        var user = await _dbContext.Users.FirstOrDefaultAsync(
+            u => u.Id == request.UserId,
+            cancellationToken
+        );
 
         if (user == null)
         {
@@ -75,8 +82,8 @@ public class DeleteUserHandler : IRequestHandler<DeleteUserCommand, DeleteUserRe
         // Handle group membership
         if (user.GroupId != null)
         {
-            var group = await _dbContext.Groups
-                .Include(g => g.Users)
+            var group = await _dbContext
+                .Groups.Include(g => g.Users)
                 .FirstOrDefaultAsync(g => g.Id == user.GroupId, cancellationToken);
 
             if (group != null)
@@ -91,22 +98,27 @@ public class DeleteUserHandler : IRequestHandler<DeleteUserCommand, DeleteUserRe
                         // Transfer leadership to first member alphabetically by name
                         var newLeader = otherMembers.OrderBy(u => u.Name).First();
                         group.TransferLeadership(newLeader);
-                        
+
                         _logger.LogInformation(
                             "Leadership of group {GroupId} transferred from {OldLeaderId} to {NewLeaderId}",
-                            group.Id, user.Id, newLeader.Id);
+                            group.Id,
+                            user.Id,
+                            newLeader.Id
+                        );
                     }
                     else
                     {
                         // User is the only member, disband the group
                         group.Disband();
-                        
+
                         _logger.LogInformation(
                             "Group {GroupId} disbanded due to sole leader {UserId} deletion",
-                            group.Id, user.Id);
+                            group.Id,
+                            user.Id
+                        );
                     }
                 }
-                
+
                 // Remove user from group (works for both leader and non-leader)
                 group.RemoveMember(user);
                 user.LeaveGroup();
@@ -130,8 +142,11 @@ public class DeleteUserHandler : IRequestHandler<DeleteUserCommand, DeleteUserRe
         // Save all changes
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("User {UserId} soft deleted by {CurrentUserId}", 
-            request.UserId, currentUserId);
+        _logger.LogInformation(
+            "User {UserId} soft deleted by {CurrentUserId}",
+            request.UserId,
+            currentUserId
+        );
 
         return new DeleteUserResult("Usuário excluído com sucesso");
     }

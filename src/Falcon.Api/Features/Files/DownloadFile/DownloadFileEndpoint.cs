@@ -16,20 +16,26 @@ public class DownloadFileEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("api/File/{id:guid}", [Authorize] async (IMediator mediator, Guid id) =>
-        {
-            var query = new DownloadFileQuery(id);
-            var result = await mediator.Send(query);
-            
-            return Results.File(result.FileStream, result.ContentType, result.FileName);
-        })
-        .WithName("DownloadFile")
-        .WithTags("Files")
-        .WithSummary("Download a stored file.")
-        .WithDescription("Downloads a file by id using the stored content type. Requires authentication.")
-        .Produces(StatusCodes.Status200OK, contentType: "application/octet-stream")
-        .Produces(StatusCodes.Status401Unauthorized)
-        .Produces(StatusCodes.Status403Forbidden)
-        .Produces(StatusCodes.Status404NotFound);
+        app.MapGet(
+                "api/File/{id:guid}",
+                [Authorize]
+                async (IMediator mediator, Guid id) =>
+                {
+                    var query = new DownloadFileQuery(id);
+                    var result = await mediator.Send(query);
+
+                    return Results.File(result.FileStream, result.ContentType, result.FileName);
+                }
+            )
+            .WithName("DownloadFile")
+            .WithTags("Files")
+            .WithSummary("Download a stored file.")
+            .WithDescription(
+                "Downloads a file by id using the stored content type. Requires authentication."
+            )
+            .Produces(StatusCodes.Status200OK, contentType: "application/octet-stream")
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound);
     }
-} 
+}

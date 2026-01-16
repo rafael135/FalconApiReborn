@@ -11,7 +11,8 @@ namespace Falcon.Api.Features.Submissions.GetGroupAttempts;
 /// <summary>
 /// Handler responsável por buscar as tentativas do grupo do usuário autenticado.
 /// </summary>
-public class GetGroupAttemptsHandler : IRequestHandler<GetGroupAttemptsQuery, GetGroupAttemptsResult>
+public class GetGroupAttemptsHandler
+    : IRequestHandler<GetGroupAttemptsQuery, GetGroupAttemptsResult>
 {
     private readonly FalconDbContext _dbContext;
     private readonly UserManager<User> _userManager;
@@ -20,7 +21,8 @@ public class GetGroupAttemptsHandler : IRequestHandler<GetGroupAttemptsQuery, Ge
     public GetGroupAttemptsHandler(
         FalconDbContext dbContext,
         UserManager<User> userManager,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor
+    )
     {
         _dbContext = dbContext;
         _userManager = userManager;
@@ -34,24 +36,30 @@ public class GetGroupAttemptsHandler : IRequestHandler<GetGroupAttemptsQuery, Ge
     /// <param name="cancellationToken">Token de cancelamento.</param>
     /// <returns>Lista de tentativas do grupo encapsulada em <see cref="GetGroupAttemptsResult"/>.</returns>
     /// <exception cref="FormException">Quando o usuário não faz parte de nenhum grupo.</exception>
-    public async Task<GetGroupAttemptsResult> Handle(GetGroupAttemptsQuery request, CancellationToken cancellationToken)
+    public async Task<GetGroupAttemptsResult> Handle(
+        GetGroupAttemptsQuery request,
+        CancellationToken cancellationToken
+    )
     {
         var userName = _httpContextAccessor.HttpContext?.User?.Identity?.Name;
         if (string.IsNullOrEmpty(userName))
             throw new UnauthorizedAccessException("Usuário não autenticado");
 
-        var user = await _userManager.Users
-            .AsNoTracking()
+        var user = await _userManager
+            .Users.AsNoTracking()
             .FirstOrDefaultAsync(u => u.UserName == userName, cancellationToken);
 
         if (user?.GroupId == null)
         {
-            var errors = new Dictionary<string, string> { { "group", "Você deve estar em um grupo" } };
+            var errors = new Dictionary<string, string>
+            {
+                { "group", "Você deve estar em um grupo" },
+            };
             throw new FormException(errors);
         }
 
-        IQueryable<Core.Domain.Exercises.GroupExerciseAttempt> query = _dbContext.GroupExerciseAttempts
-            .AsNoTracking()
+        IQueryable<Core.Domain.Exercises.GroupExerciseAttempt> query = _dbContext
+            .GroupExerciseAttempts.AsNoTracking()
             .Include(a => a.Exercise)
             .Include(a => a.Group)
             .Where(a => a.GroupId == user.GroupId);
@@ -65,8 +73,16 @@ public class GetGroupAttemptsHandler : IRequestHandler<GetGroupAttemptsQuery, Ge
         var attempts = await query
             .OrderByDescending(a => a.SubmissionTime)
             .Select(a => new AttemptDto(
-                a.Id, a.ExerciseId, a.Exercise.Title, a.GroupId, a.Group.Name,
-                a.SubmissionTime, a.Language, a.Accepted, a.JudgeResponse, a.Time
+                a.Id,
+                a.ExerciseId,
+                a.Exercise.Title,
+                a.GroupId,
+                a.Group.Name,
+                a.SubmissionTime,
+                a.Language,
+                a.Accepted,
+                a.JudgeResponse,
+                a.Time
             ))
             .ToListAsync(cancellationToken);
 

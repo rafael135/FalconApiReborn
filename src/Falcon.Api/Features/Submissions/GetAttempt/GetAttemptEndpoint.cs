@@ -1,8 +1,8 @@
 using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Falcon.Api.Features.Submissions.GetAttempt;
 
@@ -18,21 +18,25 @@ public class GetAttemptEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("api/Submission/{id}", [Authorize] async (
-            IMediator mediator,
-            Guid id) =>
-        {
-            var query = new GetAttemptQuery(id);
-            var result = await mediator.Send(query);
-            return Results.Ok(result);
-        })
-        .WithName("GetAttempt")
-        .WithTags("Submissions")
-        .WithSummary("Get attempt details.")
-        .WithDescription("Returns details for a specific attempt. Requires authentication and appropriate authorization.")
-        .Produces<GetAttemptResult>(StatusCodes.Status200OK)
-        .Produces(StatusCodes.Status401Unauthorized)
-        .Produces(StatusCodes.Status403Forbidden)
-        .Produces(StatusCodes.Status404NotFound);
+        app.MapGet(
+                "api/Submission/{id}",
+                [Authorize]
+                async (IMediator mediator, Guid id) =>
+                {
+                    var query = new GetAttemptQuery(id);
+                    var result = await mediator.Send(query);
+                    return Results.Ok(result);
+                }
+            )
+            .WithName("GetAttempt")
+            .WithTags("Submissions")
+            .WithSummary("Get attempt details.")
+            .WithDescription(
+                "Returns details for a specific attempt. Requires authentication and appropriate authorization."
+            )
+            .Produces<GetAttemptResult>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound);
     }
-} 
+}

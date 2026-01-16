@@ -27,7 +27,8 @@ public class UpdateUserHandler : IRequestHandler<UpdateUserCommand, UpdateUserRe
     public UpdateUserHandler(
         UserManager<Core.Domain.Users.User> userManager,
         IHttpContextAccessor httpContextAccessor,
-        ILogger<UpdateUserHandler> logger)
+        ILogger<UpdateUserHandler> logger
+    )
     {
         _userManager = userManager;
         _httpContextAccessor = httpContextAccessor;
@@ -43,7 +44,10 @@ public class UpdateUserHandler : IRequestHandler<UpdateUserCommand, UpdateUserRe
     /// <exception cref="UnauthorizedAccessException">Thrown when the user is not authorized to update the profile.</exception>
     /// <exception cref="NotFoundException">Thrown when the user is not found.</exception>
     /// <exception cref="FormException">Thrown when validation fails.</exception>
-    public async Task<UpdateUserResult> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
+    public async Task<UpdateUserResult> Handle(
+        UpdateUserCommand request,
+        CancellationToken cancellationToken
+    )
     {
         var errors = new Dictionary<string, string>();
 
@@ -59,7 +63,8 @@ public class UpdateUserHandler : IRequestHandler<UpdateUserCommand, UpdateUserRe
             throw new FormException(errors);
 
         // Get current user ID from claims
-        var httpContext = _httpContextAccessor.HttpContext
+        var httpContext =
+            _httpContextAccessor.HttpContext
             ?? throw new UnauthorizedAccessException("Usuário não autenticado");
 
         var currentUserId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -79,16 +84,20 @@ public class UpdateUserHandler : IRequestHandler<UpdateUserCommand, UpdateUserRe
         }
 
         // Validate email uniqueness (excluding current user)
-        var existingEmail = await _userManager.Users
-            .AnyAsync(u => u.Email == request.Email && u.Id != request.UserId, cancellationToken);
+        var existingEmail = await _userManager.Users.AnyAsync(
+            u => u.Email == request.Email && u.Id != request.UserId,
+            cancellationToken
+        );
         if (existingEmail)
         {
             errors.Add("email", "E-mail já utilizado");
         }
 
         // Validate RA uniqueness (excluding current user)
-        var existingRA = await _userManager.Users
-            .AnyAsync(u => u.RA == request.RA && u.Id != request.UserId, cancellationToken);
+        var existingRA = await _userManager.Users.AnyAsync(
+            u => u.RA == request.RA && u.Id != request.UserId,
+            cancellationToken
+        );
         if (existingRA)
         {
             errors.Add("ra", "RA já cadastrado");
@@ -103,7 +112,10 @@ public class UpdateUserHandler : IRequestHandler<UpdateUserCommand, UpdateUserRe
             }
             else
             {
-                var passwordValid = await _userManager.CheckPasswordAsync(user, request.CurrentPassword);
+                var passwordValid = await _userManager.CheckPasswordAsync(
+                    user,
+                    request.CurrentPassword
+                );
                 if (!passwordValid)
                 {
                     errors.Add("currentPassword", "Senha atual incorreta");
@@ -130,11 +142,14 @@ public class UpdateUserHandler : IRequestHandler<UpdateUserCommand, UpdateUserRe
         }
 
         // Update password if provided
-        if (!string.IsNullOrEmpty(request.NewPassword) && !string.IsNullOrEmpty(request.CurrentPassword))
+        if (
+            !string.IsNullOrEmpty(request.NewPassword)
+            && !string.IsNullOrEmpty(request.CurrentPassword)
+        )
         {
             var changePasswordResult = await _userManager.ChangePasswordAsync(
-                user, 
-                request.CurrentPassword, 
+                user,
+                request.CurrentPassword,
                 request.NewPassword
             );
             if (!changePasswordResult.Succeeded)
@@ -149,8 +164,11 @@ public class UpdateUserHandler : IRequestHandler<UpdateUserCommand, UpdateUserRe
         // Get updated roles
         var roles = await _userManager.GetRolesAsync(user);
 
-        _logger.LogInformation("User {UserId} updated profile for user {TargetUserId}", 
-            currentUserId, request.UserId);
+        _logger.LogInformation(
+            "User {UserId} updated profile for user {TargetUserId}",
+            currentUserId,
+            request.UserId
+        );
 
         var userDto = new UserDetailDto(
             user.Id,

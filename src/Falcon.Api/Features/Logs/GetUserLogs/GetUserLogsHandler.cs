@@ -1,10 +1,10 @@
 using Falcon.Api.Features.Logs.Shared;
+using Falcon.Core.Domain.Shared.Exceptions;
+using Falcon.Core.Domain.Users;
 using Falcon.Infrastructure.Database;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Falcon.Core.Domain.Users;
-using Falcon.Core.Domain.Shared.Exceptions;
 
 namespace Falcon.Api.Features.Logs.GetUserLogs;
 
@@ -20,14 +20,18 @@ public class GetUserLogsHandler : IRequestHandler<GetUserLogsQuery, GetUserLogsR
     public GetUserLogsHandler(
         FalconDbContext context,
         UserManager<User> userManager,
-        ILogger<GetUserLogsHandler> logger)
+        ILogger<GetUserLogsHandler> logger
+    )
     {
         _context = context;
         _userManager = userManager;
         _logger = logger;
     }
 
-    public async Task<GetUserLogsResult> Handle(GetUserLogsQuery request, CancellationToken cancellationToken)
+    public async Task<GetUserLogsResult> Handle(
+        GetUserLogsQuery request,
+        CancellationToken cancellationToken
+    )
     {
         // Verify user exists
         var user = await _userManager.FindByIdAsync(request.UserId);
@@ -36,8 +40,8 @@ public class GetUserLogsHandler : IRequestHandler<GetUserLogsQuery, GetUserLogsR
             throw new NotFoundException(nameof(User), request.UserId);
         }
 
-        var query = _context.Logs
-            .Include(l => l.Group)
+        var query = _context
+            .Logs.Include(l => l.Group)
             .Include(l => l.Competition)
             .Where(l => l.UserId == request.UserId)
             .OrderByDescending(l => l.ActionTime)
@@ -47,26 +51,28 @@ public class GetUserLogsHandler : IRequestHandler<GetUserLogsQuery, GetUserLogsR
         var total = await query.CountAsync(cancellationToken);
 
         // Apply pagination
-        var logs = await query
-            .Skip(request.Skip)
-            .Take(request.Take)
-            .ToListAsync(cancellationToken);
+        var logs = await query.Skip(request.Skip).Take(request.Take).ToListAsync(cancellationToken);
 
         var logDtos = logs.Select(l => new LogDto(
-            l.Id,
-            l.ActionType,
-            l.ActionType.ToString(),
-            l.ActionTime,
-            l.IpAddress,
-            l.UserId,
-            user.Name,
-            l.GroupId,
-            l.Group?.Name,
-            l.CompetitionId,
-            l.Competition?.Name
-        )).ToList();
+                l.Id,
+                l.ActionType,
+                l.ActionType.ToString(),
+                l.ActionTime,
+                l.IpAddress,
+                l.UserId,
+                user.Name,
+                l.GroupId,
+                l.Group?.Name,
+                l.CompetitionId,
+                l.Competition?.Name
+            ))
+            .ToList();
 
-        _logger.LogInformation("Retrieved {Count} logs for user {UserId}", logs.Count, request.UserId);
+        _logger.LogInformation(
+            "Retrieved {Count} logs for user {UserId}",
+            logs.Count,
+            request.UserId
+        );
 
         return new GetUserLogsResult(logDtos, total, request.Skip, request.Take);
     }

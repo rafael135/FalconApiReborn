@@ -22,16 +22,23 @@ public class RemoveTestCaseHandler : IRequestHandler<RemoveTestCaseCommand, Remo
         _logger = logger;
     }
 
-    public async Task<RemoveTestCaseResult> Handle(RemoveTestCaseCommand request, CancellationToken cancellationToken)
+    public async Task<RemoveTestCaseResult> Handle(
+        RemoveTestCaseCommand request,
+        CancellationToken cancellationToken
+    )
     {
-        var input = await _dbContext.ExerciseInputs
-            .FirstOrDefaultAsync(i => i.Id == request.TestCaseId, cancellationToken);
+        var input = await _dbContext.ExerciseInputs.FirstOrDefaultAsync(
+            i => i.Id == request.TestCaseId,
+            cancellationToken
+        );
 
         if (input == null)
             throw new NotFoundException("TestCase", request.TestCaseId);
 
-        var output = await _dbContext.ExerciseOutputs
-            .FirstOrDefaultAsync(o => o.ExerciseInputId == request.TestCaseId, cancellationToken);
+        var output = await _dbContext.ExerciseOutputs.FirstOrDefaultAsync(
+            o => o.ExerciseInputId == request.TestCaseId,
+            cancellationToken
+        );
 
         if (output != null)
             _dbContext.ExerciseOutputs.Remove(output);
@@ -39,7 +46,11 @@ public class RemoveTestCaseHandler : IRequestHandler<RemoveTestCaseCommand, Remo
         _dbContext.ExerciseInputs.Remove(input);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Test case {TestCaseId} removed from exercise {ExerciseId}", request.TestCaseId, request.ExerciseId);
+        _logger.LogInformation(
+            "Test case {TestCaseId} removed from exercise {ExerciseId}",
+            request.TestCaseId,
+            request.ExerciseId
+        );
 
         return new RemoveTestCaseResult(true, "Caso de teste removido com sucesso");
     }

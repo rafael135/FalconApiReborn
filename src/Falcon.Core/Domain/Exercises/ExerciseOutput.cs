@@ -24,7 +24,7 @@ public class ExerciseOutput : Entity
     public virtual ExerciseInput? ExerciseInput { get; private set; }
 
 #pragma warning disable CS8618
-    protected ExerciseOutput() {}
+    protected ExerciseOutput() { }
 #pragma warning restore CS8618
 
     /// <summary>Creates a new expected output and links it to the provided exercise.</summary>

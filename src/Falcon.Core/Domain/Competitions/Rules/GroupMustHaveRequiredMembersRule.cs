@@ -21,5 +21,6 @@ public class GroupMustHaveRequiredMembersRule : IBusinessRule
         return _groupMemberCount != _requiredMembers;
     }
 
-    public string Message => $"O grupo deve ter exatamente {_requiredMembers} membros para participar desta competição. Membros atuais: {_groupMemberCount}.";
+    public string Message =>
+        $"O grupo deve ter exatamente {_requiredMembers} membros para participar desta competição. Membros atuais: {_groupMemberCount}.";
 }

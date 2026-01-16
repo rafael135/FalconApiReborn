@@ -11,13 +11,19 @@ public class GetCurrentTokenHandler : IRequestHandler<GetCurrentTokenQuery, GetC
     private readonly ITokenService _tokenService;
     private readonly ILogger<GetCurrentTokenHandler> _logger;
 
-    public GetCurrentTokenHandler(ITokenService tokenService, ILogger<GetCurrentTokenHandler> logger)
+    public GetCurrentTokenHandler(
+        ITokenService tokenService,
+        ILogger<GetCurrentTokenHandler> logger
+    )
     {
         _tokenService = tokenService;
         _logger = logger;
     }
 
-    public Task<GetCurrentTokenResult> Handle(GetCurrentTokenQuery request, CancellationToken cancellationToken)
+    public Task<GetCurrentTokenResult> Handle(
+        GetCurrentTokenQuery request,
+        CancellationToken cancellationToken
+    )
     {
         var token = _tokenService.FetchPrivateAccessToken();
 

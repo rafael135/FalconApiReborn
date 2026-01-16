@@ -26,7 +26,8 @@ public class GetUserHandler : IRequestHandler<GetUserQuery, GetUserResult>
     public GetUserHandler(
         UserManager<Core.Domain.Users.User> userManager,
         IHttpContextAccessor httpContextAccessor,
-        ILogger<GetUserHandler> logger)
+        ILogger<GetUserHandler> logger
+    )
     {
         _userManager = userManager;
         _httpContextAccessor = httpContextAccessor;
@@ -41,10 +42,14 @@ public class GetUserHandler : IRequestHandler<GetUserQuery, GetUserResult>
     /// <returns>The detailed user information.</returns>
     /// <exception cref="UnauthorizedAccessException">Thrown when the user is not authorized to access the information.</exception>
     /// <exception cref="NotFoundException">Thrown when the user is not found.</exception>
-    public async Task<GetUserResult> Handle(GetUserQuery request, CancellationToken cancellationToken)
+    public async Task<GetUserResult> Handle(
+        GetUserQuery request,
+        CancellationToken cancellationToken
+    )
     {
         // Get current user ID from claims
-        var httpContext = _httpContextAccessor.HttpContext
+        var httpContext =
+            _httpContextAccessor.HttpContext
             ?? throw new UnauthorizedAccessException("Usuário não autenticado");
 
         var currentUserId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -57,8 +62,8 @@ public class GetUserHandler : IRequestHandler<GetUserQuery, GetUserResult>
         }
 
         // Fetch user with group navigation
-        var user = await _userManager.Users
-            .Include(u => u.Group)
+        var user = await _userManager
+            .Users.Include(u => u.Group)
             .FirstOrDefaultAsync(u => u.Id == request.UserId, cancellationToken);
 
         if (user == null)
@@ -69,8 +74,11 @@ public class GetUserHandler : IRequestHandler<GetUserQuery, GetUserResult>
         // Get user roles
         var roles = await _userManager.GetRolesAsync(user);
 
-        _logger.LogInformation("User {UserId} retrieved profile for user {TargetUserId}", 
-            currentUserId, request.UserId);
+        _logger.LogInformation(
+            "User {UserId} retrieved profile for user {TargetUserId}",
+            currentUserId,
+            request.UserId
+        );
 
         var userDto = new UserDetailDto(
             user.Id,

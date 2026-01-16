@@ -5,4 +5,4 @@ namespace Falcon.Api.Features.Competitions.RemoveExercise;
 /// </summary>
 /// <param name="Success">True when the operation succeeded.</param>
 /// <param name="Message">Human-friendly message describing the outcome.</param>
-public record RemoveExerciseResult(bool Success, string Message); 
+public record RemoveExerciseResult(bool Success, string Message);

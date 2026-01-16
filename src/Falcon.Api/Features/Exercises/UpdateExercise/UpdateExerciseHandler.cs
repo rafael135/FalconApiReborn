@@ -16,19 +16,23 @@ public class UpdateExerciseHandler : IRequestHandler<UpdateExerciseCommand, Upda
     private readonly ILogger<UpdateExerciseHandler> _logger;
 
     public UpdateExerciseHandler(
-        FalconDbContext dbContext, 
+        FalconDbContext dbContext,
         IAttachedFileService attachedFileService,
-        ILogger<UpdateExerciseHandler> logger)
+        ILogger<UpdateExerciseHandler> logger
+    )
     {
         _dbContext = dbContext;
         _attachedFileService = attachedFileService;
         _logger = logger;
     }
 
-    public async Task<UpdateExerciseResult> Handle(UpdateExerciseCommand request, CancellationToken cancellationToken)
+    public async Task<UpdateExerciseResult> Handle(
+        UpdateExerciseCommand request,
+        CancellationToken cancellationToken
+    )
     {
-        var exercise = await _dbContext.Exercises
-            .Include(e => e.ExerciseType)
+        var exercise = await _dbContext
+            .Exercises.Include(e => e.ExerciseType)
             .Include(e => e.Inputs)
             .Include(e => e.Outputs)
             .FirstOrDefaultAsync(e => e.Id == request.ExerciseId, cancellationToken);
@@ -39,10 +43,16 @@ public class UpdateExerciseHandler : IRequestHandler<UpdateExerciseCommand, Upda
         var metadata = request.Metadata;
 
         // Validate Exercise Type
-        var typeExists = await _dbContext.ExerciseTypes.AnyAsync(et => et.Id == metadata.ExerciseTypeId, cancellationToken);
+        var typeExists = await _dbContext.ExerciseTypes.AnyAsync(
+            et => et.Id == metadata.ExerciseTypeId,
+            cancellationToken
+        );
         if (!typeExists)
         {
-            var errors = new Dictionary<string, string> { { "exerciseTypeId", "Tipo de exercício não encontrado" } };
+            var errors = new Dictionary<string, string>
+            {
+                { "exerciseTypeId", "Tipo de exercício não encontrado" },
+            };
             throw new FormException(errors);
         }
 
@@ -59,14 +69,14 @@ public class UpdateExerciseHandler : IRequestHandler<UpdateExerciseCommand, Upda
                 file.Length,
                 cancellationToken
             );
-            
+
             exercise.SetAttachedFile(attachedFile);
         }
 
         // Update Test Cases (Full Replacement Strategy)
         _dbContext.ExerciseInputs.RemoveRange(exercise.Inputs);
         _dbContext.ExerciseOutputs.RemoveRange(exercise.Outputs);
-        
+
         exercise.ClearTestCases();
 
         var inputs = metadata.Inputs.OrderBy(i => i.OrderId).ToList();
@@ -85,8 +95,13 @@ public class UpdateExerciseHandler : IRequestHandler<UpdateExerciseCommand, Upda
         _logger.LogInformation("Exercise {ExerciseId} updated", request.ExerciseId);
 
         var exerciseDto = new ExerciseDto(
-            exercise.Id, exercise.Title, exercise.Description, exercise.EstimatedTime,
-            exercise.ExerciseTypeId, exercise.ExerciseType.Label, exercise.AttachedFileId
+            exercise.Id,
+            exercise.Title,
+            exercise.Description,
+            exercise.EstimatedTime,
+            exercise.ExerciseTypeId,
+            exercise.ExerciseType.Label,
+            exercise.AttachedFileId
         );
 
         return new UpdateExerciseResult(exerciseDto);

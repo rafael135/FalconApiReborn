@@ -22,7 +22,8 @@ public class CreateExerciseHandler : IRequestHandler<CreateExerciseCommand, Crea
         FalconDbContext dbContext,
         IJudgeService judgeService,
         IAttachedFileService attachedFileService,
-        ILogger<CreateExerciseHandler> logger)
+        ILogger<CreateExerciseHandler> logger
+    )
     {
         _dbContext = dbContext;
         _judgeService = judgeService;
@@ -30,7 +31,10 @@ public class CreateExerciseHandler : IRequestHandler<CreateExerciseCommand, Crea
         _logger = logger;
     }
 
-    public async Task<CreateExerciseResult> Handle(CreateExerciseCommand request, CancellationToken cancellationToken)
+    public async Task<CreateExerciseResult> Handle(
+        CreateExerciseCommand request,
+        CancellationToken cancellationToken
+    )
     {
         var metadata = request.Metadata;
 
@@ -49,14 +53,16 @@ public class CreateExerciseHandler : IRequestHandler<CreateExerciseCommand, Crea
             throw new FormException(errors);
 
         // Verify ExerciseType exists
-        var exerciseType = await _dbContext.ExerciseTypes
-            .FirstOrDefaultAsync(et => et.Id == metadata.ExerciseTypeId, cancellationToken);
+        var exerciseType = await _dbContext.ExerciseTypes.FirstOrDefaultAsync(
+            et => et.Id == metadata.ExerciseTypeId,
+            cancellationToken
+        );
 
         if (exerciseType == null)
         {
             var typeErrors = new Dictionary<string, string>
             {
-                { nameof(metadata.ExerciseTypeId), "Tipo de exercício não encontrado" }
+                { nameof(metadata.ExerciseTypeId), "Tipo de exercício não encontrado" },
             };
             throw new FormException(typeErrors);
         }
@@ -80,7 +86,7 @@ public class CreateExerciseHandler : IRequestHandler<CreateExerciseCommand, Crea
                 file.Length,
                 cancellationToken
             );
-            
+
             exercise.SetAttachedFile(attachedFile);
         }
 
@@ -111,8 +117,11 @@ public class CreateExerciseHandler : IRequestHandler<CreateExerciseCommand, Crea
         await _dbContext.Exercises.AddAsync(exercise, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Exercise {ExerciseId} created with Judge UUID {JudgeUuid}", 
-            exercise.Id, judgeUuid);
+        _logger.LogInformation(
+            "Exercise {ExerciseId} created with Judge UUID {JudgeUuid}",
+            exercise.Id,
+            judgeUuid
+        );
 
         var exerciseDto = new ExerciseDto(
             exercise.Id,

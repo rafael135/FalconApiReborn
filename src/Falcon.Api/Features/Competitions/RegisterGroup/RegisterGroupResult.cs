@@ -6,4 +6,4 @@ namespace Falcon.Api.Features.Competitions.RegisterGroup;
 /// Result of registering a group in a competition.
 /// </summary>
 /// <param name="Registration">Details of the created group registration.</param>
-public record RegisterGroupResult(GroupInCompetitionDto Registration); 
+public record RegisterGroupResult(GroupInCompetitionDto Registration);

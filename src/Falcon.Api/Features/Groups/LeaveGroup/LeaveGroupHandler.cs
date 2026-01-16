@@ -21,7 +21,8 @@ public class LeaveGroupHandler : IRequestHandler<LeaveGroupCommand, LeaveGroupRe
         UserManager<Core.Domain.Users.User> userManager,
         FalconDbContext dbContext,
         IHttpContextAccessor httpContextAccessor,
-        ILogger<LeaveGroupHandler> logger)
+        ILogger<LeaveGroupHandler> logger
+    )
     {
         _userManager = userManager;
         _dbContext = dbContext;
@@ -29,24 +30,33 @@ public class LeaveGroupHandler : IRequestHandler<LeaveGroupCommand, LeaveGroupRe
         _logger = logger;
     }
 
-    public async Task<LeaveGroupResult> Handle(LeaveGroupCommand request, CancellationToken cancellationToken)
+    public async Task<LeaveGroupResult> Handle(
+        LeaveGroupCommand request,
+        CancellationToken cancellationToken
+    )
     {
         // Get logged-in user
-        var httpContext = _httpContextAccessor.HttpContext 
+        var httpContext =
+            _httpContextAccessor.HttpContext
             ?? throw new UnauthorizedAccessException("Usuário não autenticado");
 
-        var userId = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+        var userId =
+            httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
             ?? throw new UnauthorizedAccessException("ID do usuário não encontrado");
 
-        var user = await _userManager.Users
-            .Include(u => u.Group)
-            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken)
+        var user =
+            await _userManager
+                .Users.Include(u => u.Group)
+                .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken)
             ?? throw new UnauthorizedAccessException("Usuário não encontrado");
 
         // Validate user is in a group
         if (user.GroupId == null || user.Group == null)
         {
-            var errors = new Dictionary<string, string> { { "user", "Usuário não está em um grupo" } };
+            var errors = new Dictionary<string, string>
+            {
+                { "user", "Usuário não está em um grupo" },
+            };
             throw new FormException(errors);
         }
 
@@ -55,9 +65,12 @@ public class LeaveGroupHandler : IRequestHandler<LeaveGroupCommand, LeaveGroupRe
         // Validate user is not the leader
         if (group.LeaderId == userId)
         {
-            var errors = new Dictionary<string, string> 
-            { 
-                { "user", "O líder não pode sair do grupo. Transfira a liderança ou delete o grupo primeiro" } 
+            var errors = new Dictionary<string, string>
+            {
+                {
+                    "user",
+                    "O líder não pode sair do grupo. Transfira a liderança ou delete o grupo primeiro"
+                },
             };
             throw new FormException(errors);
         }

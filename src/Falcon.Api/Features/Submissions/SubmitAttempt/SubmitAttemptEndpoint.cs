@@ -17,21 +17,25 @@ public class SubmitAttemptEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("api/Submission", [Authorize] async (
-            IMediator mediator,
-            [FromBody] SubmitAttemptCommand command) =>
-        {
-            var result = await mediator.Send(command);
-            return Results.Ok(result);
-        })
-        .WithName("SubmitAttempt")
-        .WithTags("Submissions")
-        .WithSummary("Submit an exercise attempt.")
-        .WithDescription("Submit code for an exercise; processing is asynchronous and results are delivered via SignalR.")
-        .Produces<SubmitAttemptResult>(StatusCodes.Status200OK)
-        .Produces(StatusCodes.Status400BadRequest)
-        .Produces(StatusCodes.Status401Unauthorized)
-        .Produces(StatusCodes.Status403Forbidden)
-        .Produces(StatusCodes.Status404NotFound);
+        app.MapPost(
+                "api/Submission",
+                [Authorize]
+                async (IMediator mediator, [FromBody] SubmitAttemptCommand command) =>
+                {
+                    var result = await mediator.Send(command);
+                    return Results.Ok(result);
+                }
+            )
+            .WithName("SubmitAttempt")
+            .WithTags("Submissions")
+            .WithSummary("Submit an exercise attempt.")
+            .WithDescription(
+                "Submit code for an exercise; processing is asynchronous and results are delivered via SignalR."
+            )
+            .Produces<SubmitAttemptResult>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound);
     }
 }

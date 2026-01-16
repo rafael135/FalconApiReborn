@@ -20,7 +20,8 @@ public class GetAttemptHandler : IRequestHandler<GetAttemptQuery, GetAttemptResu
     public GetAttemptHandler(
         FalconDbContext dbContext,
         UserManager<User> userManager,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor
+    )
     {
         _dbContext = dbContext;
         _userManager = userManager;
@@ -36,14 +37,17 @@ public class GetAttemptHandler : IRequestHandler<GetAttemptQuery, GetAttemptResu
     /// <exception cref="UnauthorizedAccessException">Quando usuário não autenticado ou sem permissão.</exception>
     /// <exception cref="NotFoundException">Quando a tentativa não é encontrada.</exception>
     /// <exception cref="FormException">Quando usuário não pertence ao grupo dono da tentativa.</exception>
-    public async Task<GetAttemptResult> Handle(GetAttemptQuery request, CancellationToken cancellationToken)
+    public async Task<GetAttemptResult> Handle(
+        GetAttemptQuery request,
+        CancellationToken cancellationToken
+    )
     {
         var userName = _httpContextAccessor.HttpContext?.User?.Identity?.Name;
         if (string.IsNullOrEmpty(userName))
             throw new UnauthorizedAccessException("Usuário não autenticado");
 
-        var user = await _userManager.Users
-            .AsNoTracking()
+        var user = await _userManager
+            .Users.AsNoTracking()
             .FirstOrDefaultAsync(u => u.UserName == userName, cancellationToken);
 
         if (user == null)
@@ -52,8 +56,8 @@ public class GetAttemptHandler : IRequestHandler<GetAttemptQuery, GetAttemptResu
         var roles = await _userManager.GetRolesAsync(user);
         var isTeacherOrAdmin = roles.Contains("Teacher") || roles.Contains("Admin");
 
-        var attempt = await _dbContext.GroupExerciseAttempts
-            .AsNoTracking()
+        var attempt = await _dbContext
+            .GroupExerciseAttempts.AsNoTracking()
             .Include(a => a.Exercise)
             .Include(a => a.Group)
             .FirstOrDefaultAsync(a => a.Id == request.AttemptId, cancellationToken);
@@ -63,13 +67,25 @@ public class GetAttemptHandler : IRequestHandler<GetAttemptQuery, GetAttemptResu
 
         if (!isTeacherOrAdmin && attempt.GroupId != user.GroupId)
         {
-            var errors = new Dictionary<string, string> { { "attempt", "Você não tem permissão para visualizar esta submissão" } };
+            var errors = new Dictionary<string, string>
+            {
+                { "attempt", "Você não tem permissão para visualizar esta submissão" },
+            };
             throw new FormException(errors);
         }
 
         var attemptDetail = new AttemptDetailDto(
-            attempt.Id, attempt.ExerciseId, attempt.Exercise.Title, attempt.GroupId, attempt.Group.Name,
-            attempt.Code, attempt.Language, attempt.SubmissionTime, attempt.Time, attempt.Accepted, attempt.JudgeResponse
+            attempt.Id,
+            attempt.ExerciseId,
+            attempt.Exercise.Title,
+            attempt.GroupId,
+            attempt.Group.Name,
+            attempt.Code,
+            attempt.Language,
+            attempt.SubmissionTime,
+            attempt.Time,
+            attempt.Accepted,
+            attempt.JudgeResponse
         );
 
         return new GetAttemptResult(attemptDetail);

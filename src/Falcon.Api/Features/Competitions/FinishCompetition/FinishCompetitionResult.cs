@@ -6,4 +6,4 @@ namespace Falcon.Api.Features.Competitions.FinishCompetition;
 /// Result of finishing a competition.
 /// </summary>
 /// <param name="Competition">The competition data after finishing.</param>
-public record FinishCompetitionResult(CompetitionDto Competition); 
+public record FinishCompetitionResult(CompetitionDto Competition);

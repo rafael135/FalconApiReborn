@@ -13,15 +13,15 @@ namespace Falcon.Infrastructure.Migrations
         {
             migrationBuilder.DropForeignKey(
                 name: "FK_ExerciseOutputs_ExerciseInputs_ExerciseInputId1",
-                table: "ExerciseOutputs");
+                table: "ExerciseOutputs"
+            );
 
             migrationBuilder.DropIndex(
                 name: "IX_ExerciseOutputs_ExerciseInputId1",
-                table: "ExerciseOutputs");
+                table: "ExerciseOutputs"
+            );
 
-            migrationBuilder.DropColumn(
-                name: "ExerciseInputId1",
-                table: "ExerciseOutputs");
+            migrationBuilder.DropColumn(name: "ExerciseInputId1", table: "ExerciseOutputs");
         }
 
         /// <inheritdoc />
@@ -31,19 +31,22 @@ namespace Falcon.Infrastructure.Migrations
                 name: "ExerciseInputId1",
                 table: "ExerciseOutputs",
                 type: "uniqueidentifier",
-                nullable: true);
+                nullable: true
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_ExerciseOutputs_ExerciseInputId1",
                 table: "ExerciseOutputs",
-                column: "ExerciseInputId1");
+                column: "ExerciseInputId1"
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_ExerciseOutputs_ExerciseInputs_ExerciseInputId1",
                 table: "ExerciseOutputs",
                 column: "ExerciseInputId1",
                 principalTable: "ExerciseInputs",
-                principalColumn: "Id");
+                principalColumn: "Id"
+            );
         }
     }
 }

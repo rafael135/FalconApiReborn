@@ -20,10 +20,13 @@ public class GetLogsHandler : IRequestHandler<GetLogsQuery, GetLogsResult>
         _logger = logger;
     }
 
-    public async Task<GetLogsResult> Handle(GetLogsQuery request, CancellationToken cancellationToken)
+    public async Task<GetLogsResult> Handle(
+        GetLogsQuery request,
+        CancellationToken cancellationToken
+    )
     {
-        var query = _context.Logs
-            .Include(l => l.User)
+        var query = _context
+            .Logs.Include(l => l.User)
             .Include(l => l.Group)
             .Include(l => l.Competition)
             .AsNoTracking();
@@ -66,24 +69,22 @@ public class GetLogsHandler : IRequestHandler<GetLogsQuery, GetLogsResult>
         var total = await query.CountAsync(cancellationToken);
 
         // Apply pagination
-        var logs = await query
-            .Skip(request.Skip)
-            .Take(request.Take)
-            .ToListAsync(cancellationToken);
+        var logs = await query.Skip(request.Skip).Take(request.Take).ToListAsync(cancellationToken);
 
         var logDtos = logs.Select(l => new LogDto(
-            l.Id,
-            l.ActionType,
-            l.ActionType.ToString(),
-            l.ActionTime,
-            l.IpAddress,
-            l.UserId,
-            l.User?.Name,
-            l.GroupId,
-            l.Group?.Name,
-            l.CompetitionId,
-            l.Competition?.Name
-        )).ToList();
+                l.Id,
+                l.ActionType,
+                l.ActionType.ToString(),
+                l.ActionTime,
+                l.IpAddress,
+                l.UserId,
+                l.User?.Name,
+                l.GroupId,
+                l.Group?.Name,
+                l.CompetitionId,
+                l.Competition?.Name
+            ))
+            .ToList();
 
         _logger.LogInformation("Retrieved {Count} logs (total: {Total})", logs.Count, total);
 

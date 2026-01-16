@@ -19,36 +19,38 @@ public class GetExerciseHandler : IRequestHandler<GetExerciseQuery, GetExerciseR
     private readonly FalconDbContext _dbContext;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public GetExerciseHandler(
-        FalconDbContext dbContext,
-        IHttpContextAccessor httpContextAccessor)
+    public GetExerciseHandler(FalconDbContext dbContext, IHttpContextAccessor httpContextAccessor)
     {
         _dbContext = dbContext;
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<GetExerciseResult> Handle(GetExerciseQuery request, CancellationToken cancellationToken)
+    public async Task<GetExerciseResult> Handle(
+        GetExerciseQuery request,
+        CancellationToken cancellationToken
+    )
     {
         // Get current user role to determine if test cases should be included
         var httpContext = _httpContextAccessor.HttpContext;
-        var isTeacherOrAdmin = httpContext?.User.IsInRole("Teacher") == true || 
-                               httpContext?.User.IsInRole("Admin") == true;
+        var isTeacherOrAdmin =
+            httpContext?.User.IsInRole("Teacher") == true
+            || httpContext?.User.IsInRole("Admin") == true;
 
-        IQueryable<Core.Domain.Exercises.Exercise> query = _dbContext.Exercises
-            .AsNoTracking()
+        IQueryable<Core.Domain.Exercises.Exercise> query = _dbContext
+            .Exercises.AsNoTracking()
             .Include(e => e.ExerciseType)
             .Include(e => e.AttachedFile);
 
         // Include test cases only for Teachers/Admins
         if (isTeacherOrAdmin)
         {
-            query = query
-                .Include(e => e.Inputs)
-                .Include(e => e.Outputs);
+            query = query.Include(e => e.Inputs).Include(e => e.Outputs);
         }
 
-        var exercise = await query
-            .FirstOrDefaultAsync(e => e.Id == request.ExerciseId, cancellationToken);
+        var exercise = await query.FirstOrDefaultAsync(
+            e => e.Id == request.ExerciseId,
+            cancellationToken
+        );
 
         if (exercise == null)
         {
@@ -59,8 +61,8 @@ public class GetExerciseHandler : IRequestHandler<GetExerciseQuery, GetExerciseR
         List<TestCaseDto>? testCases = null;
         if (isTeacherOrAdmin && exercise.Inputs.Any())
         {
-            testCases = exercise.Inputs
-                .Select(input => new TestCaseDto(
+            testCases = exercise
+                .Inputs.Select(input => new TestCaseDto(
                     input.Id,
                     exercise.Outputs.First(o => o.ExerciseInputId == input.Id).Id,
                     input.InputContent,

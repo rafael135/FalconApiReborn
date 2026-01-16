@@ -17,4 +17,4 @@ public record SubmitAttemptCommand(
     Guid ExerciseId,
     string Code,
     LanguageType Language
-) : IRequest<SubmitAttemptResult>; 
+) : IRequest<SubmitAttemptResult>;

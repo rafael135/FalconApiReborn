@@ -5,4 +5,4 @@ namespace Falcon.Api.Features.Competitions.BlockGroup;
 /// </summary>
 /// <param name="Success">True if block operation succeeded.</param>
 /// <param name="Message">Human-friendly message.</param>
-public record BlockGroupResult(bool Success, string Message); 
+public record BlockGroupResult(bool Success, string Message);

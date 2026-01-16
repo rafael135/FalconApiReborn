@@ -22,4 +22,4 @@ public record RegisterUserCommand(
     string? Department = null,
     string? AccessCode = null,
     int? joinYear = null
-) : IRequest<RegisterUserResult>; 
+) : IRequest<RegisterUserResult>;

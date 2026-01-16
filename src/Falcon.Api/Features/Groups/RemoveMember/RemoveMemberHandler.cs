@@ -20,7 +20,8 @@ public class RemoveMemberHandler : IRequestHandler<RemoveMemberCommand, RemoveMe
         UserManager<Core.Domain.Users.User> userManager,
         FalconDbContext dbContext,
         IHttpContextAccessor httpContextAccessor,
-        ILogger<RemoveMemberHandler> logger)
+        ILogger<RemoveMemberHandler> logger
+    )
     {
         _userManager = userManager;
         _dbContext = dbContext;
@@ -28,18 +29,23 @@ public class RemoveMemberHandler : IRequestHandler<RemoveMemberCommand, RemoveMe
         _logger = logger;
     }
 
-    public async Task<RemoveMemberResult> Handle(RemoveMemberCommand request, CancellationToken cancellationToken)
+    public async Task<RemoveMemberResult> Handle(
+        RemoveMemberCommand request,
+        CancellationToken cancellationToken
+    )
     {
         // Get logged-in user
-        var httpContext = _httpContextAccessor.HttpContext 
+        var httpContext =
+            _httpContextAccessor.HttpContext
             ?? throw new UnauthorizedAccessException("Usuário não autenticado");
 
-        var currentUserId = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+        var currentUserId =
+            httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
             ?? throw new UnauthorizedAccessException("ID do usuário não encontrado");
 
         // Get group with users
-        var group = await _dbContext.Groups
-            .Include(g => g.Users)
+        var group = await _dbContext
+            .Groups.Include(g => g.Users)
             .FirstOrDefaultAsync(g => g.Id == request.GroupId, cancellationToken);
 
         if (group == null)
@@ -54,8 +60,10 @@ public class RemoveMemberHandler : IRequestHandler<RemoveMemberCommand, RemoveMe
         }
 
         // Get target user
-        var targetUser = await _userManager.Users
-            .FirstOrDefaultAsync(u => u.Id == request.UserId, cancellationToken);
+        var targetUser = await _userManager.Users.FirstOrDefaultAsync(
+            u => u.Id == request.UserId,
+            cancellationToken
+        );
 
         if (targetUser == null)
         {
@@ -66,9 +74,9 @@ public class RemoveMemberHandler : IRequestHandler<RemoveMemberCommand, RemoveMe
         // Verify that target user is in this group
         if (targetUser.GroupId != group.Id)
         {
-            var errors = new Dictionary<string, string> 
-            { 
-                { "userId", "Usuário não está neste grupo" } 
+            var errors = new Dictionary<string, string>
+            {
+                { "userId", "Usuário não está neste grupo" },
             };
             throw new FormException(errors);
         }
@@ -76,9 +84,9 @@ public class RemoveMemberHandler : IRequestHandler<RemoveMemberCommand, RemoveMe
         // Verify that target user is not the leader
         if (targetUser.Id == group.LeaderId)
         {
-            var errors = new Dictionary<string, string> 
-            { 
-                { "userId", "Não é possível remover o líder do grupo" } 
+            var errors = new Dictionary<string, string>
+            {
+                { "userId", "Não é possível remover o líder do grupo" },
             };
             throw new FormException(errors);
         }
@@ -89,8 +97,12 @@ public class RemoveMemberHandler : IRequestHandler<RemoveMemberCommand, RemoveMe
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("User {UserId} removed from group {GroupId} by leader {LeaderId}", 
-            request.UserId, request.GroupId, currentUserId);
+        _logger.LogInformation(
+            "User {UserId} removed from group {GroupId} by leader {LeaderId}",
+            request.UserId,
+            request.GroupId,
+            currentUserId
+        );
 
         return new RemoveMemberResult(true, "Membro removido com sucesso");
     }

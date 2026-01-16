@@ -25,7 +25,10 @@ public class AddTestCaseHandler : IRequestHandler<AddTestCaseCommand, AddTestCas
         _logger = logger;
     }
 
-    public async Task<AddTestCaseResult> Handle(AddTestCaseCommand request, CancellationToken cancellationToken)
+    public async Task<AddTestCaseResult> Handle(
+        AddTestCaseCommand request,
+        CancellationToken cancellationToken
+    )
     {
         var errors = new Dictionary<string, string>();
         if (string.IsNullOrWhiteSpace(request.InputContent))
@@ -35,24 +38,28 @@ public class AddTestCaseHandler : IRequestHandler<AddTestCaseCommand, AddTestCas
         if (errors.Any())
             throw new FormException(errors);
 
-        var exercise = await _dbContext.Exercises
-            .FirstOrDefaultAsync(e => e.Id == request.ExerciseId, cancellationToken);
+        var exercise = await _dbContext.Exercises.FirstOrDefaultAsync(
+            e => e.Id == request.ExerciseId,
+            cancellationToken
+        );
 
         if (exercise == null)
             throw new NotFoundException("Exercise", request.ExerciseId);
 
         var input = new ExerciseInput(request.InputContent);
         input.SetExercise(exercise);
-        
+
         await _dbContext.ExerciseInputs.AddAsync(input, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
-        
+
         var output = new ExerciseOutput(request.ExpectedOutput, exercise);
         await _dbContext.ExerciseOutputs.AddAsync(output, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Test case added to exercise {ExerciseId}", request.ExerciseId);
 
-        return new AddTestCaseResult(new TestCaseDto(input.Id, output.Id, input.InputContent, output.OutputContent));
+        return new AddTestCaseResult(
+            new TestCaseDto(input.Id, output.Id, input.InputContent, output.OutputContent)
+        );
     }
 }

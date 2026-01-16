@@ -52,7 +52,12 @@ public interface IJudgeService
     /// <param name="description">Updated description.</param>
     /// <param name="testCases">Updated test cases.</param>
     /// <returns>True if update was successful.</returns>
-    Task<bool> UpdateExerciseAsync(string judgeUuid, string title, string description, List<TestCase> testCases);
+    Task<bool> UpdateExerciseAsync(
+        string judgeUuid,
+        string title,
+        string description,
+        List<TestCase> testCases
+    );
 }
 
 /// <summary>

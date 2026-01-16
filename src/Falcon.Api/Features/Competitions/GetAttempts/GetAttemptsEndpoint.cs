@@ -19,23 +19,25 @@ public class GetAttemptsEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("api/Competition/{id}/attempts", [Authorize(Roles = "Teacher,Admin")] async (
-            IMediator mediator,
-            Guid id,
-            int skip = 0,
-            int take = 10) =>
-        {
-            var query = new GetAttemptsQuery(id, skip, take);
-            var result = await mediator.Send(query);
-            return Results.Ok(result);
-        })
-        .WithName("GetAllAttempts")
-        .WithTags("Competitions")
-        .WithSummary("List attempts for a competition.")
-        .WithDescription("Returns paginated submission attempts for the specified competition. Restricted to Teacher and Admin roles.")
-        .Produces<GetAttemptsResult>(StatusCodes.Status200OK)
-        .Produces(StatusCodes.Status401Unauthorized)
-        .Produces(StatusCodes.Status403Forbidden)
-        .Produces(StatusCodes.Status404NotFound);
+        app.MapGet(
+                "api/Competition/{id}/attempts",
+                [Authorize(Roles = "Teacher,Admin")]
+                async (IMediator mediator, Guid id, int skip = 0, int take = 10) =>
+                {
+                    var query = new GetAttemptsQuery(id, skip, take);
+                    var result = await mediator.Send(query);
+                    return Results.Ok(result);
+                }
+            )
+            .WithName("GetAllAttempts")
+            .WithTags("Competitions")
+            .WithSummary("List attempts for a competition.")
+            .WithDescription(
+                "Returns paginated submission attempts for the specified competition. Restricted to Teacher and Admin roles."
+            )
+            .Produces<GetAttemptsResult>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound);
     }
-} 
+}

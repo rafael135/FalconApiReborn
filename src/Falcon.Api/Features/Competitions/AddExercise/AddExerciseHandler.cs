@@ -25,10 +25,13 @@ public class AddExerciseHandler : IRequestHandler<AddExerciseCommand, AddExercis
     /// <returns>An <see cref="AddExerciseResult"/> indicating success or failure.</returns>
     /// <exception cref="NotFoundException">Thrown when the competition or exercise does not exist.</exception>
     /// <exception cref="FormException">Thrown when the operation is invalid (e.g., competition finished, exercise already added, or max exercises reached).</exception>
-    public async Task<AddExerciseResult> Handle(AddExerciseCommand request, CancellationToken cancellationToken)
+    public async Task<AddExerciseResult> Handle(
+        AddExerciseCommand request,
+        CancellationToken cancellationToken
+    )
     {
-        var competition = await _dbContext.Competitions
-            .Include(c => c.ExercisesInCompetition)
+        var competition = await _dbContext
+            .Competitions.Include(c => c.ExercisesInCompetition)
             .FirstOrDefaultAsync(c => c.Id == request.CompetitionId, cancellationToken);
 
         if (competition == null)
@@ -36,30 +39,55 @@ public class AddExerciseHandler : IRequestHandler<AddExerciseCommand, AddExercis
 
         if (competition.Status == CompetitionStatus.Finished)
         {
-            var errors = new Dictionary<string, string> { { "competition", "Não é possível adicionar exercícios a uma competição finalizada" } };
+            var errors = new Dictionary<string, string>
+            {
+                {
+                    "competition",
+                    "Não é possível adicionar exercícios a uma competição finalizada"
+                },
+            };
             throw new FormException(errors);
         }
 
-        var exercise = await _dbContext.Exercises.FindAsync(new object[] { request.ExerciseId }, cancellationToken);
+        var exercise = await _dbContext.Exercises.FindAsync(
+            new object[] { request.ExerciseId },
+            cancellationToken
+        );
         if (exercise == null)
             throw new NotFoundException("Exercise", request.ExerciseId);
 
         if (competition.ExercisesInCompetition.Any(e => e.ExerciseId == request.ExerciseId))
         {
-            var errors = new Dictionary<string, string> { { "exercise", "Exercício já está na competição" } };
+            var errors = new Dictionary<string, string>
+            {
+                { "exercise", "Exercício já está na competição" },
+            };
             throw new FormException(errors);
         }
 
-        if (competition.MaxExercises.HasValue && competition.ExercisesInCompetition.Count >= competition.MaxExercises.Value)
+        if (
+            competition.MaxExercises.HasValue
+            && competition.ExercisesInCompetition.Count >= competition.MaxExercises.Value
+        )
         {
-            var errors = new Dictionary<string, string> { { "competition", $"Competição já atingiu o máximo de {competition.MaxExercises} exercícios" } };
+            var errors = new Dictionary<string, string>
+            {
+                {
+                    "competition",
+                    $"Competição já atingiu o máximo de {competition.MaxExercises} exercícios"
+                },
+            };
             throw new FormException(errors);
         }
 
         competition.AddExercise(exercise);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Exercise {ExerciseId} added to competition {CompetitionId}", request.ExerciseId, request.CompetitionId);
+        _logger.LogInformation(
+            "Exercise {ExerciseId} added to competition {CompetitionId}",
+            request.ExerciseId,
+            request.CompetitionId
+        );
 
         return new AddExerciseResult(true, "Exercício adicionado à competição com sucesso");
     }

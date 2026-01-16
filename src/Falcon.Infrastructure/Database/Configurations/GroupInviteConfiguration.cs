@@ -18,16 +18,11 @@ public class GroupInviteConfiguration : IEntityTypeConfiguration<GroupInvite>
 
         builder.HasKey(gi => gi.Id);
 
-        builder.Property(gi => gi.Id)
-            .ValueGeneratedOnAdd();
+        builder.Property(gi => gi.Id).ValueGeneratedOnAdd();
 
-        builder.Property(gi => gi.Accepted)
-            .IsRequired()
-            .HasDefaultValue(false);
+        builder.Property(gi => gi.Accepted).IsRequired().HasDefaultValue(false);
 
-        builder.Property(gi => gi.UserId)
-            .IsRequired()
-            .HasMaxLength(450);
+        builder.Property(gi => gi.UserId).IsRequired().HasMaxLength(450);
 
         builder
             .HasOne(gi => gi.Group)
@@ -42,7 +37,6 @@ public class GroupInviteConfiguration : IEntityTypeConfiguration<GroupInvite>
             .OnDelete(DeleteBehavior.Cascade);
 
         // Índice único para evitar convites duplicados
-        builder.HasIndex(gi => new { gi.GroupId, gi.UserId })
-            .IsUnique();
+        builder.HasIndex(gi => new { gi.GroupId, gi.UserId }).IsUnique();
     }
 }

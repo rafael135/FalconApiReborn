@@ -1,8 +1,8 @@
+using Falcon.Api.Features.Competitions.Shared;
 using Falcon.Core.Domain.Competitions;
 using Falcon.Core.Domain.Shared.Exceptions;
 using Falcon.Infrastructure.Database;
 using MediatR;
-using Falcon.Api.Features.Competitions.Shared;
 
 namespace Falcon.Api.Features.Competitions.CreateTemplate;
 
@@ -14,15 +14,16 @@ public class CreateTemplateHandler : IRequestHandler<CreateTemplateCommand, Crea
     private readonly FalconDbContext _dbContext;
     private readonly ILogger<CreateTemplateHandler> _logger;
 
-    public CreateTemplateHandler(
-        FalconDbContext dbContext,
-        ILogger<CreateTemplateHandler> logger)
+    public CreateTemplateHandler(FalconDbContext dbContext, ILogger<CreateTemplateHandler> logger)
     {
         _dbContext = dbContext;
         _logger = logger;
     }
 
-    public async Task<CreateTemplateResult> Handle(CreateTemplateCommand request, CancellationToken cancellationToken)
+    public async Task<CreateTemplateResult> Handle(
+        CreateTemplateCommand request,
+        CancellationToken cancellationToken
+    )
     {
         // Validate inputs
         var errors = new Dictionary<string, string>();
@@ -33,10 +34,16 @@ public class CreateTemplateHandler : IRequestHandler<CreateTemplateCommand, Crea
             errors.Add(nameof(request.Name), "Nome deve ter no máximo 200 caracteres");
 
         if (request.StartInscriptions >= request.EndInscriptions)
-            errors.Add(nameof(request.EndInscriptions), "Data de término das inscrições deve ser posterior ao início");
+            errors.Add(
+                nameof(request.EndInscriptions),
+                "Data de término das inscrições deve ser posterior ao início"
+            );
 
         if (request.EndInscriptions >= request.StartTime)
-            errors.Add(nameof(request.StartTime), "Data de início da competição deve ser posterior ao término das inscrições");
+            errors.Add(
+                nameof(request.StartTime),
+                "Data de início da competição deve ser posterior ao término das inscrições"
+            );
 
         if (errors.Any())
             throw new FormException(errors);
@@ -53,8 +60,11 @@ public class CreateTemplateHandler : IRequestHandler<CreateTemplateCommand, Crea
         await _dbContext.Competitions.AddAsync(competition, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Competition template created: {CompetitionId} - {CompetitionName}", 
-            competition.Id, competition.Name);
+        _logger.LogInformation(
+            "Competition template created: {CompetitionId} - {CompetitionName}",
+            competition.Id,
+            competition.Name
+        );
 
         var competitionDto = new CompetitionDto(
             competition.Id,

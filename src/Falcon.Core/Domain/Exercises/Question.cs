@@ -13,30 +13,37 @@ public class Question : Entity
 
     /// <summary>Competition identifier this question belongs to.</summary>
     public Guid CompetitionId { get; private set; }
+
     /// <summary>Competition navigation property.</summary>
     public virtual Competitions.Competition Competition { get; private set; }
 
     /// <summary>Optional exercise identifier this question refers to.</summary>
     public Guid? ExerciseId { get; private set; }
+
     /// <summary>Optional exercise navigation property.</summary>
     public virtual Exercise? Exercise { get; private set; }
 
     /// <summary>Author user identifier.</summary>
     public string UserId { get; private set; }
+
     /// <summary>Author user navigation.</summary>
     public virtual User User { get; private set; }
 
     /// <summary>Identifier of the answer, if one exists.</summary>
     public Guid? AnswerId { get; private set; }
+
     /// <summary>Answer navigation property.</summary>
     public virtual Answer? Answer { get; private set; }
 
     /// <summary>Textual content of the question.</summary>
     public string Content { get; private set; }
+
     /// <summary>Type of question.</summary>
     public QuestionType QuestionType { get; private set; }
+
     /// <summary>Creation timestamp (UTC).</summary>
     public DateTime CreatedAt { get; private set; }
+
     /// <summary>Concurrency token.</summary>
     public byte[]? RowVersion { get; private set; }
 
@@ -50,7 +57,8 @@ public class Question : Entity
         User user,
         string content,
         QuestionType questionType,
-        Exercise? exercise = null)
+        Exercise? exercise = null
+    )
     {
         if (competition == null)
             throw new ArgumentNullException(nameof(competition));

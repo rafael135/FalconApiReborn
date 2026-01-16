@@ -45,6 +45,7 @@ public class ExerciseInputDto
 {
     /// <summary>Ordem do input.</summary>
     public int OrderId { get; set; }
+
     /// <summary>Conteúdo do input.</summary>
     public string Input { get; set; } = string.Empty;
 }
@@ -54,6 +55,7 @@ public class ExerciseOutputDto
 {
     /// <summary>Ordem do output.</summary>
     public int OrderId { get; set; }
+
     /// <summary>Conteúdo do output esperado.</summary>
     public string Output { get; set; } = string.Empty;
-} 
+}

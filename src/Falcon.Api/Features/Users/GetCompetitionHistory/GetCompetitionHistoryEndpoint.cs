@@ -20,23 +20,25 @@ public class GetCompetitionHistoryEndpoint : IEndpoint
     /// <param name="app">The endpoint route builder.</param>
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/User/{id}/competition-history", [Authorize] async (
-            IMediator mediator,
-            string id,
-            int skip = 0,
-            int take = 10) =>
-        {
-            var query = new GetCompetitionHistoryQuery(id, skip, take);
-            var result = await mediator.Send(query);
-            return Results.Ok(result);
-        })
-        .WithName("GetCompetitionHistory")
-        .WithTags("Users")
-        .WithSummary("Get competition history for a user.")
-        .WithDescription("Returns a paginated list of competitions the specified user participated in. Requires authentication and authorization.")
-        .Produces<GetCompetitionHistoryResult>(StatusCodes.Status200OK)
-        .Produces(StatusCodes.Status401Unauthorized)
-        .Produces(StatusCodes.Status403Forbidden)
-        .Produces(StatusCodes.Status404NotFound);
+        app.MapGet(
+                "/api/User/{id}/competition-history",
+                [Authorize]
+                async (IMediator mediator, string id, int skip = 0, int take = 10) =>
+                {
+                    var query = new GetCompetitionHistoryQuery(id, skip, take);
+                    var result = await mediator.Send(query);
+                    return Results.Ok(result);
+                }
+            )
+            .WithName("GetCompetitionHistory")
+            .WithTags("Users")
+            .WithSummary("Get competition history for a user.")
+            .WithDescription(
+                "Returns a paginated list of competitions the specified user participated in. Requires authentication and authorization."
+            )
+            .Produces<GetCompetitionHistoryResult>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound);
     }
 }

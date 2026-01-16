@@ -18,28 +18,19 @@ public class ExerciseConfiguration : IEntityTypeConfiguration<Exercise>
 
         builder.HasKey(e => e.Id);
 
-        builder.Property(e => e.Id)
-            .ValueGeneratedOnAdd();
+        builder.Property(e => e.Id).ValueGeneratedOnAdd();
 
-        builder.Property(e => e.Title)
-            .HasMaxLength(200)
-            .IsRequired();
+        builder.Property(e => e.Title).HasMaxLength(200).IsRequired();
 
-        builder.Property(e => e.Description)
-            .HasColumnType("nvarchar(max)");
+        builder.Property(e => e.Description).HasColumnType("nvarchar(max)");
 
-        builder.Property(e => e.ExerciseTypeId)
-            .IsRequired();
+        builder.Property(e => e.ExerciseTypeId).IsRequired();
 
-        builder.Property(e => e.EstimatedTime)
-            .IsRequired();
+        builder.Property(e => e.EstimatedTime).IsRequired();
 
-        builder.Property(e => e.JudgeUuid)
-            .HasMaxLength(36);
+        builder.Property(e => e.JudgeUuid).HasMaxLength(36);
 
-        builder.Property(e => e.CreatedAt)
-            .IsRequired()
-            .HasDefaultValueSql("GETUTCDATE()");
+        builder.Property(e => e.CreatedAt).IsRequired().HasDefaultValueSql("GETUTCDATE()");
 
         builder
             .HasOne(e => e.ExerciseType)

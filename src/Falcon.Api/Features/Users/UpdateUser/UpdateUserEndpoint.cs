@@ -1,8 +1,8 @@
 using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Falcon.Api.Features.Users.UpdateUser;
 
@@ -22,31 +22,33 @@ public class UpdateUserEndpoint : IEndpoint
     /// <param name="app">The endpoint route builder.</param>
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("/api/User/{id}", [Authorize] async (
-            IMediator mediator,
-            string id,
-            [FromBody] UpdateUserCommand command) =>
-        {
-            // Validate that route ID matches command ID
-            if (id != command.UserId)
-            {
-                return Results.BadRequest(new
+        app.MapPut(
+                "/api/User/{id}",
+                [Authorize]
+                async (IMediator mediator, string id, [FromBody] UpdateUserCommand command) =>
                 {
-                    error = "Route id does not match command.UserId"
-                });
-            }
+                    // Validate that route ID matches command ID
+                    if (id != command.UserId)
+                    {
+                        return Results.BadRequest(
+                            new { error = "Route id does not match command.UserId" }
+                        );
+                    }
 
-            var result = await mediator.Send(command);
-            return Results.Ok(result.User);
-        })
-        .WithName("UpdateUser")
-        .WithTags("Users")
-        .WithSummary("Update user profile.")
-        .WithDescription("Updates user profile information. Requires authentication; the route id must match command.UserId.")
-        .Produces<Shared.UserDetailDto>(StatusCodes.Status200OK)
-        .Produces(StatusCodes.Status400BadRequest)
-        .Produces(StatusCodes.Status401Unauthorized)
-        .Produces(StatusCodes.Status403Forbidden)
-        .Produces(StatusCodes.Status404NotFound);
+                    var result = await mediator.Send(command);
+                    return Results.Ok(result.User);
+                }
+            )
+            .WithName("UpdateUser")
+            .WithTags("Users")
+            .WithSummary("Update user profile.")
+            .WithDescription(
+                "Updates user profile information. Requires authentication; the route id must match command.UserId."
+            )
+            .Produces<Shared.UserDetailDto>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound);
     }
 }

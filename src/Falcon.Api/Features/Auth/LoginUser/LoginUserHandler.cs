@@ -106,25 +106,26 @@ public class LoginUserHandler : IRequestHandler<LoginUserCommand, LoginUserResul
         return await MapToResultAsync(finalUser, role, token, cancellationToken);
     }
 
-    private async Task<LoginUserResult> MapToResultAsync(User user, string role, string token, CancellationToken cancellationToken)
+    private async Task<LoginUserResult> MapToResultAsync(
+        User user,
+        string role,
+        string token,
+        CancellationToken cancellationToken
+    )
     {
         // Load invites separately if group exists
-        var groupInvites = user.Group != null
-            ? await _dbContext.GroupInvites
-                .AsNoTracking()
-                .Where(i => i.GroupId == user.Group.Id && !i.Accepted && i.UserId == user.Id)
-                .Select(i => new GroupInviteDto(i.Id, i.UserId, i.GroupId, i.Accepted))
-                .ToListAsync()
-            : new List<GroupInviteDto>();
+        var groupInvites =
+            user.Group != null
+                ? await _dbContext
+                    .GroupInvites.AsNoTracking()
+                    .Where(i => i.GroupId == user.Group.Id && !i.Accepted && i.UserId == user.Id)
+                    .Select(i => new GroupInviteDto(i.Id, i.UserId, i.GroupId, i.Accepted))
+                    .ToListAsync()
+                : new List<GroupInviteDto>();
 
         var groupDto =
             user.Group != null
-                ? new GroupDto(
-                    user.Group.Id,
-                    user.Group.Name,
-                    user.Group.LeaderId,
-                    groupInvites
-                )
+                ? new GroupDto(user.Group.Id, user.Group.Name, user.Group.LeaderId, groupInvites)
                 : null;
 
         var userDto = new UserDto(user.Id, user.Name, user.Email!, user.RA, role, groupDto);

@@ -8,4 +8,4 @@ namespace Falcon.Api.Features.Submissions.SubmitAttempt;
 /// </summary>
 /// <param name="Attempt">Details of the created attempt.</param>
 /// <param name="Ranking">Relevant ranking entry.</param>
-public record SubmitAttemptResult(AttemptDto Attempt, RankingEntryDto Ranking); 
+public record SubmitAttemptResult(AttemptDto Attempt, RankingEntryDto Ranking);

@@ -1,8 +1,8 @@
 using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Falcon.Api.Features.Competitions.RemoveExercise;
 
@@ -20,19 +20,25 @@ public class RemoveExerciseEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("api/Competition/{competitionId}/exercise/{exerciseId}", [Authorize(Roles = "Teacher,Admin")] async (IMediator mediator, Guid competitionId, Guid exerciseId) =>
-        {
-            var command = new RemoveExerciseCommand(competitionId, exerciseId);
-            var result = await mediator.Send(command);
-            return Results.Ok(result);
-        })
-        .WithName("RemoveExercise")
-        .WithTags("Competitions")
-        .WithSummary("Remove an exercise from a competition.")
-        .WithDescription("Removes an exercise from the specified competition. Requires Teacher or Admin role.")
-        .Produces<RemoveExerciseResult>(StatusCodes.Status200OK)
-        .Produces(StatusCodes.Status401Unauthorized)
-        .Produces(StatusCodes.Status403Forbidden)
-        .Produces(StatusCodes.Status404NotFound);
+        app.MapDelete(
+                "api/Competition/{competitionId}/exercise/{exerciseId}",
+                [Authorize(Roles = "Teacher,Admin")]
+                async (IMediator mediator, Guid competitionId, Guid exerciseId) =>
+                {
+                    var command = new RemoveExerciseCommand(competitionId, exerciseId);
+                    var result = await mediator.Send(command);
+                    return Results.Ok(result);
+                }
+            )
+            .WithName("RemoveExercise")
+            .WithTags("Competitions")
+            .WithSummary("Remove an exercise from a competition.")
+            .WithDescription(
+                "Removes an exercise from the specified competition. Requires Teacher or Admin role."
+            )
+            .Produces<RemoveExerciseResult>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound);
     }
-} 
+}

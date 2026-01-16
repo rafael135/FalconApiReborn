@@ -7,4 +7,5 @@ namespace Falcon.Api.Features.Competitions.RemoveExercise;
 /// </summary>
 /// <param name="CompetitionId">The competition identifier.</param>
 /// <param name="ExerciseId">The exercise identifier to remove.</param>
-public record RemoveExerciseCommand(Guid CompetitionId, Guid ExerciseId) : IRequest<RemoveExerciseResult>; 
+public record RemoveExerciseCommand(Guid CompetitionId, Guid ExerciseId)
+    : IRequest<RemoveExerciseResult>;

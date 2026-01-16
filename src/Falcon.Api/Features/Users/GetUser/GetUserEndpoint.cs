@@ -20,19 +20,25 @@ public class GetUserEndpoint : IEndpoint
     /// <param name="app">The endpoint route builder.</param>
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/User/{id}", [Authorize] async (IMediator mediator, string id) =>
-        {
-            var query = new GetUserQuery(id);
-            var result = await mediator.Send(query);
-            return Results.Ok(result.User);
-        })
-        .WithName("GetUser")
-        .WithTags("Users")
-        .WithSummary("Get a user by id.")
-        .WithDescription("Returns detailed user information. Requires authentication; only the user themselves or an Admin can access this endpoint.")
-        .Produces<Shared.UserDetailDto>(StatusCodes.Status200OK)
-        .Produces(StatusCodes.Status401Unauthorized)
-        .Produces(StatusCodes.Status403Forbidden)
-        .Produces(StatusCodes.Status404NotFound);
+        app.MapGet(
+                "/api/User/{id}",
+                [Authorize]
+                async (IMediator mediator, string id) =>
+                {
+                    var query = new GetUserQuery(id);
+                    var result = await mediator.Send(query);
+                    return Results.Ok(result.User);
+                }
+            )
+            .WithName("GetUser")
+            .WithTags("Users")
+            .WithSummary("Get a user by id.")
+            .WithDescription(
+                "Returns detailed user information. Requires authentication; only the user themselves or an Admin can access this endpoint."
+            )
+            .Produces<Shared.UserDetailDto>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound);
     }
 }

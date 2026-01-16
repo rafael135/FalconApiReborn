@@ -19,14 +19,18 @@ public class GetStatisticsHandler : IRequestHandler<GetStatisticsQuery, GetStati
     public GetStatisticsHandler(
         FalconDbContext context,
         UserManager<User> userManager,
-        ILogger<GetStatisticsHandler> logger)
+        ILogger<GetStatisticsHandler> logger
+    )
     {
         _context = context;
         _userManager = userManager;
         _logger = logger;
     }
 
-    public async Task<GetStatisticsResult> Handle(GetStatisticsQuery request, CancellationToken cancellationToken)
+    public async Task<GetStatisticsResult> Handle(
+        GetStatisticsQuery request,
+        CancellationToken cancellationToken
+    )
     {
         // User statistics
         var totalStudents = (await _userManager.GetUsersInRoleAsync("Student")).Count;
@@ -40,16 +44,30 @@ public class GetStatisticsHandler : IRequestHandler<GetStatisticsQuery, GetStati
         var totalGroups = await _context.Groups.CountAsync(cancellationToken);
 
         // Competition statistics
-        var totalPending = await _context.Competitions.CountAsync(c => c.Status == CompetitionStatus.Pending, cancellationToken);
-        var totalOngoing = await _context.Competitions.CountAsync(c => c.Status == CompetitionStatus.Ongoing, cancellationToken);
-        var totalFinished = await _context.Competitions.CountAsync(c => c.Status == CompetitionStatus.Finished, cancellationToken);
+        var totalPending = await _context.Competitions.CountAsync(
+            c => c.Status == CompetitionStatus.Pending,
+            cancellationToken
+        );
+        var totalOngoing = await _context.Competitions.CountAsync(
+            c => c.Status == CompetitionStatus.Ongoing,
+            cancellationToken
+        );
+        var totalFinished = await _context.Competitions.CountAsync(
+            c => c.Status == CompetitionStatus.Finished,
+            cancellationToken
+        );
         var totalCompetitions = totalPending + totalOngoing + totalFinished;
 
-        var competitionStats = new CompetitionStatistics(totalPending, totalOngoing, totalFinished, totalCompetitions);
+        var competitionStats = new CompetitionStatistics(
+            totalPending,
+            totalOngoing,
+            totalFinished,
+            totalCompetitions
+        );
 
         // Exercise statistics
-        var exercisesByType = await _context.Exercises
-            .Include(e => e.ExerciseType)
+        var exercisesByType = await _context
+            .Exercises.Include(e => e.ExerciseType)
             .GroupBy(e => e.ExerciseType.Label)
             .Select(g => new { Type = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.Type, x => x.Count, cancellationToken);
@@ -60,14 +78,34 @@ public class GetStatisticsHandler : IRequestHandler<GetStatisticsQuery, GetStati
 
         // Submission statistics
         var totalSubmissions = await _context.GroupExerciseAttempts.CountAsync(cancellationToken);
-        var acceptedSubmissions = await _context.GroupExerciseAttempts.CountAsync(a => a.Accepted, cancellationToken);
-        var acceptanceRate = totalSubmissions > 0 ? (double)acceptedSubmissions / totalSubmissions * 100 : 0;
+        var acceptedSubmissions = await _context.GroupExerciseAttempts.CountAsync(
+            a => a.Accepted,
+            cancellationToken
+        );
+        var acceptanceRate =
+            totalSubmissions > 0 ? (double)acceptedSubmissions / totalSubmissions * 100 : 0;
 
-        var submissionStats = new SubmissionStatistics(totalSubmissions, acceptedSubmissions, acceptanceRate);
+        var submissionStats = new SubmissionStatistics(
+            totalSubmissions,
+            acceptedSubmissions,
+            acceptanceRate
+        );
 
-        _logger.LogInformation("System statistics: {Users} users, {Groups} groups, {Competitions} competitions, {Exercises} exercises, {Submissions} submissions",
-            totalUsers, totalGroups, totalCompetitions, totalExercises, totalSubmissions);
+        _logger.LogInformation(
+            "System statistics: {Users} users, {Groups} groups, {Competitions} competitions, {Exercises} exercises, {Submissions} submissions",
+            totalUsers,
+            totalGroups,
+            totalCompetitions,
+            totalExercises,
+            totalSubmissions
+        );
 
-        return new GetStatisticsResult(userStats, totalGroups, competitionStats, exerciseStats, submissionStats);
+        return new GetStatisticsResult(
+            userStats,
+            totalGroups,
+            competitionStats,
+            exerciseStats,
+            submissionStats
+        );
     }
 }

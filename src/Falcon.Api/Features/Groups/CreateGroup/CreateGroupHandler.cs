@@ -1,8 +1,8 @@
 using Falcon.Api.Features.Groups.Shared;
 using Falcon.Core.Domain.Groups;
-using Falcon.Core.Domain.Users;
-using Falcon.Core.Domain.Shared.Exceptions;
 using Falcon.Core.Domain.Shared.Enums;
+using Falcon.Core.Domain.Shared.Exceptions;
+using Falcon.Core.Domain.Users;
 using Falcon.Infrastructure.Database;
 using Falcon.Infrastructure.Extensions;
 using MediatR;
@@ -25,7 +25,8 @@ public class CreateGroupHandler : IRequestHandler<CreateGroupCommand, CreateGrou
         UserManager<User> userManager,
         FalconDbContext dbContext,
         IHttpContextAccessor httpContextAccessor,
-        ILogger<CreateGroupHandler> logger)
+        ILogger<CreateGroupHandler> logger
+    )
     {
         _userManager = userManager;
         _dbContext = dbContext;
@@ -33,7 +34,10 @@ public class CreateGroupHandler : IRequestHandler<CreateGroupCommand, CreateGrou
         _logger = logger;
     }
 
-    public async Task<CreateGroupResult> Handle(CreateGroupCommand request, CancellationToken cancellationToken)
+    public async Task<CreateGroupResult> Handle(
+        CreateGroupCommand request,
+        CancellationToken cancellationToken
+    )
     {
         // Validate input
         var errors = new Dictionary<string, string>();
@@ -47,15 +51,18 @@ public class CreateGroupHandler : IRequestHandler<CreateGroupCommand, CreateGrou
             throw new FormException(errors);
 
         // Get logged-in user
-        var httpContext = _httpContextAccessor.HttpContext 
+        var httpContext =
+            _httpContextAccessor.HttpContext
             ?? throw new UnauthorizedAccessException("Usuário não autenticado");
 
-        var userId = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+        var userId =
+            httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
             ?? throw new UnauthorizedAccessException("ID do usuário não encontrado");
 
-        var user = await _userManager.Users
-            .Include(u => u.Group)
-            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken)
+        var user =
+            await _userManager
+                .Users.Include(u => u.Group)
+                .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken)
             ?? throw new UnauthorizedAccessException("Usuário não encontrado");
 
         // Validate user is not already in a group
@@ -71,14 +78,15 @@ public class CreateGroupHandler : IRequestHandler<CreateGroupCommand, CreateGrou
         // Add other members if provided
         if (request.UserRAs != null && request.UserRAs.Any())
         {
-            var usersToAdd = await _userManager.Users
-                .Where(u => request.UserRAs.Contains(u.RA))
+            var usersToAdd = await _userManager
+                .Users.Where(u => request.UserRAs.Contains(u.RA))
                 .ToListAsync(cancellationToken);
 
             foreach (var member in usersToAdd)
             {
                 // Skip if it's the leader (already added)
-                if (member.Id == user.Id) continue;
+                if (member.Id == user.Id)
+                    continue;
 
                 // Check if member is already in a group
                 if (member.GroupId != null)
@@ -86,7 +94,7 @@ public class CreateGroupHandler : IRequestHandler<CreateGroupCommand, CreateGrou
                     // We might want to warn or skip, but for now let's just skip or throw?
                     // Old behavior: likely threw error or ignored.
                     // Let's ignore for now to avoid partial failure, or we could validate all first.
-                    continue; 
+                    continue;
                 }
 
                 group.AddMember(member);
@@ -124,7 +132,7 @@ public class CreateGroupHandler : IRequestHandler<CreateGroupCommand, CreateGrou
                     user.RA,
                     user.JoinYear,
                     user.Department
-                )
+                ),
             },
             new List<GroupInviteDto>()
         );

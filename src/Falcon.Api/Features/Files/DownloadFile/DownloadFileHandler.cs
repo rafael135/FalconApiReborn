@@ -1,13 +1,13 @@
 using Falcon.Core.Domain.Auditing;
+using Falcon.Core.Domain.Files;
 using Falcon.Core.Domain.Shared.Enums;
 using Falcon.Core.Domain.Shared.Exceptions;
-using Falcon.Core.Domain.Files;
+using Falcon.Core.Domain.Users;
 using Falcon.Core.Interfaces;
 using Falcon.Infrastructure.Database;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Falcon.Core.Domain.Users;
 
 namespace Falcon.Api.Features.Files.DownloadFile;
 
@@ -21,12 +21,14 @@ public class DownloadFileHandler : IRequestHandler<DownloadFileQuery, DownloadFi
     private readonly UserManager<User> _userManager;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ILogger<DownloadFileHandler> _logger;
+
     public DownloadFileHandler(
         FalconDbContext context,
         IAttachedFileService attachedFileService,
         UserManager<User> userManager,
         IHttpContextAccessor httpContextAccessor,
-        ILogger<DownloadFileHandler> logger)
+        ILogger<DownloadFileHandler> logger
+    )
     {
         _context = context;
         _attachedFileService = attachedFileService;
@@ -41,11 +43,14 @@ public class DownloadFileHandler : IRequestHandler<DownloadFileQuery, DownloadFi
     /// <param name="request">The download query carrying the FileId.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>File stream, content type and filename packaged in a <see cref="DownloadFileResult"/>.</returns>
-    public async Task<DownloadFileResult> Handle(DownloadFileQuery request, CancellationToken cancellationToken)
+    public async Task<DownloadFileResult> Handle(
+        DownloadFileQuery request,
+        CancellationToken cancellationToken
+    )
     {
         // Get file metadata
-        var attachedFile = await _context.AttachedFiles
-            .AsNoTracking()
+        var attachedFile = await _context
+            .AttachedFiles.AsNoTracking()
             .FirstOrDefaultAsync(f => f.Id == request.FileId, cancellationToken);
 
         if (attachedFile == null)
@@ -54,12 +59,17 @@ public class DownloadFileHandler : IRequestHandler<DownloadFileQuery, DownloadFi
         }
 
         // Get file stream using service
-        var fileStream = await _attachedFileService.GetFileStreamAsync(attachedFile, cancellationToken);
+        var fileStream = await _attachedFileService.GetFileStreamAsync(
+            attachedFile,
+            cancellationToken
+        );
 
         // Create log entry
         var httpContext = _httpContextAccessor.HttpContext;
-        var userIdClaim = httpContext?.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        
+        var userIdClaim = httpContext
+            ?.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)
+            ?.Value;
+
         if (!string.IsNullOrEmpty(userIdClaim))
         {
             var user = await _userManager.FindByIdAsync(userIdClaim);
@@ -79,7 +89,11 @@ public class DownloadFileHandler : IRequestHandler<DownloadFileQuery, DownloadFi
             }
         }
 
-        _logger.LogInformation("File {FileId} ({FileName}) downloaded", attachedFile.Id, attachedFile.Name);
+        _logger.LogInformation(
+            "File {FileId} ({FileName}) downloaded",
+            attachedFile.Id,
+            attachedFile.Name
+        );
 
         return new DownloadFileResult(fileStream, attachedFile.Type, attachedFile.Name);
     }

@@ -26,15 +26,18 @@ public class GetCompetitionHandler : IRequestHandler<GetCompetitionQuery, GetCom
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A <see cref="GetCompetitionResult"/> with full competition details.</returns>
     /// <exception cref="NotFoundException">Thrown when the competition is not found.</exception>
-    public async Task<GetCompetitionResult> Handle(GetCompetitionQuery request, CancellationToken cancellationToken)
+    public async Task<GetCompetitionResult> Handle(
+        GetCompetitionQuery request,
+        CancellationToken cancellationToken
+    )
     {
-        var competition = await _dbContext.Competitions
-            .AsNoTracking()
+        var competition = await _dbContext
+            .Competitions.AsNoTracking()
             .Include(c => c.ExercisesInCompetition)
-                .ThenInclude(ec => ec.Exercise)
-                    .ThenInclude(e => e.ExerciseType)
+            .ThenInclude(ec => ec.Exercise)
+            .ThenInclude(e => e.ExerciseType)
             .Include(c => c.Rankings)
-                .ThenInclude(r => r.Group)
+            .ThenInclude(r => r.Group)
             .FirstOrDefaultAsync(c => c.Id == request.CompetitionId, cancellationToken);
 
         if (competition == null)
@@ -43,8 +46,8 @@ public class GetCompetitionHandler : IRequestHandler<GetCompetitionQuery, GetCom
         }
 
         // Map exercises
-        var exercisesDto = competition.ExercisesInCompetition
-            .Select(ec => new ExerciseSummaryDto(
+        var exercisesDto = competition
+            .ExercisesInCompetition.Select(ec => new ExerciseSummaryDto(
                 ec.Exercise.Id,
                 ec.Exercise.Title,
                 ec.Exercise.EstimatedTime,
@@ -53,8 +56,8 @@ public class GetCompetitionHandler : IRequestHandler<GetCompetitionQuery, GetCom
             .ToList();
 
         // Map rankings
-        var rankingsDto = competition.Rankings
-            .OrderBy(r => r.RankOrder)
+        var rankingsDto = competition
+            .Rankings.OrderBy(r => r.RankOrder)
             .Select(r => new RankingEntryDto(
                 r.GroupId,
                 r.Group.Name,

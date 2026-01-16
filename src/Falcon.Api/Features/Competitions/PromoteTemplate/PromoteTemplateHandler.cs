@@ -15,15 +15,13 @@ public class PromoteTemplateHandler : IRequestHandler<PromoteTemplateCommand, Pr
     private readonly FalconDbContext _dbContext;
     private readonly ILogger<PromoteTemplateHandler> _logger;
 
-    public PromoteTemplateHandler(
-        FalconDbContext dbContext,
-        ILogger<PromoteTemplateHandler> logger)
+    public PromoteTemplateHandler(FalconDbContext dbContext, ILogger<PromoteTemplateHandler> logger)
     {
         _dbContext = dbContext;
         _logger = logger;
     }
 
-/// <summary>
+    /// <summary>
     /// Handles the <see cref="PromoteTemplateCommand"/> and promotes a template to an active competition.
     /// </summary>
     /// <param name="request">Promotion parameters.</param>
@@ -31,7 +29,10 @@ public class PromoteTemplateHandler : IRequestHandler<PromoteTemplateCommand, Pr
     /// <returns>The created competition representation after promotion.</returns>
     /// <exception cref="FormException">Thrown for invalid input parameters or if the template is not promotable.</exception>
     /// <exception cref="NotFoundException">Thrown when the template competition is not found.</exception>
-    public async Task<PromoteTemplateResult> Handle(PromoteTemplateCommand request, CancellationToken cancellationToken)
+    public async Task<PromoteTemplateResult> Handle(
+        PromoteTemplateCommand request,
+        CancellationToken cancellationToken
+    )
     {
         // Validate inputs
         var errors = new Dictionary<string, string>();
@@ -40,17 +41,25 @@ public class PromoteTemplateHandler : IRequestHandler<PromoteTemplateCommand, Pr
             errors.Add(nameof(request.MaxMembers), "Número máximo de membros deve ser maior que 0");
 
         if (request.MaxExercises < 1)
-            errors.Add(nameof(request.MaxExercises), "Número máximo de exercícios deve ser maior que 0");
+            errors.Add(
+                nameof(request.MaxExercises),
+                "Número máximo de exercícios deve ser maior que 0"
+            );
 
         if (request.MaxSubmissionSize < 1)
-            errors.Add(nameof(request.MaxSubmissionSize), "Tamanho máximo de submissão deve ser maior que 0");
+            errors.Add(
+                nameof(request.MaxSubmissionSize),
+                "Tamanho máximo de submissão deve ser maior que 0"
+            );
 
         if (errors.Any())
             throw new FormException(errors);
 
         // Get template competition
-        var template = await _dbContext.Competitions
-            .FirstOrDefaultAsync(c => c.Id == request.TemplateId, cancellationToken);
+        var template = await _dbContext.Competitions.FirstOrDefaultAsync(
+            c => c.Id == request.TemplateId,
+            cancellationToken
+        );
 
         if (template == null)
         {
@@ -62,7 +71,7 @@ public class PromoteTemplateHandler : IRequestHandler<PromoteTemplateCommand, Pr
         {
             var validationErrors = new Dictionary<string, string>
             {
-                { "templateId", "Competição não é um template" }
+                { "templateId", "Competição não é um template" },
             };
             throw new FormException(validationErrors);
         }
@@ -80,8 +89,10 @@ public class PromoteTemplateHandler : IRequestHandler<PromoteTemplateCommand, Pr
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Competition template {TemplateId} promoted to active competition", 
-            request.TemplateId);
+        _logger.LogInformation(
+            "Competition template {TemplateId} promoted to active competition",
+            request.TemplateId
+        );
 
         var competitionDto = new CompetitionDto(
             template.Id,

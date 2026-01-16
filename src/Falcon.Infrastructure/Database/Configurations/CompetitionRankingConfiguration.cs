@@ -18,34 +18,29 @@ public class CompetitionRankingConfiguration : IEntityTypeConfiguration<Competit
 
         builder.HasKey(cr => cr.Id);
 
-        builder.Property(cr => cr.Id)
-            .ValueGeneratedOnAdd();
+        builder.Property(cr => cr.Id).ValueGeneratedOnAdd();
 
-        builder.Property(cr => cr.Points)
-            .IsRequired()
-            .HasDefaultValue(0);
+        builder.Property(cr => cr.Points).IsRequired().HasDefaultValue(0);
 
-        builder.Property(cr => cr.Penalty)
-            .IsRequired()
-            .HasDefaultValue(0);
+        builder.Property(cr => cr.Penalty).IsRequired().HasDefaultValue(0);
 
-        builder.Property(cr => cr.RankOrder)
-            .IsRequired();
+        builder.Property(cr => cr.RankOrder).IsRequired();
 
         // Relacionamentos
-        builder.HasOne(cr => cr.Competition)
+        builder
+            .HasOne(cr => cr.Competition)
             .WithMany(c => c.Rankings)
             .HasForeignKey(cr => cr.CompetitionId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(cr => cr.Group)
+        builder
+            .HasOne(cr => cr.Group)
             .WithMany(g => g.Rankings)
             .HasForeignKey(cr => cr.GroupId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // Índices
-        builder.HasIndex(cr => new { cr.CompetitionId, cr.GroupId })
-            .IsUnique();
+        builder.HasIndex(cr => new { cr.CompetitionId, cr.GroupId }).IsUnique();
 
         builder.HasIndex(cr => new { cr.CompetitionId, cr.RankOrder });
     }

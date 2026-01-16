@@ -19,15 +19,16 @@ public class GetQuestionHandler : IRequestHandler<GetQuestionQuery, QuestionDto>
     }
 
     public async Task<QuestionDto> Handle(
-        GetQuestionQuery request, 
-        CancellationToken cancellationToken)
+        GetQuestionQuery request,
+        CancellationToken cancellationToken
+    )
     {
-        var question = await _dbContext.Questions
-            .AsNoTracking()
+        var question = await _dbContext
+            .Questions.AsNoTracking()
             .Include(q => q.User)
-                .ThenInclude(u => u.Group!)
+            .ThenInclude(u => u.Group!)
             .Include(q => q.Answer!)
-                .ThenInclude(a => a.User)
+            .ThenInclude(a => a.User)
             .Include(q => q.Exercise)
             .Where(q => q.Id == request.Id)
             .Select(q => new QuestionDto(
@@ -41,7 +42,7 @@ public class GetQuestionHandler : IRequestHandler<GetQuestionQuery, QuestionDto>
                 q.Content,
                 q.QuestionType,
                 q.CreatedAt,
-                q.Answer != null 
+                q.Answer != null
                     ? new AnswerDto(
                         q.Answer.Id,
                         q.Answer.Content,

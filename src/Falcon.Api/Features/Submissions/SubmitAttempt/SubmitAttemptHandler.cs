@@ -31,7 +31,8 @@ public class SubmitAttemptHandler : IRequestHandler<SubmitAttemptCommand, Submit
         ILogger<SubmitAttemptHandler> logger,
         UserManager<User> userManager,
         IHttpContextAccessor httpContextAccessor,
-        IJudgeService judgeService)
+        IJudgeService judgeService
+    )
     {
         _dbContext = dbContext;
         _logger = logger;
@@ -47,13 +48,16 @@ public class SubmitAttemptHandler : IRequestHandler<SubmitAttemptCommand, Submit
     /// <param name="request">The submission command with competitionId, exerciseId, code and language.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A <see cref="SubmitAttemptResult"/> containing the created attempt summary and updated ranking.</returns>
-    public async Task<SubmitAttemptResult> Handle(SubmitAttemptCommand request, CancellationToken cancellationToken)
+    public async Task<SubmitAttemptResult> Handle(
+        SubmitAttemptCommand request,
+        CancellationToken cancellationToken
+    )
     {
         var errors = new Dictionary<string, string>();
-        
+
         if (string.IsNullOrWhiteSpace(request.Code))
             errors.Add(nameof(request.Code), "Código é obrigatório");
-        
+
         if (errors.Any())
             throw new FormException(errors);
 
@@ -61,8 +65,8 @@ public class SubmitAttemptHandler : IRequestHandler<SubmitAttemptCommand, Submit
         if (string.IsNullOrEmpty(userName))
             throw new UnauthorizedAccessException("Usuário não autenticado");
 
-        var user = await _userManager.Users
-            .Include(u => u.Group)
+        var user = await _userManager
+            .Users.Include(u => u.Group)
             .FirstOrDefaultAsync(u => u.UserName == userName, cancellationToken);
 
         if (user?.GroupId == null)
@@ -71,8 +75,10 @@ public class SubmitAttemptHandler : IRequestHandler<SubmitAttemptCommand, Submit
             throw new FormException(errors);
         }
 
-        var groupInCompetition = await _dbContext.GroupsInCompetitions
-            .FirstOrDefaultAsync(g => g.GroupId == user.GroupId && g.CompetitionId == request.CompetitionId, cancellationToken);
+        var groupInCompetition = await _dbContext.GroupsInCompetitions.FirstOrDefaultAsync(
+            g => g.GroupId == user.GroupId && g.CompetitionId == request.CompetitionId,
+            cancellationToken
+        );
 
         if (groupInCompetition == null)
         {
@@ -86,8 +92,10 @@ public class SubmitAttemptHandler : IRequestHandler<SubmitAttemptCommand, Submit
             throw new FormException(errors);
         }
 
-        var exerciseInCompetition = await _dbContext.ExercisesInCompetition
-            .FirstOrDefaultAsync(e => e.CompetitionId == request.CompetitionId && e.ExerciseId == request.ExerciseId, cancellationToken);
+        var exerciseInCompetition = await _dbContext.ExercisesInCompetition.FirstOrDefaultAsync(
+            e => e.CompetitionId == request.CompetitionId && e.ExerciseId == request.ExerciseId,
+            cancellationToken
+        );
 
         if (exerciseInCompetition == null)
         {
@@ -95,8 +103,10 @@ public class SubmitAttemptHandler : IRequestHandler<SubmitAttemptCommand, Submit
             throw new FormException(errors);
         }
 
-        var competition = await _dbContext.Competitions
-            .FindAsync(new object[] { request.CompetitionId }, cancellationToken);
+        var competition = await _dbContext.Competitions.FindAsync(
+            new object[] { request.CompetitionId },
+            cancellationToken
+        );
 
         if (competition?.Status != CompetitionStatus.Ongoing)
         {
@@ -104,13 +114,19 @@ public class SubmitAttemptHandler : IRequestHandler<SubmitAttemptCommand, Submit
             throw new FormException(errors);
         }
 
-        if (competition.BlockSubmissions.HasValue && DateTime.UtcNow > competition.BlockSubmissions.Value)
+        if (
+            competition.BlockSubmissions.HasValue
+            && DateTime.UtcNow > competition.BlockSubmissions.Value
+        )
         {
             errors.Add("competition", "O período de submissões foi encerrado");
             throw new FormException(errors);
         }
 
-        var exercise = await _dbContext.Exercises.FindAsync(new object[] { request.ExerciseId }, cancellationToken);
+        var exercise = await _dbContext.Exercises.FindAsync(
+            new object[] { request.ExerciseId },
+            cancellationToken
+        );
         if (exercise == null)
             throw new NotFoundException("Exercise", request.ExerciseId);
 
@@ -120,18 +136,31 @@ public class SubmitAttemptHandler : IRequestHandler<SubmitAttemptCommand, Submit
             throw new FormException(errors);
         }
 
-        var judgeResult = await _judgeService.SubmitCodeAsync(request.Code, request.Language.ToString(), exercise.JudgeUuid);
+        var judgeResult = await _judgeService.SubmitCodeAsync(
+            request.Code,
+            request.Language.ToString(),
+            exercise.JudgeUuid
+        );
 
-        var attempt = new GroupExerciseAttempt(exercise, user.Group!, competition, request.Code, request.Language);
-        var domainStatus = (Core.Domain.Shared.Enums.JudgeSubmissionResponse)(int)judgeResult.Status;
+        var attempt = new GroupExerciseAttempt(
+            exercise,
+            user.Group!,
+            competition,
+            request.Code,
+            request.Language
+        );
+        var domainStatus = (Core.Domain.Shared.Enums.JudgeSubmissionResponse)
+            (int)judgeResult.Status;
         attempt.SetJudgeResponse(domainStatus, judgeResult.ExecutionTime);
 
         await _dbContext.GroupExerciseAttempts.AddAsync(attempt, cancellationToken);
 
         if (attempt.Accepted)
         {
-            var ranking = await _dbContext.CompetitionRankings
-                .FirstOrDefaultAsync(r => r.CompetitionId == request.CompetitionId && r.GroupId == user.GroupId, cancellationToken);
+            var ranking = await _dbContext.CompetitionRankings.FirstOrDefaultAsync(
+                r => r.CompetitionId == request.CompetitionId && r.GroupId == user.GroupId,
+                cancellationToken
+            );
 
             if (ranking == null)
             {
@@ -139,19 +168,26 @@ public class SubmitAttemptHandler : IRequestHandler<SubmitAttemptCommand, Submit
                 await _dbContext.CompetitionRankings.AddAsync(ranking, cancellationToken);
             }
 
-            var alreadySolved = await _dbContext.GroupExerciseAttempts
-                .AnyAsync(a => a.GroupId == user.GroupId 
-                    && a.ExerciseId == request.ExerciseId 
-                    && a.CompetitionId == request.CompetitionId 
-                    && a.Accepted 
-                    && a.Id != attempt.Id, cancellationToken);
+            var alreadySolved = await _dbContext.GroupExerciseAttempts.AnyAsync(
+                a =>
+                    a.GroupId == user.GroupId
+                    && a.ExerciseId == request.ExerciseId
+                    && a.CompetitionId == request.CompetitionId
+                    && a.Accepted
+                    && a.Id != attempt.Id,
+                cancellationToken
+            );
 
             if (!alreadySolved)
             {
                 ranking.UpdatePoints(ranking.Points + 1);
 
-                if (competition.BlockSubmissions.HasValue && DateTime.UtcNow > competition.BlockSubmissions.Value 
-                    && competition.StopRanking.HasValue && DateTime.UtcNow < competition.StopRanking.Value)
+                if (
+                    competition.BlockSubmissions.HasValue
+                    && DateTime.UtcNow > competition.BlockSubmissions.Value
+                    && competition.StopRanking.HasValue
+                    && DateTime.UtcNow < competition.StopRanking.Value
+                )
                 {
                     var penaltyValue = competition.SubmissionPenalty?.TotalMinutes ?? 0;
                     ranking.AddPenalty(penaltyValue);
@@ -159,7 +195,8 @@ public class SubmitAttemptHandler : IRequestHandler<SubmitAttemptCommand, Submit
             }
         }
 
-        var ipAddress = _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString() ?? "unknown";
+        var ipAddress =
+            _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString() ?? "unknown";
         var log = new Log(LogType.SubmitExercise, ipAddress, user, user.Group, competition);
         await _dbContext.Logs.AddAsync(log, cancellationToken);
 
@@ -167,36 +204,61 @@ public class SubmitAttemptHandler : IRequestHandler<SubmitAttemptCommand, Submit
 
         await RecalculateRankOrderAsync(request.CompetitionId, cancellationToken);
 
-        _logger.LogInformation("Submission {AttemptId} created for group {GroupId} in competition {CompetitionId}", attempt.Id, user.GroupId, request.CompetitionId);
-
-        var attemptDto = new AttemptDto(
-            attempt.Id, exercise.Id, exercise.Title, user.GroupId.Value, user.Group!.Name,
-            attempt.SubmissionTime, attempt.Language, attempt.Accepted, attempt.JudgeResponse, attempt.Time
+        _logger.LogInformation(
+            "Submission {AttemptId} created for group {GroupId} in competition {CompetitionId}",
+            attempt.Id,
+            user.GroupId,
+            request.CompetitionId
         );
 
-        var updatedRanking = await _dbContext.CompetitionRankings
-            .Include(r => r.Group)
-            .FirstOrDefaultAsync(r => r.CompetitionId == request.CompetitionId && r.GroupId == user.GroupId, cancellationToken);
+        var attemptDto = new AttemptDto(
+            attempt.Id,
+            exercise.Id,
+            exercise.Title,
+            user.GroupId.Value,
+            user.Group!.Name,
+            attempt.SubmissionTime,
+            attempt.Language,
+            attempt.Accepted,
+            attempt.JudgeResponse,
+            attempt.Time
+        );
 
-        var solvedCount = await _dbContext.GroupExerciseAttempts
-            .Where(a => a.GroupId == user.GroupId && a.CompetitionId == request.CompetitionId && a.Accepted)
+        var updatedRanking = await _dbContext
+            .CompetitionRankings.Include(r => r.Group)
+            .FirstOrDefaultAsync(
+                r => r.CompetitionId == request.CompetitionId && r.GroupId == user.GroupId,
+                cancellationToken
+            );
+
+        var solvedCount = await _dbContext
+            .GroupExerciseAttempts.Where(a =>
+                a.GroupId == user.GroupId && a.CompetitionId == request.CompetitionId && a.Accepted
+            )
             .Select(a => a.ExerciseId)
             .Distinct()
             .CountAsync(cancellationToken);
 
         var rankingDto = new RankingEntryDto(
-            updatedRanking!.GroupId, updatedRanking.Group.Name,
-            updatedRanking.Points, updatedRanking.Penalty, updatedRanking.RankOrder,
-            solvedCount, attempt.SubmissionTime
+            updatedRanking!.GroupId,
+            updatedRanking.Group.Name,
+            updatedRanking.Points,
+            updatedRanking.Penalty,
+            updatedRanking.RankOrder,
+            solvedCount,
+            attempt.SubmissionTime
         );
 
         return new SubmitAttemptResult(attemptDto, rankingDto);
     }
 
-    private async Task RecalculateRankOrderAsync(Guid competitionId, CancellationToken cancellationToken)
+    private async Task RecalculateRankOrderAsync(
+        Guid competitionId,
+        CancellationToken cancellationToken
+    )
     {
-        var rankings = await _dbContext.CompetitionRankings
-            .Where(r => r.CompetitionId == competitionId)
+        var rankings = await _dbContext
+            .CompetitionRankings.Where(r => r.CompetitionId == competitionId)
             .OrderByDescending(r => r.Points)
             .ThenBy(r => r.Penalty)
             .ToListAsync(cancellationToken);

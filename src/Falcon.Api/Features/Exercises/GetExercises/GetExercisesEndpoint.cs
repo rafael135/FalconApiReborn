@@ -1,7 +1,7 @@
 using Falcon.Api.Extensions;
 using MediatR;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Falcon.Api.Features.Exercises.GetExercises;
 
@@ -17,17 +17,27 @@ public class GetExercisesEndpoint : IEndpoint
     /// <inheritdoc />
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("api/Exercise", async (IMediator mediator, int? exerciseTypeId = null, int skip = 0, int take = 10) =>
-        {
-            var query = new GetExercisesQuery(exerciseTypeId, skip, take);
-            var result = await mediator.Send(query);
-            return Results.Ok(result);
-        })
-        .WithName("GetExercises")
-        .WithTags("Exercises")
-        .WithSummary("List exercises with optional filters.")
-        .WithDescription("Returns a paginated list of exercises. Supports filtering by exercise type.")
-        .Produces<GetExercisesResult>(StatusCodes.Status200OK)
-        .Produces(StatusCodes.Status401Unauthorized);
+        app.MapGet(
+                "api/Exercise",
+                async (
+                    IMediator mediator,
+                    int? exerciseTypeId = null,
+                    int skip = 0,
+                    int take = 10
+                ) =>
+                {
+                    var query = new GetExercisesQuery(exerciseTypeId, skip, take);
+                    var result = await mediator.Send(query);
+                    return Results.Ok(result);
+                }
+            )
+            .WithName("GetExercises")
+            .WithTags("Exercises")
+            .WithSummary("List exercises with optional filters.")
+            .WithDescription(
+                "Returns a paginated list of exercises. Supports filtering by exercise type."
+            )
+            .Produces<GetExercisesResult>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized);
     }
-} 
+}

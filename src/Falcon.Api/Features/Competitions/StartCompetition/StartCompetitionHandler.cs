@@ -10,14 +10,16 @@ namespace Falcon.Api.Features.Competitions.StartCompetition;
 /// <summary>
 /// Handler for starting a competition.
 /// </summary>
-public class StartCompetitionHandler : IRequestHandler<StartCompetitionCommand, StartCompetitionResult>
+public class StartCompetitionHandler
+    : IRequestHandler<StartCompetitionCommand, StartCompetitionResult>
 {
     private readonly FalconDbContext _dbContext;
     private readonly ILogger<StartCompetitionHandler> _logger;
 
     public StartCompetitionHandler(
         FalconDbContext dbContext,
-        ILogger<StartCompetitionHandler> logger)
+        ILogger<StartCompetitionHandler> logger
+    )
     {
         _dbContext = dbContext;
         _logger = logger;
@@ -31,10 +33,15 @@ public class StartCompetitionHandler : IRequestHandler<StartCompetitionCommand, 
     /// <returns>The updated competition information after starting.</returns>
     /// <exception cref="NotFoundException">Thrown when the competition does not exist.</exception>
     /// <exception cref="FormException">Thrown when the competition is in an invalid state to start.</exception>
-    public async Task<StartCompetitionResult> Handle(StartCompetitionCommand request, CancellationToken cancellationToken)
+    public async Task<StartCompetitionResult> Handle(
+        StartCompetitionCommand request,
+        CancellationToken cancellationToken
+    )
     {
-        var competition = await _dbContext.Competitions
-            .FirstOrDefaultAsync(c => c.Id == request.CompetitionId, cancellationToken);
+        var competition = await _dbContext.Competitions.FirstOrDefaultAsync(
+            c => c.Id == request.CompetitionId,
+            cancellationToken
+        );
 
         if (competition == null)
         {
@@ -42,13 +49,15 @@ public class StartCompetitionHandler : IRequestHandler<StartCompetitionCommand, 
         }
 
         // Verify competition is in a valid state to start
-        if (competition.Status != CompetitionStatus.OpenInscriptions && 
-            competition.Status != CompetitionStatus.ClosedInscriptions &&
-            competition.Status != CompetitionStatus.Pending)
+        if (
+            competition.Status != CompetitionStatus.OpenInscriptions
+            && competition.Status != CompetitionStatus.ClosedInscriptions
+            && competition.Status != CompetitionStatus.Pending
+        )
         {
             var errors = new Dictionary<string, string>
             {
-                { "status", "Competição não está em um estado válido para iniciar" }
+                { "status", "Competição não está em um estado válido para iniciar" },
             };
             throw new FormException(errors);
         }

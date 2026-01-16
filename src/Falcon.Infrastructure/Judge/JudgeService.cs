@@ -31,7 +31,8 @@ public class JudgeService : IJudgeService
         IHttpClientFactory httpClientFactory,
         ITokenService tokenService,
         IMemoryCache memoryCache,
-        ILogger<JudgeService> logger)
+        ILogger<JudgeService> logger
+    )
     {
         _httpClientFactory = httpClientFactory;
         _tokenService = tokenService;
@@ -52,15 +53,20 @@ public class JudgeService : IJudgeService
         {
             var response = await httpClient.PostAsJsonAsync(
                 "/auth/integrator-token",
-                new { api_key = generatedToken });
+                new { api_key = generatedToken }
+            );
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("Judge authentication failed with status {StatusCode}", response.StatusCode);
+                _logger.LogWarning(
+                    "Judge authentication failed with status {StatusCode}",
+                    response.StatusCode
+                );
                 return null;
             }
 
-            var authResponse = await response.Content.ReadFromJsonAsync<JudgeAuthenticationResponse>();
+            var authResponse =
+                await response.Content.ReadFromJsonAsync<JudgeAuthenticationResponse>();
             return authResponse?.AccessToken;
         }
         catch (Exception ex)
@@ -77,7 +83,10 @@ public class JudgeService : IJudgeService
     /// <returns>A valid judge access token or null if authentication fails.</returns>
     public async Task<string?> FetchJudgeTokenAsync()
     {
-        if (_memoryCache.TryGetValue(JudgeMemoryTokenKey, out string? cachedToken) && !string.IsNullOrEmpty(cachedToken))
+        if (
+            _memoryCache.TryGetValue(JudgeMemoryTokenKey, out string? cachedToken)
+            && !string.IsNullOrEmpty(cachedToken)
+        )
         {
             bool isValid = _tokenService.ValidateToken(cachedToken);
             if (isValid)
@@ -102,7 +111,11 @@ public class JudgeService : IJudgeService
     /// <param name="description">The exercise description.</param>
     /// <param name="testCases">A list of test cases used to generate data entry/output.</param>
     /// <returns>The UUID of the created exercise in Judge if successful; otherwise null.</returns>
-    public async Task<string?> CreateExerciseAsync(string title, string description, List<TestCase> testCases)
+    public async Task<string?> CreateExerciseAsync(
+        string title,
+        string description,
+        List<TestCase> testCases
+    )
     {
         string? token = await FetchJudgeTokenAsync();
         if (token == null)
@@ -121,7 +134,7 @@ public class JudgeService : IJudgeService
             DataEntry = testCases.Select(tc => tc.Input).ToList(),
             DataOutput = testCases.Select(tc => tc.ExpectedOutput).ToList(),
             EntryDescription = "",
-            OutputDescription = ""
+            OutputDescription = "",
         };
 
         try
@@ -130,16 +143,23 @@ public class JudgeService : IJudgeService
 
             if (response.StatusCode == HttpStatusCode.Created)
             {
-                var exerciseResponse = await response.Content.ReadFromJsonAsync<JudgeExerciseResponse>();
+                var exerciseResponse =
+                    await response.Content.ReadFromJsonAsync<JudgeExerciseResponse>();
                 if (exerciseResponse != null)
                 {
-                    _logger.LogInformation("Created exercise in Judge with UUID {Uuid}", exerciseResponse.Id);
+                    _logger.LogInformation(
+                        "Created exercise in Judge with UUID {Uuid}",
+                        exerciseResponse.Id
+                    );
                     return exerciseResponse.Id;
                 }
             }
             else
             {
-                _logger.LogWarning("Failed to create exercise in Judge. Status: {StatusCode}", response.StatusCode);
+                _logger.LogWarning(
+                    "Failed to create exercise in Judge. Status: {StatusCode}",
+                    response.StatusCode
+                );
             }
         }
         catch (Exception ex)
@@ -157,7 +177,11 @@ public class JudgeService : IJudgeService
     /// <param name="language">The programming language identifier.</param>
     /// <param name="exerciseUuid">The Judge exercise UUID.</param>
     /// <returns>A <see cref="JudgeSubmissionResult"/> representing the submission outcome.</returns>
-    public async Task<JudgeSubmissionResult> SubmitCodeAsync(string code, string language, string exerciseUuid)
+    public async Task<JudgeSubmissionResult> SubmitCodeAsync(
+        string code,
+        string language,
+        string exerciseUuid
+    )
     {
         string? token = await FetchJudgeTokenAsync();
         if (token == null)
@@ -173,7 +197,7 @@ public class JudgeService : IJudgeService
         {
             ProblemId = exerciseUuid,
             Content = code,
-            LanguageType = language
+            LanguageType = language,
         };
 
         try
@@ -182,38 +206,51 @@ public class JudgeService : IJudgeService
 
             if (response.StatusCode == HttpStatusCode.UnprocessableEntity)
             {
-                _logger.LogWarning("Judge submission failed - unprocessable entity for exercise {ExerciseUuid}", exerciseUuid);
+                _logger.LogWarning(
+                    "Judge submission failed - unprocessable entity for exercise {ExerciseUuid}",
+                    exerciseUuid
+                );
                 return new JudgeSubmissionResult(
                     Guid.NewGuid().ToString(),
                     JudgeSubmissionResponse.CompilationError,
                     TimeSpan.Zero,
-                    0);
+                    0
+                );
             }
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("Judge submission failed with status {StatusCode}", response.StatusCode);
+                _logger.LogWarning(
+                    "Judge submission failed with status {StatusCode}",
+                    response.StatusCode
+                );
                 return new JudgeSubmissionResult(
                     Guid.NewGuid().ToString(),
                     JudgeSubmissionResponse.RuntimeError,
                     TimeSpan.Zero,
-                    0);
+                    0
+                );
             }
 
-            var submissionResponse = await response.Content.ReadFromJsonAsync<JudgeSubmissionResponseDto>();
+            var submissionResponse =
+                await response.Content.ReadFromJsonAsync<JudgeSubmissionResponseDto>();
             if (submissionResponse != null)
             {
                 var status = ParseJudgeStatus(submissionResponse.Status);
                 var executionTime = TimeSpan.FromMilliseconds(submissionResponse.ExecutionTime);
 
-                _logger.LogInformation("Submission result: {Status}, Execution time: {Time}ms",
-                    status, submissionResponse.ExecutionTime);
+                _logger.LogInformation(
+                    "Submission result: {Status}, Execution time: {Time}ms",
+                    status,
+                    submissionResponse.ExecutionTime
+                );
 
                 return new JudgeSubmissionResult(
                     Guid.NewGuid().ToString(),
                     status,
                     executionTime,
-                    0);
+                    0
+                );
             }
         }
         catch (Exception ex)
@@ -225,7 +262,8 @@ public class JudgeService : IJudgeService
             Guid.NewGuid().ToString(),
             JudgeSubmissionResponse.RuntimeError,
             TimeSpan.Zero,
-            0);
+            0
+        );
     }
 
     /// <summary>
@@ -247,7 +285,9 @@ public class JudgeService : IJudgeService
 
         try
         {
-            var exerciseResponse = await httpClient.GetFromJsonAsync<JudgeExerciseResponse>($"/v0/problems/{judgeUuid}");
+            var exerciseResponse = await httpClient.GetFromJsonAsync<JudgeExerciseResponse>(
+                $"/v0/problems/{judgeUuid}"
+            );
             if (exerciseResponse != null)
             {
                 return new JudgeExerciseInfo(
@@ -255,7 +295,8 @@ public class JudgeService : IJudgeService
                     exerciseResponse.Name,
                     exerciseResponse.Description,
                     exerciseResponse.DataEntry,
-                    exerciseResponse.DataOutput);
+                    exerciseResponse.DataOutput
+                );
             }
         }
         catch (Exception ex)
@@ -274,7 +315,12 @@ public class JudgeService : IJudgeService
     /// <param name="description">The new description.</param>
     /// <param name="testCases">The new list of test cases.</param>
     /// <returns>True if update succeeded; otherwise false.</returns>
-    public async Task<bool> UpdateExerciseAsync(string judgeUuid, string title, string description, List<TestCase> testCases)
+    public async Task<bool> UpdateExerciseAsync(
+        string judgeUuid,
+        string title,
+        string description,
+        List<TestCase> testCases
+    )
     {
         string? token = await FetchJudgeTokenAsync();
         if (token == null)
@@ -292,7 +338,7 @@ public class JudgeService : IJudgeService
             Name = title,
             Description = description ?? string.Empty,
             DataEntry = testCases.Select(tc => tc.Input).ToArray(),
-            DataOutput = testCases.Select(tc => tc.ExpectedOutput).ToArray()
+            DataOutput = testCases.Select(tc => tc.ExpectedOutput).ToArray(),
         };
 
         try
@@ -305,7 +351,10 @@ public class JudgeService : IJudgeService
             }
             else
             {
-                _logger.LogWarning("Failed to update exercise in Judge. Status: {StatusCode}", response.StatusCode);
+                _logger.LogWarning(
+                    "Failed to update exercise in Judge. Status: {StatusCode}",
+                    response.StatusCode
+                );
             }
         }
         catch (Exception ex)
@@ -328,7 +377,7 @@ public class JudgeService : IJudgeService
             "MEMORY LIMIT EXCEEDED" => JudgeSubmissionResponse.MemoryLimitExceeded,
             "RUNTIME ERROR" => JudgeSubmissionResponse.RuntimeError,
             "SECURITY ERROR" => JudgeSubmissionResponse.SecurityError,
-            _ => JudgeSubmissionResponse.RuntimeError
+            _ => JudgeSubmissionResponse.RuntimeError,
         };
     }
 }

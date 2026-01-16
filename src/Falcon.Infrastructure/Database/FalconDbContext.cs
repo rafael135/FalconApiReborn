@@ -24,40 +24,50 @@ public class FalconDbContext : IdentityDbContext<User>
     // Groups
     /// <summary>Groups table.</summary>
     public DbSet<Group> Groups { get; set; }
+
     /// <summary>Group invites table.</summary>
     public DbSet<GroupInvite> GroupInvites { get; set; }
+
     /// <summary>Groups in competitions association table.</summary>
     public DbSet<GroupInCompetition> GroupsInCompetitions { get; set; }
 
     // Competitions
     /// <summary>Competitions table.</summary>
     public DbSet<Competition> Competitions { get; set; }
+
     /// <summary>Competition rankings table.</summary>
     public DbSet<CompetitionRanking> CompetitionRankings { get; set; }
 
     // Exercises
     /// <summary>Exercise types table.</summary>
     public DbSet<ExerciseType> ExerciseTypes { get; set; }
+
     /// <summary>Exercises table.</summary>
     public DbSet<Exercise> Exercises { get; set; }
+
     /// <summary>Exercises in competitions association table.</summary>
     public DbSet<ExerciseInCompetition> ExercisesInCompetition { get; set; }
+
     /// <summary>Exercise inputs table.</summary>
     public DbSet<ExerciseInput> ExerciseInputs { get; set; }
+
     /// <summary>Exercise outputs table.</summary>
     public DbSet<ExerciseOutput> ExerciseOutputs { get; set; }
+
     /// <summary>Group exercise attempts table.</summary>
     public DbSet<GroupExerciseAttempt> GroupExerciseAttempts { get; set; }
 
     // Questions & Answers
     /// <summary>Questions table.</summary>
     public DbSet<Question> Questions { get; set; }
+
     /// <summary>Answers table.</summary>
     public DbSet<Answer> Answers { get; set; }
 
     // Shared
     /// <summary>Attached files table.</summary>
     public DbSet<AttachedFile> AttachedFiles { get; set; }
+
     /// <summary>Application logs table.</summary>
     public DbSet<Log> Logs { get; set; }
 

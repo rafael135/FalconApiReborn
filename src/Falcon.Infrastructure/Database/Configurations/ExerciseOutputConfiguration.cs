@@ -18,28 +18,24 @@ public class ExerciseOutputConfiguration : IEntityTypeConfiguration<ExerciseOutp
 
         builder.HasKey(eo => eo.Id);
 
-        builder.Property(eo => eo.Id)
-            .ValueGeneratedOnAdd();
+        builder.Property(eo => eo.Id).ValueGeneratedOnAdd();
 
-        builder.Property(eo => eo.ExerciseId)
-            .IsRequired();
+        builder.Property(eo => eo.ExerciseId).IsRequired();
 
-        builder.Property(eo => eo.ExerciseInputId)
-            .IsRequired();
+        builder.Property(eo => eo.ExerciseInputId).IsRequired();
 
-        builder.Property(eo => eo.OutputContent)
-            .IsRequired()
-            .HasColumnType("nvarchar(max)");
+        builder.Property(eo => eo.OutputContent).IsRequired().HasColumnType("nvarchar(max)");
 
-        builder.Property(eo => eo.JudgeUuid)
-            .HasMaxLength(36);
+        builder.Property(eo => eo.JudgeUuid).HasMaxLength(36);
 
-        builder.HasOne(eo => eo.Exercise)
+        builder
+            .HasOne(eo => eo.Exercise)
             .WithMany(e => e.Outputs)
             .HasForeignKey(eo => eo.ExerciseId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(eo => eo.ExerciseInput)
+        builder
+            .HasOne(eo => eo.ExerciseInput)
             .WithOne(ei => ei.Output)
             .HasForeignKey<ExerciseOutput>(eo => eo.ExerciseInputId)
             .OnDelete(DeleteBehavior.Cascade);

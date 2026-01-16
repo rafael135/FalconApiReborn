@@ -9,9 +9,4 @@ namespace Falcon.Api.Features.Questions.GetQuestions;
 /// <param name="TotalCount">The total number of questions matching the filter criteria.</param>
 /// <param name="Skip">The number of records skipped.</param>
 /// <param name="Take">The number of records returned.</param>
-public record GetQuestionsResult(
-    List<QuestionDto> Questions,
-    int TotalCount,
-    int Skip,
-    int Take
-);
+public record GetQuestionsResult(List<QuestionDto> Questions, int TotalCount, int Skip, int Take);

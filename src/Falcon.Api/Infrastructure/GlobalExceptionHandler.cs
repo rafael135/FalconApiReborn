@@ -13,7 +13,7 @@ public class GlobalExceptionHandler : IExceptionHandler
     /// Logger for logging exceptions.
     /// </summary>
     private readonly ILogger<GlobalExceptionHandler> _logger;
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="GlobalExceptionHandler"/> class.
     /// </summary>

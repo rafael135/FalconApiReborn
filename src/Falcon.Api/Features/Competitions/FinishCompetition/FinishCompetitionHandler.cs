@@ -10,20 +10,22 @@ namespace Falcon.Api.Features.Competitions.FinishCompetition;
 /// <summary>
 /// Handler for finishing a competition.
 /// </summary>
-public class FinishCompetitionHandler : IRequestHandler<FinishCompetitionCommand, FinishCompetitionResult>
+public class FinishCompetitionHandler
+    : IRequestHandler<FinishCompetitionCommand, FinishCompetitionResult>
 {
     private readonly FalconDbContext _dbContext;
     private readonly ILogger<FinishCompetitionHandler> _logger;
 
     public FinishCompetitionHandler(
         FalconDbContext dbContext,
-        ILogger<FinishCompetitionHandler> logger)
+        ILogger<FinishCompetitionHandler> logger
+    )
     {
         _dbContext = dbContext;
         _logger = logger;
     }
 
-/// <summary>
+    /// <summary>
     /// Handles the <see cref="FinishCompetitionCommand"/> and finishes the competition if it is ongoing.
     /// </summary>
     /// <param name="request">Command containing the competition id to finish.</param>
@@ -31,10 +33,15 @@ public class FinishCompetitionHandler : IRequestHandler<FinishCompetitionCommand
     /// <returns>The updated competition information after finishing.</returns>
     /// <exception cref="NotFoundException">Thrown when the competition is not found.</exception>
     /// <exception cref="FormException">Thrown when the competition is not in an ongoing state.</exception>
-    public async Task<FinishCompetitionResult> Handle(FinishCompetitionCommand request, CancellationToken cancellationToken)
+    public async Task<FinishCompetitionResult> Handle(
+        FinishCompetitionCommand request,
+        CancellationToken cancellationToken
+    )
     {
-        var competition = await _dbContext.Competitions
-            .FirstOrDefaultAsync(c => c.Id == request.CompetitionId, cancellationToken);
+        var competition = await _dbContext.Competitions.FirstOrDefaultAsync(
+            c => c.Id == request.CompetitionId,
+            cancellationToken
+        );
 
         if (competition == null)
         {
@@ -46,7 +53,7 @@ public class FinishCompetitionHandler : IRequestHandler<FinishCompetitionCommand
         {
             var errors = new Dictionary<string, string>
             {
-                { "status", "Apenas competições em andamento podem ser finalizadas" }
+                { "status", "Apenas competições em andamento podem ser finalizadas" },
             };
             throw new FormException(errors);
         }
@@ -72,5 +79,5 @@ public class FinishCompetitionHandler : IRequestHandler<FinishCompetitionCommand
         );
 
         return new FinishCompetitionResult(competitionDto);
-    } 
+    }
 }

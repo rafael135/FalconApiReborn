@@ -5,4 +5,4 @@ namespace Falcon.Api.Features.Competitions.UnregisterGroup;
 /// </summary>
 /// <param name="Success">True if the operation succeeded.</param>
 /// <param name="Message">Human-friendly message describing the outcome.</param>
-public record UnregisterGroupResult(bool Success, string Message); 
+public record UnregisterGroupResult(bool Success, string Message);

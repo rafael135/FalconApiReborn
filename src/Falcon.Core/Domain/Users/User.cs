@@ -136,7 +136,8 @@ public class User : IdentityUser
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="group"/> is null.</exception>
     public void AssignGroup(Group group)
     {
-        if (group == null) throw new ArgumentNullException(nameof(group));
+        if (group == null)
+            throw new ArgumentNullException(nameof(group));
         Group = group;
         GroupId = group.Id;
     }

@@ -25,32 +25,56 @@ public class RemoveExerciseHandler : IRequestHandler<RemoveExerciseCommand, Remo
     /// <returns>A <see cref="RemoveExerciseResult"/> indicating success or failure.</returns>
     /// <exception cref="NotFoundException">Thrown when the competition does not exist.</exception>
     /// <exception cref="FormException">Thrown when the operation is invalid (competition ongoing/finished or exercise not present).</exception>
-    public async Task<RemoveExerciseResult> Handle(RemoveExerciseCommand request, CancellationToken cancellationToken)
+    public async Task<RemoveExerciseResult> Handle(
+        RemoveExerciseCommand request,
+        CancellationToken cancellationToken
+    )
     {
-        var competition = await _dbContext.Competitions.FindAsync(new object[] { request.CompetitionId }, cancellationToken);
+        var competition = await _dbContext.Competitions.FindAsync(
+            new object[] { request.CompetitionId },
+            cancellationToken
+        );
         if (competition == null)
             throw new NotFoundException("Competition", request.CompetitionId);
 
-        if (competition.Status == CompetitionStatus.Ongoing || competition.Status == CompetitionStatus.Finished)
+        if (
+            competition.Status == CompetitionStatus.Ongoing
+            || competition.Status == CompetitionStatus.Finished
+        )
         {
-            var errors = new Dictionary<string, string> { { "competition", "Não é possível remover exercícios de competição em andamento ou finalizada" } };
+            var errors = new Dictionary<string, string>
+            {
+                {
+                    "competition",
+                    "Não é possível remover exercícios de competição em andamento ou finalizada"
+                },
+            };
             throw new FormException(errors);
         }
 
-        var exerciseInCompetition = await _dbContext.ExercisesInCompetition
-            .FirstOrDefaultAsync(e => e.CompetitionId == request.CompetitionId && e.ExerciseId == request.ExerciseId, cancellationToken);
+        var exerciseInCompetition = await _dbContext.ExercisesInCompetition.FirstOrDefaultAsync(
+            e => e.CompetitionId == request.CompetitionId && e.ExerciseId == request.ExerciseId,
+            cancellationToken
+        );
 
         if (exerciseInCompetition == null)
         {
-            var errors = new Dictionary<string, string> { { "exercise", "Exercício não está na competição" } };
+            var errors = new Dictionary<string, string>
+            {
+                { "exercise", "Exercício não está na competição" },
+            };
             throw new FormException(errors);
         }
 
         _dbContext.ExercisesInCompetition.Remove(exerciseInCompetition);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Exercise {ExerciseId} removed from competition {CompetitionId}", request.ExerciseId, request.CompetitionId);
+        _logger.LogInformation(
+            "Exercise {ExerciseId} removed from competition {CompetitionId}",
+            request.ExerciseId,
+            request.CompetitionId
+        );
 
         return new RemoveExerciseResult(true, "Exercício removido da competição com sucesso");
-    } 
+    }
 }

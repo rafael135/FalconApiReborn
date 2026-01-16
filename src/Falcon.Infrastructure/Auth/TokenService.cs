@@ -11,7 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 namespace Falcon.Infrastructure.Auth;
 
 /// <summary>
-/// Implementation of the <see cref="ITokenService"/> for JWT token management. 
+/// Implementation of the <see cref="ITokenService"/> for JWT token management.
 /// </summary>
 public class TokenService : ITokenService
 {

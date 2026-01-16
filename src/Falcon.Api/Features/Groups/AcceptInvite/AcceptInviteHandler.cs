@@ -22,7 +22,8 @@ public class AcceptInviteHandler : IRequestHandler<AcceptInviteCommand, AcceptIn
         UserManager<Core.Domain.Users.User> userManager,
         FalconDbContext dbContext,
         IHttpContextAccessor httpContextAccessor,
-        ILogger<AcceptInviteHandler> logger)
+        ILogger<AcceptInviteHandler> logger
+    )
     {
         _userManager = userManager;
         _dbContext = dbContext;
@@ -30,19 +31,24 @@ public class AcceptInviteHandler : IRequestHandler<AcceptInviteCommand, AcceptIn
         _logger = logger;
     }
 
-    public async Task<AcceptInviteResult> Handle(AcceptInviteCommand request, CancellationToken cancellationToken)
+    public async Task<AcceptInviteResult> Handle(
+        AcceptInviteCommand request,
+        CancellationToken cancellationToken
+    )
     {
         // Get logged-in user
-        var httpContext = _httpContextAccessor.HttpContext 
+        var httpContext =
+            _httpContextAccessor.HttpContext
             ?? throw new UnauthorizedAccessException("Usuário não autenticado");
 
-        var userId = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+        var userId =
+            httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
             ?? throw new UnauthorizedAccessException("ID do usuário não encontrado");
 
         // Get invite with group and users
-        var invite = await _dbContext.GroupInvites
-            .Include(i => i.Group)
-                .ThenInclude(g => g.Users)
+        var invite = await _dbContext
+            .GroupInvites.Include(i => i.Group)
+            .ThenInclude(g => g.Users)
             .Include(i => i.Group.Invites.Where(inv => !inv.Accepted))
             .Include(i => i.User)
             .FirstOrDefaultAsync(i => i.Id == request.InviteId, cancellationToken);
@@ -61,16 +67,13 @@ public class AcceptInviteHandler : IRequestHandler<AcceptInviteCommand, AcceptIn
         // Verify that invite hasn't been accepted already
         if (invite.Accepted)
         {
-            var errors = new Dictionary<string, string> 
-            { 
-                { "invite", "Convite já foi aceito" } 
-            };
+            var errors = new Dictionary<string, string> { { "invite", "Convite já foi aceito" } };
             throw new FormException(errors);
         }
 
         // Get user with group info
-        var user = await _userManager.Users
-            .Include(u => u.Group)
+        var user = await _userManager
+            .Users.Include(u => u.Group)
             .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 
         if (user == null)
@@ -81,10 +84,7 @@ public class AcceptInviteHandler : IRequestHandler<AcceptInviteCommand, AcceptIn
         // Verify that user is not already in a group
         if (user.GroupId != null)
         {
-            var errors = new Dictionary<string, string> 
-            { 
-                { "user", "Você já está em um grupo" } 
-            };
+            var errors = new Dictionary<string, string> { { "user", "Você já está em um grupo" } };
             throw new FormException(errors);
         }
 
@@ -93,9 +93,9 @@ public class AcceptInviteHandler : IRequestHandler<AcceptInviteCommand, AcceptIn
         // Validate max members rule again (current members + 1)
         if (group.Users.Count >= 3)
         {
-            var errors = new Dictionary<string, string> 
-            { 
-                { "group", "Grupo já atingiu o número máximo de membros" } 
+            var errors = new Dictionary<string, string>
+            {
+                { "group", "Grupo já atingiu o número máximo de membros" },
             };
             throw new FormException(errors);
         }
@@ -118,35 +118,31 @@ public class AcceptInviteHandler : IRequestHandler<AcceptInviteCommand, AcceptIn
         await _dbContext.Logs.AddAsync(log, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("User {UserId} accepted invite {InviteId} and joined group {GroupId}", 
-            userId, request.InviteId, group.Id);
+        _logger.LogInformation(
+            "User {UserId} accepted invite {InviteId} and joined group {GroupId}",
+            userId,
+            request.InviteId,
+            group.Id
+        );
 
         // Map to DTO
-        var membersDto = group.Users.Select(u => new UserSummaryDto(
-            u.Id,
-            u.Name,
-            u.Email!,
-            u.RA,
-            u.JoinYear,
-            u.Department
-        )).ToList();
+        var membersDto = group
+            .Users.Select(u => new UserSummaryDto(
+                u.Id,
+                u.Name,
+                u.Email!,
+                u.RA,
+                u.JoinYear,
+                u.Department
+            ))
+            .ToList();
 
-        var invitesDto = group.Invites
-            .Where(i => !i.Accepted)
-            .Select(i => new GroupInviteDto(
-                i.Id,
-                i.UserId,
-                i.GroupId,
-                i.Accepted
-            )).ToList();
+        var invitesDto = group
+            .Invites.Where(i => !i.Accepted)
+            .Select(i => new GroupInviteDto(i.Id, i.UserId, i.GroupId, i.Accepted))
+            .ToList();
 
-        var groupDto = new GroupDto(
-            group.Id,
-            group.Name,
-            group.LeaderId,
-            membersDto,
-            invitesDto
-        );
+        var groupDto = new GroupDto(group.Id, group.Name, group.LeaderId, membersDto, invitesDto);
 
         return new AcceptInviteResult(groupDto);
     }

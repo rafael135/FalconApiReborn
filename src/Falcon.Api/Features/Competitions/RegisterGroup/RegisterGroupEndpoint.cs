@@ -1,8 +1,8 @@
 using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Falcon.Api.Features.Competitions.RegisterGroup;
 
@@ -20,19 +20,25 @@ public class RegisterGroupEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("api/Competition/{id}/register", [Authorize] async (IMediator mediator, Guid id) =>
-        {
-            var command = new RegisterGroupCommand(id);
-            var result = await mediator.Send(command);
-            return Results.Ok(result);
-        })
-        .WithName("RegisterGroup")
-        .WithTags("Competitions")
-        .WithSummary("Register the current user's group in a competition.")
-        .WithDescription("Registers the calling user's group into the specified competition; returns registration confirmation or error if not eligible.")
-        .Produces<RegisterGroupResult>(StatusCodes.Status200OK)
-        .Produces(StatusCodes.Status401Unauthorized)
-        .Produces(StatusCodes.Status403Forbidden)
-        .Produces(StatusCodes.Status404NotFound);
+        app.MapPost(
+                "api/Competition/{id}/register",
+                [Authorize]
+                async (IMediator mediator, Guid id) =>
+                {
+                    var command = new RegisterGroupCommand(id);
+                    var result = await mediator.Send(command);
+                    return Results.Ok(result);
+                }
+            )
+            .WithName("RegisterGroup")
+            .WithTags("Competitions")
+            .WithSummary("Register the current user's group in a competition.")
+            .WithDescription(
+                "Registers the calling user's group into the specified competition; returns registration confirmation or error if not eligible."
+            )
+            .Produces<RegisterGroupResult>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound);
     }
 }

@@ -13,20 +13,24 @@ public class GetQuestionEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("api/Question/{id:guid}", [Authorize] async (
-            IMediator mediator,
-            Guid id) =>
-        {
-            var query = new GetQuestionQuery(id);
-            var result = await mediator.Send(query);
-            return Results.Ok(result);
-        })
-        .WithName("GetQuestion")
-        .WithTags("Questions")
-        .WithSummary("Get question details.")
-        .WithDescription("Returns detailed information for a single question. Requires authentication when the competition is protected.")
-        .Produces<QuestionDto>(StatusCodes.Status200OK)
-        .Produces(StatusCodes.Status401Unauthorized)
-        .Produces(StatusCodes.Status404NotFound);
+        app.MapGet(
+                "api/Question/{id:guid}",
+                [Authorize]
+                async (IMediator mediator, Guid id) =>
+                {
+                    var query = new GetQuestionQuery(id);
+                    var result = await mediator.Send(query);
+                    return Results.Ok(result);
+                }
+            )
+            .WithName("GetQuestion")
+            .WithTags("Questions")
+            .WithSummary("Get question details.")
+            .WithDescription(
+                "Returns detailed information for a single question. Requires authentication when the competition is protected."
+            )
+            .Produces<QuestionDto>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status404NotFound);
     }
 }

@@ -17,14 +17,16 @@ namespace Falcon.Infrastructure.Migrations
                 maxLength: 1000,
                 nullable: false,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(max)");
+                oldType: "nvarchar(max)"
+            );
 
             migrationBuilder.AddColumn<byte[]>(
                 name: "RowVersion",
                 table: "Questions",
                 type: "rowversion",
                 rowVersion: true,
-                nullable: true);
+                nullable: true
+            );
 
             migrationBuilder.AlterColumn<bool>(
                 name: "IsDeleted",
@@ -33,7 +35,8 @@ namespace Falcon.Infrastructure.Migrations
                 nullable: false,
                 defaultValue: false,
                 oldClrType: typeof(bool),
-                oldType: "bit");
+                oldType: "bit"
+            );
 
             migrationBuilder.AlterColumn<string>(
                 name: "Content",
@@ -42,15 +45,14 @@ namespace Falcon.Infrastructure.Migrations
                 maxLength: 2000,
                 nullable: false,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(max)");
+                oldType: "nvarchar(max)"
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "RowVersion",
-                table: "Questions");
+            migrationBuilder.DropColumn(name: "RowVersion", table: "Questions");
 
             migrationBuilder.AlterColumn<string>(
                 name: "Content",
@@ -59,7 +61,8 @@ namespace Falcon.Infrastructure.Migrations
                 nullable: false,
                 oldClrType: typeof(string),
                 oldType: "nvarchar(1000)",
-                oldMaxLength: 1000);
+                oldMaxLength: 1000
+            );
 
             migrationBuilder.AlterColumn<bool>(
                 name: "IsDeleted",
@@ -68,7 +71,8 @@ namespace Falcon.Infrastructure.Migrations
                 nullable: false,
                 oldClrType: typeof(bool),
                 oldType: "bit",
-                oldDefaultValue: false);
+                oldDefaultValue: false
+            );
 
             migrationBuilder.AlterColumn<string>(
                 name: "Content",
@@ -77,7 +81,8 @@ namespace Falcon.Infrastructure.Migrations
                 nullable: false,
                 oldClrType: typeof(string),
                 oldType: "nvarchar(2000)",
-                oldMaxLength: 2000);
+                oldMaxLength: 2000
+            );
         }
     }
 }

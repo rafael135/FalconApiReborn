@@ -10,7 +10,10 @@ public class EndInscriptionsCannotBeBeforeStartRule : IBusinessRule
     private readonly DateTime _startInscriptions;
     private readonly DateTime _endInscriptions;
 
-    public EndInscriptionsCannotBeBeforeStartRule(DateTime startInscriptions, DateTime endInscriptions)
+    public EndInscriptionsCannotBeBeforeStartRule(
+        DateTime startInscriptions,
+        DateTime endInscriptions
+    )
     {
         _startInscriptions = startInscriptions;
         _endInscriptions = endInscriptions;

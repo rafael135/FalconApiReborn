@@ -5,7 +5,4 @@ namespace Falcon.Api.Features.Files.DeleteFile;
 /// </summary>
 /// <param name="Success">Whether the deletion succeeded.</param>
 /// <param name="Message">Human-readable message about the operation.</param>
-public record DeleteFileResult(
-    bool Success,
-    string Message
-); 
+public record DeleteFileResult(bool Success, string Message);

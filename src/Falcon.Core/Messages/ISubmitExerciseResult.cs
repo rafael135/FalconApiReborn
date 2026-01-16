@@ -11,13 +11,13 @@ public interface ISubmitExerciseResult
     string ConnectionId { get; }
     bool Success { get; }
     string? ErrorMessage { get; }
-    
+
     // Attempt details
     Guid? AttemptId { get; }
     bool Accepted { get; }
     JudgeSubmissionResponse JudgeResponse { get; }
     TimeSpan ExecutionTime { get; }
-    
+
     // Ranking details
     int RankOrder { get; }
     double Points { get; }

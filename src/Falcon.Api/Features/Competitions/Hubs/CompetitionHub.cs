@@ -37,7 +37,8 @@ public class CompetitionHub : Hub
         FalconDbContext dbContext,
         UserManager<User> userManager,
         IPublishEndpoint publishEndpoint,
-        ILogger<CompetitionHub> logger)
+        ILogger<CompetitionHub> logger
+    )
     {
         _dbContext = dbContext;
         _userManager = userManager;
@@ -57,8 +58,8 @@ public class CompetitionHub : Hub
             return;
         }
 
-        var user = await _userManager.Users
-            .AsNoTracking()
+        var user = await _userManager
+            .Users.AsNoTracking()
             .FirstOrDefaultAsync(u => u.UserName == userName);
 
         if (user == null)
@@ -73,12 +74,12 @@ public class CompetitionHub : Hub
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, "Admins");
         }
-        
+
         if (roles.Contains("Teacher"))
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, "Teachers");
         }
-        
+
         if (roles.Contains("Student"))
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, "Students");
@@ -88,8 +89,11 @@ public class CompetitionHub : Hub
             }
         }
 
-        _logger.LogInformation("User {UserName} connected to CompetitionHub with ConnectionId {ConnectionId}", 
-            userName, Context.ConnectionId);
+        _logger.LogInformation(
+            "User {UserName} connected to CompetitionHub with ConnectionId {ConnectionId}",
+            userName,
+            Context.ConnectionId
+        );
 
         await base.OnConnectedAsync();
     }
@@ -98,91 +102,121 @@ public class CompetitionHub : Hub
     /// Submits an exercise solution for evaluation. Publishes to RabbitMQ for async processing.
     /// </summary>
     [Authorize(Roles = "Student")]
-    public async Task SendExerciseAttempt(Guid competitionId, Guid exerciseId, string code, int languageType)
+    public async Task SendExerciseAttempt(
+        Guid competitionId,
+        Guid exerciseId,
+        string code,
+        int languageType
+    )
     {
         var userName = Context.User?.Identity?.Name;
         if (string.IsNullOrEmpty(userName))
         {
-            await Clients.Caller.SendAsync("ReceiveExerciseAttemptError", 
-                new { message = "Usuário não autenticado" });
+            await Clients.Caller.SendAsync(
+                "ReceiveExerciseAttemptError",
+                new { message = "Usuário não autenticado" }
+            );
             return;
         }
 
-        var user = await _userManager.Users
-            .AsNoTracking()
+        var user = await _userManager
+            .Users.AsNoTracking()
             .FirstOrDefaultAsync(u => u.UserName == userName);
 
         if (user?.GroupId == null)
         {
-            await Clients.Caller.SendAsync("ReceiveExerciseAttemptError", 
-                new { message = "Você deve estar em um grupo para submeter exercícios" });
+            await Clients.Caller.SendAsync(
+                "ReceiveExerciseAttemptError",
+                new { message = "Você deve estar em um grupo para submeter exercícios" }
+            );
             return;
         }
 
         // Check if group is blocked
-        var groupInCompetition = await _dbContext.GroupsInCompetitions
-            .AsNoTracking()
-            .FirstOrDefaultAsync(g => g.GroupId == user.GroupId && g.CompetitionId == competitionId);
+        var groupInCompetition = await _dbContext
+            .GroupsInCompetitions.AsNoTracking()
+            .FirstOrDefaultAsync(g =>
+                g.GroupId == user.GroupId && g.CompetitionId == competitionId
+            );
 
         if (groupInCompetition == null)
         {
-            await Clients.Caller.SendAsync("ReceiveExerciseAttemptError", 
-                new { message = "Seu grupo não está registrado nesta competição" });
+            await Clients.Caller.SendAsync(
+                "ReceiveExerciseAttemptError",
+                new { message = "Seu grupo não está registrado nesta competição" }
+            );
             return;
         }
 
         if (groupInCompetition.Blocked)
         {
-            await Clients.Caller.SendAsync("ReceiveExerciseAttemptError", 
-                new { message = "Seu grupo foi bloqueado nesta competição" });
+            await Clients.Caller.SendAsync(
+                "ReceiveExerciseAttemptError",
+                new { message = "Seu grupo foi bloqueado nesta competição" }
+            );
             return;
         }
 
         // Check if exercise is in competition
-        var exerciseInCompetition = await _dbContext.ExercisesInCompetition
-            .AsNoTracking()
-            .FirstOrDefaultAsync(e => e.CompetitionId == competitionId && e.ExerciseId == exerciseId);
+        var exerciseInCompetition = await _dbContext
+            .ExercisesInCompetition.AsNoTracking()
+            .FirstOrDefaultAsync(e =>
+                e.CompetitionId == competitionId && e.ExerciseId == exerciseId
+            );
 
         if (exerciseInCompetition == null)
         {
-            await Clients.Caller.SendAsync("ReceiveExerciseAttemptError", 
-                new { message = "Este exercício não está nesta competição" });
+            await Clients.Caller.SendAsync(
+                "ReceiveExerciseAttemptError",
+                new { message = "Este exercício não está nesta competição" }
+            );
             return;
         }
 
         // Check if already accepted
-        var alreadyAccepted = await _dbContext.GroupExerciseAttempts
-            .AnyAsync(a => a.GroupId == user.GroupId 
-                && a.ExerciseId == exerciseId 
-                && a.CompetitionId == competitionId 
-                && a.Accepted);
+        var alreadyAccepted = await _dbContext.GroupExerciseAttempts.AnyAsync(a =>
+            a.GroupId == user.GroupId
+            && a.ExerciseId == exerciseId
+            && a.CompetitionId == competitionId
+            && a.Accepted
+        );
 
         if (alreadyAccepted)
         {
-            await Clients.Caller.SendAsync("ReceiveExerciseAttemptError", 
-                new { message = "Este exercício já foi aceito pelo seu grupo" });
+            await Clients.Caller.SendAsync(
+                "ReceiveExerciseAttemptError",
+                new { message = "Este exercício já foi aceito pelo seu grupo" }
+            );
             return;
         }
 
         // Publish to RabbitMQ
         var correlationId = Guid.NewGuid();
-        await _publishEndpoint.Publish<ISubmitExerciseCommand>(new
-        {
-            CorrelationId = correlationId,
-            ConnectionId = Context.ConnectionId,
-            GroupId = user.GroupId.Value,
-            ExerciseId = exerciseId,
-            CompetitionId = competitionId,
-            Code = code,
-            Language = (Core.Domain.Shared.Enums.LanguageType)languageType,
-            SubmittedAt = DateTime.UtcNow
-        });
+        await _publishEndpoint.Publish<ISubmitExerciseCommand>(
+            new
+            {
+                CorrelationId = correlationId,
+                ConnectionId = Context.ConnectionId,
+                GroupId = user.GroupId.Value,
+                ExerciseId = exerciseId,
+                CompetitionId = competitionId,
+                Code = code,
+                Language = (Core.Domain.Shared.Enums.LanguageType)languageType,
+                SubmittedAt = DateTime.UtcNow,
+            }
+        );
 
-        _logger.LogInformation("Exercise submission published to queue: Group {GroupId}, Exercise {ExerciseId}, Correlation {CorrelationId}", 
-            user.GroupId.Value, exerciseId, correlationId);
+        _logger.LogInformation(
+            "Exercise submission published to queue: Group {GroupId}, Exercise {ExerciseId}, Correlation {CorrelationId}",
+            user.GroupId.Value,
+            exerciseId,
+            correlationId
+        );
 
-        await Clients.Caller.SendAsync("ReceiveExerciseAttemptQueued", 
-            new { correlationId, message = "Submissão enviada para avaliação" });
+        await Clients.Caller.SendAsync(
+            "ReceiveExerciseAttemptQueued",
+            new { correlationId, message = "Submissão enviada para avaliação" }
+        );
     }
 
     /// <summary>
@@ -198,14 +232,14 @@ public class CompetitionHub : Hub
     /// </summary>
     public async Task GetCurrentCompetition()
     {
-        var competition = await _dbContext.Competitions
-            .AsNoTracking()
+        var competition = await _dbContext
+            .Competitions.AsNoTracking()
             .Include(c => c.Rankings)
-                .ThenInclude(r => r.Group)
-                    .ThenInclude(g => g.Users)
+            .ThenInclude(r => r.Group)
+            .ThenInclude(g => g.Users)
             .Include(c => c.ExercisesInCompetition)
-                .ThenInclude(ec => ec.Exercise)
-                    .ThenInclude(e => e.ExerciseType)
+            .ThenInclude(ec => ec.Exercise)
+            .ThenInclude(e => e.ExerciseType)
             .Where(c => c.Status == Core.Domain.Competitions.CompetitionStatus.Ongoing)
             .OrderByDescending(c => c.StartTime)
             .FirstOrDefaultAsync();
@@ -217,8 +251,8 @@ public class CompetitionHub : Hub
         }
 
         var userName = Context.User?.Identity?.Name;
-        var user = await _userManager.Users
-            .AsNoTracking()
+        var user = await _userManager
+            .Users.AsNoTracking()
             .FirstOrDefaultAsync(u => u.UserName == userName);
 
         var response = new CompetitionDetailDto(
@@ -235,18 +269,22 @@ public class CompetitionHub : Hub
             competition.MaxSubmissionSize,
             competition.Duration,
             competition.SubmissionPenalty,
-            competition.ExercisesInCompetition
-                .Select(ec => new ExerciseSummaryDto(
-                    ec.Exercise.Id, 
-                    ec.Exercise.Title, 
+            competition
+                .ExercisesInCompetition.Select(ec => new ExerciseSummaryDto(
+                    ec.Exercise.Id,
+                    ec.Exercise.Title,
                     ec.Exercise.EstimatedTime,
                     ec.Exercise.ExerciseType.Label
                 ))
                 .ToList(),
-            competition.Rankings
-                .OrderBy(r => r.RankOrder)
+            competition
+                .Rankings.OrderBy(r => r.RankOrder)
                 .Select(r => new RankingEntryDto(
-                    r.GroupId, r.Group.Name, r.Points, r.Penalty, r.RankOrder,
+                    r.GroupId,
+                    r.Group.Name,
+                    r.Points,
+                    r.Penalty,
+                    r.RankOrder,
                     0, // SolvedExercises - calculate if needed
                     null // LastSubmissionTime - calculate if needed
                 ))
@@ -261,49 +299,65 @@ public class CompetitionHub : Hub
     /// </summary>
     public async Task Ping()
     {
-        await Clients.Caller.SendAsync("Pong", new { message = "Pong", timestamp = DateTime.UtcNow });
+        await Clients.Caller.SendAsync(
+            "Pong",
+            new { message = "Pong", timestamp = DateTime.UtcNow }
+        );
     }
 
     /// <summary>
     /// Asks a question in the competition (Students only).
     /// </summary>
     [Authorize(Roles = "Student")]
-    public async Task AskQuestion(Guid competitionId, Guid? exerciseId, string content, int questionType)
+    public async Task AskQuestion(
+        Guid competitionId,
+        Guid? exerciseId,
+        string content,
+        int questionType
+    )
     {
         var userName = Context.User?.Identity?.Name;
         if (string.IsNullOrEmpty(userName))
         {
-            await Clients.Caller.SendAsync("ReceiveQuestionError", 
-                new { message = "Usuário não autenticado" });
+            await Clients.Caller.SendAsync(
+                "ReceiveQuestionError",
+                new { message = "Usuário não autenticado" }
+            );
             return;
         }
 
-        var user = await _userManager.Users
-            .Include(u => u.Group)
+        var user = await _userManager
+            .Users.Include(u => u.Group)
             .FirstOrDefaultAsync(u => u.UserName == userName);
 
         if (user?.GroupId == null)
         {
-            await Clients.Caller.SendAsync("ReceiveQuestionError", 
-                new { message = "Você deve estar em um grupo para fazer perguntas" });
+            await Clients.Caller.SendAsync(
+                "ReceiveQuestionError",
+                new { message = "Você deve estar em um grupo para fazer perguntas" }
+            );
             return;
         }
 
-        var competition = await _dbContext.Competitions
-            .FirstOrDefaultAsync(c => c.Id == competitionId);
+        var competition = await _dbContext.Competitions.FirstOrDefaultAsync(c =>
+            c.Id == competitionId
+        );
 
         if (competition == null)
         {
-            await Clients.Caller.SendAsync("ReceiveQuestionError", 
-                new { message = "Competição não encontrada" });
+            await Clients.Caller.SendAsync(
+                "ReceiveQuestionError",
+                new { message = "Competição não encontrada" }
+            );
             return;
         }
 
         Exercise? exercise = null;
         if (exerciseId.HasValue)
         {
-            exercise = await _dbContext.Exercises
-                .FirstOrDefaultAsync(e => e.Id == exerciseId.Value);
+            exercise = await _dbContext.Exercises.FirstOrDefaultAsync(e =>
+                e.Id == exerciseId.Value
+            );
         }
 
         var question = new Question(
@@ -317,14 +371,19 @@ public class CompetitionHub : Hub
         await _dbContext.Questions.AddAsync(question);
 
         // Create log
-        var ipAddress = Context.GetHttpContext()?.Connection?.RemoteIpAddress?.ToString() ?? "unknown";
+        var ipAddress =
+            Context.GetHttpContext()?.Connection?.RemoteIpAddress?.ToString() ?? "unknown";
         var log = new Log(LogType.QuestionSent, ipAddress, user, user.Group, competition);
         await _dbContext.Logs.AddAsync(log);
 
         await _dbContext.SaveChangesAsync();
 
-        _logger.LogInformation("Question {QuestionId} created by user {UserId} in competition {CompetitionId}", 
-            question.Id, user.Id, competitionId);
+        _logger.LogInformation(
+            "Question {QuestionId} created by user {UserId} in competition {CompetitionId}",
+            question.Id,
+            user.Id,
+            competitionId
+        );
 
         var questionDto = new QuestionDto(
             question.Id,
@@ -357,56 +416,69 @@ public class CompetitionHub : Hub
         var userName = Context.User?.Identity?.Name;
         if (string.IsNullOrEmpty(userName))
         {
-            await Clients.Caller.SendAsync("ReceiveAnswerError", 
-                new { message = "Usuário não autenticado" });
+            await Clients.Caller.SendAsync(
+                "ReceiveAnswerError",
+                new { message = "Usuário não autenticado" }
+            );
             return;
         }
 
-        var user = await _userManager.Users
-            .AsNoTracking()
+        var user = await _userManager
+            .Users.AsNoTracking()
             .FirstOrDefaultAsync(u => u.UserName == userName);
 
         if (user == null)
         {
-            await Clients.Caller.SendAsync("ReceiveAnswerError", 
-                new { message = "Usuário não encontrado" });
+            await Clients.Caller.SendAsync(
+                "ReceiveAnswerError",
+                new { message = "Usuário não encontrado" }
+            );
             return;
         }
 
-        var question = await _dbContext.Questions
-            .Include(q => q.User)
-                .ThenInclude(u => u.Group)
+        var question = await _dbContext
+            .Questions.Include(q => q.User)
+            .ThenInclude(u => u.Group)
             .Include(q => q.Competition)
             .FirstOrDefaultAsync(q => q.Id == questionId);
 
         if (question == null)
         {
-            await Clients.Caller.SendAsync("ReceiveAnswerError", 
-                new { message = "Pergunta não encontrada" });
+            await Clients.Caller.SendAsync(
+                "ReceiveAnswerError",
+                new { message = "Pergunta não encontrada" }
+            );
             return;
         }
 
         if (question.Answer != null)
         {
-            await Clients.Caller.SendAsync("ReceiveAnswerError", 
-                new { message = "Pergunta já foi respondida" });
+            await Clients.Caller.SendAsync(
+                "ReceiveAnswerError",
+                new { message = "Pergunta já foi respondida" }
+            );
             return;
         }
 
         var answer = new Answer(user, content);
         await _dbContext.Answers.AddAsync(answer);
-        
+
         question.SetAnswer(answer);
 
         // Create log
-        var ipAddress = Context.GetHttpContext()?.Connection?.RemoteIpAddress?.ToString() ?? "unknown";
+        var ipAddress =
+            Context.GetHttpContext()?.Connection?.RemoteIpAddress?.ToString() ?? "unknown";
         var log = new Log(LogType.AnswerGiven, ipAddress, user, null, question.Competition);
         await _dbContext.Logs.AddAsync(log);
 
         await _dbContext.SaveChangesAsync();
 
-        _logger.LogInformation("Answer {AnswerId} created for question {QuestionId} by user {UserId}", 
-            answer.Id, questionId, user.Id);
+        _logger.LogInformation(
+            "Answer {AnswerId} created for question {QuestionId} by user {UserId}",
+            answer.Id,
+            questionId,
+            user.Id
+        );
 
         var answerDto = new AnswerDto(
             answer.Id,
@@ -439,7 +511,8 @@ public class CompetitionHub : Hub
         // Notify the question author's group
         if (question.User.GroupId.HasValue)
         {
-            await Clients.Group($"Group:{question.User.GroupId.Value}")
+            await Clients
+                .Group($"Group:{question.User.GroupId.Value}")
                 .SendAsync("ReceiveYourQuestionAnswered", questionDto);
         }
     }
@@ -453,24 +526,28 @@ public class CompetitionHub : Hub
         var userName = Context.User?.Identity?.Name;
         if (string.IsNullOrEmpty(userName))
         {
-            await Clients.Caller.SendAsync("ReceiveAnswerUpdateError", 
-                new { message = "Usuário não autenticado" });
+            await Clients.Caller.SendAsync(
+                "ReceiveAnswerUpdateError",
+                new { message = "Usuário não autenticado" }
+            );
             return;
         }
 
-        var answer = await _dbContext.Answers
-            .Include(a => a.User)
+        var answer = await _dbContext
+            .Answers.Include(a => a.User)
             .Include(a => a.Question)
-                .ThenInclude(q => q!.User)
-                    .ThenInclude(u => u.Group)
+            .ThenInclude(q => q!.User)
+            .ThenInclude(u => u.Group)
             .Include(a => a.Question)
-                .ThenInclude(q => q!.Competition)
+            .ThenInclude(q => q!.Competition)
             .FirstOrDefaultAsync(a => a.Id == answerId);
 
         if (answer == null)
         {
-            await Clients.Caller.SendAsync("ReceiveAnswerUpdateError", 
-                new { message = "Resposta não encontrada" });
+            await Clients.Caller.SendAsync(
+                "ReceiveAnswerUpdateError",
+                new { message = "Resposta não encontrada" }
+            );
             return;
         }
 
@@ -481,7 +558,8 @@ public class CompetitionHub : Hub
         var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == userName);
         if (user != null)
         {
-            var ipAddress = Context.GetHttpContext()?.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            var ipAddress =
+                Context.GetHttpContext()?.Connection.RemoteIpAddress?.ToString() ?? "unknown";
             var log = new Log(
                 LogType.AnswerUpdated,
                 ipAddress,
@@ -530,12 +608,12 @@ public class CompetitionHub : Hub
     [Authorize]
     public async Task GetAllQuestions(Guid competitionId)
     {
-        var questions = await _dbContext.Questions
-            .AsNoTracking()
+        var questions = await _dbContext
+            .Questions.AsNoTracking()
             .Include(q => q.User)
-                .ThenInclude(u => u.Group)
+            .ThenInclude(u => u.Group)
             .Include(q => q.Answer)
-                .ThenInclude(a => a!.User)
+            .ThenInclude(a => a!.User)
             .Where(q => q.CompetitionId == competitionId)
             .OrderByDescending(q => q.CreatedAt)
             .Select(q => new QuestionDto(
@@ -549,13 +627,15 @@ public class CompetitionHub : Hub
                 q.Content,
                 q.QuestionType,
                 q.CreatedAt,
-                q.Answer != null ? new AnswerDto(
-                    q.Answer.Id,
-                    q.Answer.Content,
-                    q.Answer.User.Id,
-                    q.Answer.User.Name,
-                    q.Answer.CreatedAt
-                ) : null
+                q.Answer != null
+                    ? new AnswerDto(
+                        q.Answer.Id,
+                        q.Answer.Content,
+                        q.Answer.User.Id,
+                        q.Answer.User.Name,
+                        q.Answer.CreatedAt
+                    )
+                    : null
             ))
             .ToListAsync();
 

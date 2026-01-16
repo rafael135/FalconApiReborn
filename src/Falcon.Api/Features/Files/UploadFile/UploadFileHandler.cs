@@ -14,12 +14,21 @@ public class UploadFileHandler : IRequestHandler<UploadFileCommand, UploadFileRe
     private readonly IAttachedFileService _attachedFileService;
     private readonly ILogger<UploadFileHandler> _logger;
 
-    private static readonly string[] AllowedExtensions = { ".pdf", ".zip", ".txt", ".md", ".jpg", ".png" };
+    private static readonly string[] AllowedExtensions =
+    {
+        ".pdf",
+        ".zip",
+        ".txt",
+        ".md",
+        ".jpg",
+        ".png",
+    };
     private const long MaxFileSize = 10 * 1024 * 1024; // 10 MB
 
     public UploadFileHandler(
         IAttachedFileService attachedFileService,
-        ILogger<UploadFileHandler> logger)
+        ILogger<UploadFileHandler> logger
+    )
     {
         _attachedFileService = attachedFileService;
         _logger = logger;
@@ -31,7 +40,10 @@ public class UploadFileHandler : IRequestHandler<UploadFileCommand, UploadFileRe
     /// <param name="request">Upload command containing the <see cref="IFormFile"/> to persist.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>An <see cref="UploadFileResult"/> with saved file metadata.</returns>
-    public async Task<UploadFileResult> Handle(UploadFileCommand request, CancellationToken cancellationToken)
+    public async Task<UploadFileResult> Handle(
+        UploadFileCommand request,
+        CancellationToken cancellationToken
+    )
     {
         var file = request.File;
 
@@ -45,13 +57,17 @@ public class UploadFileHandler : IRequestHandler<UploadFileCommand, UploadFileRe
         var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
         if (!AllowedExtensions.Contains(extension))
         {
-            throw new ArgumentException($"File extension '{extension}' is not allowed. Allowed extensions: {string.Join(", ", AllowedExtensions)}");
+            throw new ArgumentException(
+                $"File extension '{extension}' is not allowed. Allowed extensions: {string.Join(", ", AllowedExtensions)}"
+            );
         }
 
         // Validate size
         if (file.Length > MaxFileSize)
         {
-            throw new ArgumentException($"File size exceeds maximum allowed size of {MaxFileSize / (1024 * 1024)} MB");
+            throw new ArgumentException(
+                $"File size exceeds maximum allowed size of {MaxFileSize / (1024 * 1024)} MB"
+            );
         }
 
         // Save file using service
@@ -63,7 +79,11 @@ public class UploadFileHandler : IRequestHandler<UploadFileCommand, UploadFileRe
             cancellationToken
         );
 
-        _logger.LogInformation("File {FileName} uploaded with ID {FileId}", file.FileName, attachedFile.Id);
+        _logger.LogInformation(
+            "File {FileName} uploaded with ID {FileId}",
+            file.FileName,
+            attachedFile.Id
+        );
 
         return new UploadFileResult(
             attachedFile.Id,

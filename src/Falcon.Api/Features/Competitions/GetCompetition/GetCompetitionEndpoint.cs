@@ -22,17 +22,22 @@ public class GetCompetitionEndpoint : IEndpoint
     /// <param name="app">The route builder to map the endpoint into.</param>
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("api/Competition/{id}", async (IMediator mediator, Guid id) =>
-        {
-            var query = new GetCompetitionQuery(id);
-            var result = await mediator.Send(query);
-            return Results.Ok(result);
-        })
-        .WithName("GetCompetition")
-        .WithTags("Competitions")
-        .WithSummary("Get competition details by ID.")
-        .WithDescription("Returns detailed information about a specific competition, including exercises and schedule.")
-        .Produces<GetCompetitionResult>(StatusCodes.Status200OK)
-        .Produces(StatusCodes.Status404NotFound);
+        app.MapGet(
+                "api/Competition/{id}",
+                async (IMediator mediator, Guid id) =>
+                {
+                    var query = new GetCompetitionQuery(id);
+                    var result = await mediator.Send(query);
+                    return Results.Ok(result);
+                }
+            )
+            .WithName("GetCompetition")
+            .WithTags("Competitions")
+            .WithSummary("Get competition details by ID.")
+            .WithDescription(
+                "Returns detailed information about a specific competition, including exercises and schedule."
+            )
+            .Produces<GetCompetitionResult>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound);
     }
 }

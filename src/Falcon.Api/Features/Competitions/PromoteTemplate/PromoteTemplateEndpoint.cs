@@ -1,8 +1,8 @@
 using Falcon.Api.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Falcon.Api.Features.Competitions.PromoteTemplate;
 
@@ -22,20 +22,29 @@ public class PromoteTemplateEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("api/Competition/{id}/promote", [Authorize(Roles = "Teacher,Admin")] async (IMediator mediator, Guid id, [FromBody] PromoteTemplateCommand command) =>
-        {
-            if (command.TemplateId != id) return Results.BadRequest(new { error = "Route ID does not match command TemplateId" });
-            var result = await mediator.Send(command);
-            return Results.Ok(result);
-        })
-        .WithName("PromoteTemplate")
-        .WithTags("Competitions")
-        .WithSummary("Promote a competition template to active competition.")
-        .WithDescription("Promotes the provided template into an active competition; only Teacher or Admin can perform this action.")
-        .Produces<PromoteTemplateResult>(StatusCodes.Status200OK)
-        .Produces(StatusCodes.Status400BadRequest)
-        .Produces(StatusCodes.Status401Unauthorized)
-        .Produces(StatusCodes.Status403Forbidden)
-        .Produces(StatusCodes.Status404NotFound);
+        app.MapPost(
+                "api/Competition/{id}/promote",
+                [Authorize(Roles = "Teacher,Admin")]
+                async (IMediator mediator, Guid id, [FromBody] PromoteTemplateCommand command) =>
+                {
+                    if (command.TemplateId != id)
+                        return Results.BadRequest(
+                            new { error = "Route ID does not match command TemplateId" }
+                        );
+                    var result = await mediator.Send(command);
+                    return Results.Ok(result);
+                }
+            )
+            .WithName("PromoteTemplate")
+            .WithTags("Competitions")
+            .WithSummary("Promote a competition template to active competition.")
+            .WithDescription(
+                "Promotes the provided template into an active competition; only Teacher or Admin can perform this action."
+            )
+            .Produces<PromoteTemplateResult>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound);
     }
 }

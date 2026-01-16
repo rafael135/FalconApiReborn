@@ -15,9 +15,13 @@ public static class EndpointExtensions
     /// <param name="services">The service collection to register endpoints into.</param>
     /// <param name="assembly">The assembly to scan for endpoint implementations.</param>
     /// <returns>The original <see cref="IServiceCollection"/> for chaining.</returns>
-    public static IServiceCollection AddEndpoints(this IServiceCollection services, Assembly assembly)
+    public static IServiceCollection AddEndpoints(
+        this IServiceCollection services,
+        Assembly assembly
+    )
     {
-        var endpointTypes = assembly.GetTypes()
+        var endpointTypes = assembly
+            .GetTypes()
             .Where(t => typeof(IEndpoint).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
 
         foreach (var type in endpointTypes)

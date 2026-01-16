@@ -18,22 +18,17 @@ public class AnswerConfiguration : IEntityTypeConfiguration<Answer>
 
         builder.HasKey(a => a.Id);
 
-        builder.Property(a => a.Id)
-            .ValueGeneratedOnAdd();
+        builder.Property(a => a.Id).ValueGeneratedOnAdd();
 
-        builder.Property(a => a.Content)
-            .IsRequired()
-            .HasMaxLength(Answer.MaxContentLength);
+        builder.Property(a => a.Content).IsRequired().HasMaxLength(Answer.MaxContentLength);
 
-        builder.Property(a => a.UserId)
-            .IsRequired()
-            .HasMaxLength(450);
+        builder.Property(a => a.UserId).IsRequired().HasMaxLength(450);
 
-        builder.Property(a => a.CreatedAt)
-            .IsRequired();
+        builder.Property(a => a.CreatedAt).IsRequired();
 
         // Relacionamentos
-        builder.HasOne(a => a.User)
+        builder
+            .HasOne(a => a.User)
             .WithMany(u => u.Answers)
             .HasForeignKey(a => a.UserId)
             .OnDelete(DeleteBehavior.Restrict);

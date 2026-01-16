@@ -10,4 +10,4 @@ public record UpdateExerciseCommand(
     Guid ExerciseId,
     UpdateExerciseRequestDto Metadata,
     IFormFile? File
-) : IRequest<UpdateExerciseResult>; 
+) : IRequest<UpdateExerciseResult>;

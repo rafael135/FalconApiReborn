@@ -24,18 +24,22 @@ public class DeleteFileHandler : IRequestHandler<DeleteFileCommand, DeleteFileRe
     public DeleteFileHandler(
         FalconDbContext context,
         IAttachedFileService attachedFileService,
-        ILogger<DeleteFileHandler> logger)
+        ILogger<DeleteFileHandler> logger
+    )
     {
         _context = context;
         _attachedFileService = attachedFileService;
         _logger = logger;
     }
 
-    public async Task<DeleteFileResult> Handle(DeleteFileCommand request, CancellationToken cancellationToken)
+    public async Task<DeleteFileResult> Handle(
+        DeleteFileCommand request,
+        CancellationToken cancellationToken
+    )
     {
         // Get file
-        var attachedFile = await _context.AttachedFiles
-            .Include(f => f.Exercises)
+        var attachedFile = await _context
+            .AttachedFiles.Include(f => f.Exercises)
             .FirstOrDefaultAsync(f => f.Id == request.FileId, cancellationToken);
 
         if (attachedFile == null)
@@ -47,13 +51,18 @@ public class DeleteFileHandler : IRequestHandler<DeleteFileCommand, DeleteFileRe
         if (attachedFile.Exercises.Any())
         {
             throw new InvalidOperationException(
-                $"Cannot delete file '{attachedFile.Name}' because it is attached to {attachedFile.Exercises.Count} exercise(s)");
+                $"Cannot delete file '{attachedFile.Name}' because it is attached to {attachedFile.Exercises.Count} exercise(s)"
+            );
         }
 
         // Delete using service
         await _attachedFileService.DeleteAttachedFileAsync(attachedFile, cancellationToken);
 
-        _logger.LogInformation("File {FileId} ({FileName}) deleted", attachedFile.Id, attachedFile.Name);
+        _logger.LogInformation(
+            "File {FileId} ({FileName}) deleted",
+            attachedFile.Id,
+            attachedFile.Name
+        );
 
         return new DeleteFileResult(true, $"File '{attachedFile.Name}' deleted successfully");
     }

@@ -41,7 +41,8 @@ public class GetUsersHandler : IRequestHandler<GetUsersQuery, GetUsersResult>
     public GetUsersHandler(
         FalconDbContext context,
         UserManager<User> userManager,
-        ILogger<GetUsersHandler> logger)
+        ILogger<GetUsersHandler> logger
+    )
     {
         _context = context;
         _userManager = userManager;
@@ -56,28 +57,30 @@ public class GetUsersHandler : IRequestHandler<GetUsersQuery, GetUsersResult>
     /// <returns>The paginated users list.</returns>
     public async Task<GetUsersResult> Handle(
         GetUsersQuery request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        var query = _context.Users
-            .Include(u => u.Group)
-            .AsNoTracking()
-            .AsQueryable();
+        var query = _context.Users.Include(u => u.Group).AsNoTracking().AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.Role))
         {
             var roleName = request.Role.Trim();
-            query = query.Where(u => _context.UserRoles
-                .Any(ur => ur.UserId == u.Id &&
-                           _context.Roles.Any(r => r.Id == ur.RoleId && r.Name == roleName)));
+            query = query.Where(u =>
+                _context.UserRoles.Any(ur =>
+                    ur.UserId == u.Id
+                    && _context.Roles.Any(r => r.Id == ur.RoleId && r.Name == roleName)
+                )
+            );
         }
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
             var searchLower = request.Search.Trim().ToLowerInvariant();
             query = query.Where(u =>
-                u.Name.ToLowerInvariant().Contains(searchLower) ||
-                u.Email!.ToLowerInvariant().Contains(searchLower) ||
-                u.RA.ToLowerInvariant().Contains(searchLower));
+                u.Name.ToLowerInvariant().Contains(searchLower)
+                || u.Email!.ToLowerInvariant().Contains(searchLower)
+                || u.RA.ToLowerInvariant().Contains(searchLower)
+            );
         }
 
         var total = await query.CountAsync(cancellationToken);
@@ -94,22 +97,28 @@ public class GetUsersHandler : IRequestHandler<GetUsersQuery, GetUsersResult>
         {
             var roles = await _userManager.GetRolesAsync(user);
 
-            userSummaries.Add(new UserSummaryDto(
-                user.Id,
-                user.Name,
-                user.Email!,
-                user.RA,
-                user.JoinYear,
-                user.Department,
-                user.CreatedAt,
-                user.LastLoggedAt,
-                user.GroupId,
-                user.Group?.Name,
-                roles.ToList()
-            ));
+            userSummaries.Add(
+                new UserSummaryDto(
+                    user.Id,
+                    user.Name,
+                    user.Email!,
+                    user.RA,
+                    user.JoinYear,
+                    user.Department,
+                    user.CreatedAt,
+                    user.LastLoggedAt,
+                    user.GroupId,
+                    user.Group?.Name,
+                    roles.ToList()
+                )
+            );
         }
 
-        _logger.LogInformation("Retrieved {Count} users (total: {Total})", userSummaries.Count, total);
+        _logger.LogInformation(
+            "Retrieved {Count} users (total: {Total})",
+            userSummaries.Count,
+            total
+        );
 
         return new GetUsersResult(userSummaries, total, request.Skip, request.Take);
     }

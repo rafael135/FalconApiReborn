@@ -7,4 +7,5 @@ namespace Falcon.Api.Features.Submissions.GetGroupAttempts;
 /// </summary>
 /// <param name="CompetitionId">Optional competition id to filter attempts.</param>
 /// <param name="ExerciseId">Optional exercise id to filter attempts.</param>
-public record GetGroupAttemptsQuery(Guid? CompetitionId, Guid? ExerciseId) : IRequest<GetGroupAttemptsResult>;
+public record GetGroupAttemptsQuery(Guid? CompetitionId, Guid? ExerciseId)
+    : IRequest<GetGroupAttemptsResult>;

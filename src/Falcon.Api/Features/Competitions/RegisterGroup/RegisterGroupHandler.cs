@@ -26,7 +26,8 @@ public class RegisterGroupHandler : IRequestHandler<RegisterGroupCommand, Regist
         UserManager<Core.Domain.Users.User> userManager,
         FalconDbContext dbContext,
         IHttpContextAccessor httpContextAccessor,
-        ILogger<RegisterGroupHandler> logger)
+        ILogger<RegisterGroupHandler> logger
+    )
     {
         _userManager = userManager;
         _dbContext = dbContext;
@@ -34,19 +35,24 @@ public class RegisterGroupHandler : IRequestHandler<RegisterGroupCommand, Regist
         _logger = logger;
     }
 
-    public async Task<RegisterGroupResult> Handle(RegisterGroupCommand request, CancellationToken cancellationToken)
+    public async Task<RegisterGroupResult> Handle(
+        RegisterGroupCommand request,
+        CancellationToken cancellationToken
+    )
     {
         // Get logged-in user
-        var httpContext = _httpContextAccessor.HttpContext 
+        var httpContext =
+            _httpContextAccessor.HttpContext
             ?? throw new UnauthorizedAccessException("Usuário não autenticado");
 
-        var userId = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+        var userId =
+            httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
             ?? throw new UnauthorizedAccessException("ID do usuário não encontrado");
 
         // Get user with group
-        var user = await _userManager.Users
-            .Include(u => u.Group)
-                .ThenInclude(g => g!.Users)
+        var user = await _userManager
+            .Users.Include(u => u.Group)
+            .ThenInclude(g => g!.Users)
             .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 
         if (user == null)
@@ -59,7 +65,7 @@ public class RegisterGroupHandler : IRequestHandler<RegisterGroupCommand, Regist
         {
             var errors = new Dictionary<string, string>
             {
-                { "group", "Você deve estar em um grupo para se inscrever em uma competição" }
+                { "group", "Você deve estar em um grupo para se inscrever em uma competição" },
             };
             throw new FormException(errors);
         }
@@ -67,8 +73,8 @@ public class RegisterGroupHandler : IRequestHandler<RegisterGroupCommand, Regist
         var group = user.Group;
 
         // Get competition
-        var competition = await _dbContext.Competitions
-            .Include(c => c.GroupsInCompetitions)
+        var competition = await _dbContext
+            .Competitions.Include(c => c.GroupsInCompetitions)
             .FirstOrDefaultAsync(c => c.Id == request.CompetitionId, cancellationToken);
 
         if (competition == null)
@@ -78,7 +84,7 @@ public class RegisterGroupHandler : IRequestHandler<RegisterGroupCommand, Regist
 
         // Check business rules using domain entities
         var isAlreadyRegistered = competition.GroupsInCompetitions.Any(g => g.GroupId == group.Id);
-        
+
         var inscriptionsOpenRule = new InscriptionsMustBeOpenRule(competition.IsInscriptionOpen);
         if (inscriptionsOpenRule.IsBroken())
             throw new BusinessRuleException(inscriptionsOpenRule);
@@ -110,24 +116,24 @@ public class RegisterGroupHandler : IRequestHandler<RegisterGroupCommand, Regist
                 competition.Id,
                 group.Id
             );
-            await _dbContext.UserCompetitionParticipations.AddAsync(participation, cancellationToken);
+            await _dbContext.UserCompetitionParticipations.AddAsync(
+                participation,
+                cancellationToken
+            );
         }
 
         // Create log entry
         var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        var log = new Log(
-            LogType.JoinCompetition,
-            ipAddress,
-            user,
-            group,
-            competition
-        );
+        var log = new Log(LogType.JoinCompetition, ipAddress, user, group, competition);
         await _dbContext.Logs.AddAsync(log, cancellationToken);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Group {GroupId} registered in competition {CompetitionId}", 
-            group.Id, competition.Id);
+        _logger.LogInformation(
+            "Group {GroupId} registered in competition {CompetitionId}",
+            group.Id,
+            competition.Id
+        );
 
         var registrationDto = new GroupInCompetitionDto(
             groupInCompetition.GroupId,

@@ -1,5 +1,5 @@
-using MediatR;
 using Falcon.Core.Domain.Competitions;
+using MediatR;
 
 namespace Falcon.Api.Features.Competitions.GetCompetitions;
 
@@ -12,8 +12,5 @@ namespace Falcon.Api.Features.Competitions.GetCompetitions;
 /// <remarks>
 /// The handler will return a paginated result with the total count and the selected page.
 /// </remarks>
-public record GetCompetitionsQuery(
-    CompetitionStatus? Status = null,
-    int Skip = 0,
-    int Take = 10
-) : IRequest<GetCompetitionsResult>;
+public record GetCompetitionsQuery(CompetitionStatus? Status = null, int Skip = 0, int Take = 10)
+    : IRequest<GetCompetitionsResult>;

@@ -6,4 +6,4 @@ namespace Falcon.Api.Features.Competitions.PromoteTemplate;
 /// Result of promoting a template to an active competition.
 /// </summary>
 /// <param name="Competition">The created competition DTO after promotion.</param>
-public record PromoteTemplateResult(CompetitionDto Competition); 
+public record PromoteTemplateResult(CompetitionDto Competition);

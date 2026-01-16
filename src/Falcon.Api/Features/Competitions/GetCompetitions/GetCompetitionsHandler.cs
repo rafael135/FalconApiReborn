@@ -23,7 +23,10 @@ public class GetCompetitionsHandler : IRequestHandler<GetCompetitionsQuery, GetC
     /// <param name="request">Query containing filter and pagination parameters.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A <see cref="GetCompetitionsResult"/> containing the competitions page and pagination metadata.</returns>
-    public async Task<GetCompetitionsResult> Handle(GetCompetitionsQuery request, CancellationToken cancellationToken)
+    public async Task<GetCompetitionsResult> Handle(
+        GetCompetitionsQuery request,
+        CancellationToken cancellationToken
+    )
     {
         var query = _dbContext.Competitions.AsNoTracking();
 
@@ -51,11 +54,6 @@ public class GetCompetitionsHandler : IRequestHandler<GetCompetitionsQuery, GetC
             ))
             .ToListAsync(cancellationToken);
 
-        return new GetCompetitionsResult(
-            competitions,
-            totalCount,
-            request.Skip,
-            request.Take
-        );
+        return new GetCompetitionsResult(competitions, totalCount, request.Skip, request.Take);
     }
 }

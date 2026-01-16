@@ -23,7 +23,8 @@ public class UnregisterGroupHandler : IRequestHandler<UnregisterGroupCommand, Un
         UserManager<Core.Domain.Users.User> userManager,
         FalconDbContext dbContext,
         IHttpContextAccessor httpContextAccessor,
-        ILogger<UnregisterGroupHandler> logger)
+        ILogger<UnregisterGroupHandler> logger
+    )
     {
         _userManager = userManager;
         _dbContext = dbContext;
@@ -31,18 +32,23 @@ public class UnregisterGroupHandler : IRequestHandler<UnregisterGroupCommand, Un
         _logger = logger;
     }
 
-    public async Task<UnregisterGroupResult> Handle(UnregisterGroupCommand request, CancellationToken cancellationToken)
+    public async Task<UnregisterGroupResult> Handle(
+        UnregisterGroupCommand request,
+        CancellationToken cancellationToken
+    )
     {
         // Get logged-in user
-        var httpContext = _httpContextAccessor.HttpContext 
+        var httpContext =
+            _httpContextAccessor.HttpContext
             ?? throw new UnauthorizedAccessException("Usuário não autenticado");
 
-        var userId = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+        var userId =
+            httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
             ?? throw new UnauthorizedAccessException("ID do usuário não encontrado");
 
         // Get user with group
-        var user = await _userManager.Users
-            .Include(u => u.Group)
+        var user = await _userManager
+            .Users.Include(u => u.Group)
             .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 
         if (user == null)
@@ -53,14 +59,18 @@ public class UnregisterGroupHandler : IRequestHandler<UnregisterGroupCommand, Un
         // Verify user is group leader
         if (user.Group == null || user.Group.LeaderId != userId)
         {
-            throw new UnauthorizedAccessException("Apenas o líder do grupo pode cancelar a inscrição");
+            throw new UnauthorizedAccessException(
+                "Apenas o líder do grupo pode cancelar a inscrição"
+            );
         }
 
         var group = user.Group;
 
         // Get competition
-        var competition = await _dbContext.Competitions
-            .FirstOrDefaultAsync(c => c.Id == request.CompetitionId, cancellationToken);
+        var competition = await _dbContext.Competitions.FirstOrDefaultAsync(
+            c => c.Id == request.CompetitionId,
+            cancellationToken
+        );
 
         if (competition == null)
         {
@@ -68,24 +78,32 @@ public class UnregisterGroupHandler : IRequestHandler<UnregisterGroupCommand, Un
         }
 
         // Verify competition hasn't started yet
-        if (competition.Status == CompetitionStatus.Ongoing || competition.Status == CompetitionStatus.Finished)
+        if (
+            competition.Status == CompetitionStatus.Ongoing
+            || competition.Status == CompetitionStatus.Finished
+        )
         {
             var errors = new Dictionary<string, string>
             {
-                { "competition", "Não é possível cancelar inscrição em competição já iniciada ou finalizada" }
+                {
+                    "competition",
+                    "Não é possível cancelar inscrição em competição já iniciada ou finalizada"
+                },
             };
             throw new FormException(errors);
         }
 
         // Find and remove registration
-        var registration = await _dbContext.GroupsInCompetitions
-            .FirstOrDefaultAsync(g => g.GroupId == group.Id && g.CompetitionId == request.CompetitionId, cancellationToken);
+        var registration = await _dbContext.GroupsInCompetitions.FirstOrDefaultAsync(
+            g => g.GroupId == group.Id && g.CompetitionId == request.CompetitionId,
+            cancellationToken
+        );
 
         if (registration == null)
         {
             var errors = new Dictionary<string, string>
             {
-                { "registration", "Grupo não está inscrito nesta competição" }
+                { "registration", "Grupo não está inscrito nesta competição" },
             };
             throw new FormException(errors);
         }
@@ -93,8 +111,10 @@ public class UnregisterGroupHandler : IRequestHandler<UnregisterGroupCommand, Un
         _dbContext.GroupsInCompetitions.Remove(registration);
 
         // Remove ranking entry
-        var ranking = await _dbContext.CompetitionRankings
-            .FirstOrDefaultAsync(r => r.GroupId == group.Id && r.CompetitionId == request.CompetitionId, cancellationToken);
+        var ranking = await _dbContext.CompetitionRankings.FirstOrDefaultAsync(
+            r => r.GroupId == group.Id && r.CompetitionId == request.CompetitionId,
+            cancellationToken
+        );
 
         if (ranking != null)
         {
@@ -103,19 +123,16 @@ public class UnregisterGroupHandler : IRequestHandler<UnregisterGroupCommand, Un
 
         // Create log entry
         var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        var log = new Log(
-            LogType.LeaveCompetition,
-            ipAddress,
-            user,
-            group,
-            competition
-        );
+        var log = new Log(LogType.LeaveCompetition, ipAddress, user, group, competition);
         await _dbContext.Logs.AddAsync(log, cancellationToken);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Group {GroupId} unregistered from competition {CompetitionId}", 
-            group.Id, competition.Id);
+        _logger.LogInformation(
+            "Group {GroupId} unregistered from competition {CompetitionId}",
+            group.Id,
+            competition.Id
+        );
 
         return new UnregisterGroupResult(true, "Inscrição cancelada com sucesso");
     }

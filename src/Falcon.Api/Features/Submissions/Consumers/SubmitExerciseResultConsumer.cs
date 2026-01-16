@@ -1,5 +1,5 @@
-using Falcon.Api.Features.Submissions.Shared;
 using Falcon.Api.Features.Competitions.Hubs;
+using Falcon.Api.Features.Submissions.Shared;
 using Falcon.Core.Messages;
 using MassTransit;
 using Microsoft.AspNetCore.SignalR;
@@ -16,7 +16,8 @@ public class SubmitExerciseResultConsumer : IConsumer<ISubmitExerciseResult>
 
     public SubmitExerciseResultConsumer(
         IHubContext<CompetitionHub> hubContext,
-        ILogger<SubmitExerciseResultConsumer> logger)
+        ILogger<SubmitExerciseResultConsumer> logger
+    )
     {
         _hubContext = hubContext;
         _logger = logger;
@@ -31,38 +32,44 @@ public class SubmitExerciseResultConsumer : IConsumer<ISubmitExerciseResult>
         var result = context.Message;
 
         _logger.LogInformation(
-            "Received submission result for ConnectionId {ConnectionId}, Correlation {CorrelationId}, Success: {Success}", 
-            result.ConnectionId, result.CorrelationId, result.Success);
+            "Received submission result for ConnectionId {ConnectionId}, Correlation {CorrelationId}, Success: {Success}",
+            result.ConnectionId,
+            result.CorrelationId,
+            result.Success
+        );
 
         if (result.Success)
         {
             // Send success response with attempt and ranking details
-            await _hubContext.Clients.Client(result.ConnectionId).SendAsync(
-                "ReceiveExerciseAttemptResponse",
-                new
-                {
-                    correlationId = result.CorrelationId,
-                    success = true,
-                    attempt = new AttemptDto(
-                        result.AttemptId!.Value,
-                        Guid.Empty, // ExerciseId - not needed here
-                        string.Empty, // ExerciseTitle - not needed here
-                        Guid.Empty, // GroupId - not needed here
-                        string.Empty, // GroupName - not needed here
-                        DateTime.UtcNow,
-                        Core.Domain.Shared.Enums.LanguageType.CSharp, // Placeholder
-                        result.Accepted,
-                        result.JudgeResponse,
-                        result.ExecutionTime
-                    ),
-                    ranking = new
+            await _hubContext
+                .Clients.Client(result.ConnectionId)
+                .SendAsync(
+                    "ReceiveExerciseAttemptResponse",
+                    new
                     {
-                        rankOrder = result.RankOrder,
-                        points = result.Points,
-                        penalty = result.Penalty,
-                        solvedExercises = result.SolvedExercises
+                        correlationId = result.CorrelationId,
+                        success = true,
+                        attempt = new AttemptDto(
+                            result.AttemptId!.Value,
+                            Guid.Empty, // ExerciseId - not needed here
+                            string.Empty, // ExerciseTitle - not needed here
+                            Guid.Empty, // GroupId - not needed here
+                            string.Empty, // GroupName - not needed here
+                            DateTime.UtcNow,
+                            Core.Domain.Shared.Enums.LanguageType.CSharp, // Placeholder
+                            result.Accepted,
+                            result.JudgeResponse,
+                            result.ExecutionTime
+                        ),
+                        ranking = new
+                        {
+                            rankOrder = result.RankOrder,
+                            points = result.Points,
+                            penalty = result.Penalty,
+                            solvedExercises = result.SolvedExercises,
+                        },
                     }
-                });
+                );
 
             // Broadcast ranking update to all clients
             await _hubContext.Clients.All.SendAsync(
@@ -73,27 +80,35 @@ public class SubmitExerciseResultConsumer : IConsumer<ISubmitExerciseResult>
                     points = result.Points,
                     penalty = result.Penalty,
                     solvedExercises = result.SolvedExercises,
-                    timestamp = DateTime.UtcNow
-                });
+                    timestamp = DateTime.UtcNow,
+                }
+            );
 
             _logger.LogInformation(
-                "Submission result sent to client {ConnectionId}, Accepted: {Accepted}", 
-                result.ConnectionId, result.Accepted);
+                "Submission result sent to client {ConnectionId}, Accepted: {Accepted}",
+                result.ConnectionId,
+                result.Accepted
+            );
         }
         else
         {
             // Send error response
-            await _hubContext.Clients.Client(result.ConnectionId).SendAsync(
-                "ReceiveExerciseAttemptError",
-                new
-                {
-                    correlationId = result.CorrelationId,
-                    message = result.ErrorMessage ?? "Erro desconhecido ao processar submissão"
-                });
+            await _hubContext
+                .Clients.Client(result.ConnectionId)
+                .SendAsync(
+                    "ReceiveExerciseAttemptError",
+                    new
+                    {
+                        correlationId = result.CorrelationId,
+                        message = result.ErrorMessage ?? "Erro desconhecido ao processar submissão",
+                    }
+                );
 
             _logger.LogWarning(
-                "Submission failed for ConnectionId {ConnectionId}: {Error}", 
-                result.ConnectionId, result.ErrorMessage);
+                "Submission failed for ConnectionId {ConnectionId}: {Error}",
+                result.ConnectionId,
+                result.ErrorMessage
+            );
         }
     }
 }

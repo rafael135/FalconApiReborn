@@ -1,8 +1,8 @@
 using Falcon.Api.Extensions;
-using MediatR;
-using Microsoft.AspNetCore.Mvc;
 using Falcon.Core.Domain.Competitions;
+using MediatR;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Falcon.Api.Features.Competitions.GetCompetitions;
 
@@ -24,16 +24,26 @@ public class GetCompetitionsEndpoint : IEndpoint
     /// <param name="app">The route builder to map the endpoint into.</param>
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("api/Competition", async (IMediator mediator, CompetitionStatus? status, int skip = 0, int take = 10) =>
-        {
-            var query = new GetCompetitionsQuery(status, skip, take);
-            var result = await mediator.Send(query);
-            return Results.Ok(result);
-        })
-        .WithName("GetCompetitions")
-        .WithTags("Competitions")
-        .WithSummary("List competitions with optional status filter and pagination.")
-        .WithDescription("Returns a paginated list of competitions. Filter by status when provided.")
-        .Produces<GetCompetitionsResult>(StatusCodes.Status200OK);
+        app.MapGet(
+                "api/Competition",
+                async (
+                    IMediator mediator,
+                    CompetitionStatus? status,
+                    int skip = 0,
+                    int take = 10
+                ) =>
+                {
+                    var query = new GetCompetitionsQuery(status, skip, take);
+                    var result = await mediator.Send(query);
+                    return Results.Ok(result);
+                }
+            )
+            .WithName("GetCompetitions")
+            .WithTags("Competitions")
+            .WithSummary("List competitions with optional status filter and pagination.")
+            .WithDescription(
+                "Returns a paginated list of competitions. Filter by status when provided."
+            )
+            .Produces<GetCompetitionsResult>(StatusCodes.Status200OK);
     }
 }

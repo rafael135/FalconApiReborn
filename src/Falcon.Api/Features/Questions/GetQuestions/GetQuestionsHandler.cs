@@ -18,12 +18,13 @@ public class GetQuestionsHandler : IRequestHandler<GetQuestionsQuery, GetQuestio
     }
 
     public async Task<GetQuestionsResult> Handle(
-        GetQuestionsQuery request, 
-        CancellationToken cancellationToken)
+        GetQuestionsQuery request,
+        CancellationToken cancellationToken
+    )
     {
         // Start with base query filtered by competition
-        var query = _dbContext.Questions
-            .AsNoTracking()
+        var query = _dbContext
+            .Questions.AsNoTracking()
             .Where(q => q.CompetitionId == request.CompetitionId);
 
         // Apply optional filters
@@ -48,9 +49,9 @@ public class GetQuestionsHandler : IRequestHandler<GetQuestionsQuery, GetQuestio
             .Skip(request.Skip)
             .Take(request.Take)
             .Include(q => q.User)
-                .ThenInclude(u => u.Group!)
+            .ThenInclude(u => u.Group!)
             .Include(q => q.Answer!)
-                .ThenInclude(a => a.User)
+            .ThenInclude(a => a.User)
             .Include(q => q.Exercise)
             .Select(q => new QuestionDto(
                 q.Id,
@@ -63,7 +64,7 @@ public class GetQuestionsHandler : IRequestHandler<GetQuestionsQuery, GetQuestio
                 q.Content,
                 q.QuestionType,
                 q.CreatedAt,
-                q.Answer != null 
+                q.Answer != null
                     ? new AnswerDto(
                         q.Answer.Id,
                         q.Answer.Content,

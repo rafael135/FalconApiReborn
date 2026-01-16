@@ -43,7 +43,8 @@ public class Group : Entity
     /// <summary>
     /// Associations between this group and competitions.
     /// </summary>
-    public virtual IReadOnlyCollection<GroupInCompetition> GroupsInCompetitions => _groupsInCompetitions.AsReadOnly();
+    public virtual IReadOnlyCollection<GroupInCompetition> GroupsInCompetitions =>
+        _groupsInCompetitions.AsReadOnly();
 
     private readonly List<Competition> _competitions = new();
 
@@ -57,14 +58,16 @@ public class Group : Entity
     /// <summary>
     /// Ranking entries for this group across competitions.
     /// </summary>
-    public virtual IReadOnlyCollection<Competitions.CompetitionRanking> Rankings => _rankings.AsReadOnly();
+    public virtual IReadOnlyCollection<Competitions.CompetitionRanking> Rankings =>
+        _rankings.AsReadOnly();
 
     private readonly List<Exercises.GroupExerciseAttempt> _attempts = new();
 
     /// <summary>
     /// Attempts performed by this group.
     /// </summary>
-    public virtual IReadOnlyCollection<Exercises.GroupExerciseAttempt> Attempts => _attempts.AsReadOnly();
+    public virtual IReadOnlyCollection<Exercises.GroupExerciseAttempt> Attempts =>
+        _attempts.AsReadOnly();
 
     private readonly List<Auditing.Log> _logs = new();
 

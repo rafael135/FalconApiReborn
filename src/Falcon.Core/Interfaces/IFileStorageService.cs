@@ -8,7 +8,11 @@ public interface IFileStorageService
     /// <summary>
     /// Saves a file to storage and returns the relative path.
     /// </summary>
-    Task<string> SaveFileAsync(Stream fileStream, string fileName, CancellationToken cancellationToken = default);
+    Task<string> SaveFileAsync(
+        Stream fileStream,
+        string fileName,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Reads a file from storage.

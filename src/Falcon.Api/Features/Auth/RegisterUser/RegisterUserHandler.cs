@@ -94,7 +94,13 @@ public class RegisterUserHandler : IRequestHandler<RegisterUserCommand, Register
         }
 
         // 4. Entity Creation
-        User newUser = new User(request.Name, request.Email, request.Ra, request.joinYear, request.Department);
+        User newUser = new User(
+            request.Name,
+            request.Email,
+            request.Ra,
+            request.joinYear,
+            request.Department
+        );
 
         // 5. Persistence
         var result = await _userManager.CreateAsync(newUser, request.Password);

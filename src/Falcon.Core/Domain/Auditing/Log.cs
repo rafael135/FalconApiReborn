@@ -30,7 +30,8 @@ public class Log : Entity
         string ipAddress,
         User? user = null,
         Groups.Group? group = null,
-        Competitions.Competition? competition = null)
+        Competitions.Competition? competition = null
+    )
     {
         if (string.IsNullOrWhiteSpace(ipAddress))
             throw new ArgumentException("Endereço IP é obrigatório");
@@ -38,13 +39,13 @@ public class Log : Entity
         ActionType = actionType;
         ActionTime = DateTime.UtcNow;
         IpAddress = ipAddress;
-        
+
         User = user;
         UserId = user?.Id;
-        
+
         Group = group;
         GroupId = group?.Id;
-        
+
         Competition = competition;
         CompetitionId = competition?.Id;
     }

@@ -18,21 +18,16 @@ public class GroupConfiguration : IEntityTypeConfiguration<Group>
 
         builder.HasKey(g => g.Id);
 
-        builder.Property(g => g.Id)
-            .ValueGeneratedOnAdd();
+        builder.Property(g => g.Id).ValueGeneratedOnAdd();
 
-        builder.Property(g => g.Name)
-            .HasMaxLength(100)
-            .IsRequired();
+        builder.Property(g => g.Name).HasMaxLength(100).IsRequired();
 
-        builder.Property(g => g.LeaderId)
-            .IsRequired()
-            .HasMaxLength(450);
+        builder.Property(g => g.LeaderId).IsRequired().HasMaxLength(450);
 
-        builder.Property(g => g.RowVersion)
-            .IsRowVersion();
+        builder.Property(g => g.RowVersion).IsRowVersion();
 
-        builder.HasMany(g => g.Users)
+        builder
+            .HasMany(g => g.Users)
             .WithOne(u => u.Group)
             .HasForeignKey(u => u.GroupId)
             .OnDelete(DeleteBehavior.SetNull);

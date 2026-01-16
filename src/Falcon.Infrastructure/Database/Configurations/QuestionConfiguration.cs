@@ -18,44 +18,39 @@ public class QuestionConfiguration : IEntityTypeConfiguration<Question>
 
         builder.HasKey(q => q.Id);
 
-        builder.Property(q => q.Id)
-            .ValueGeneratedOnAdd();
+        builder.Property(q => q.Id).ValueGeneratedOnAdd();
 
-        builder.Property(q => q.Content)
-            .IsRequired()
-            .HasMaxLength(Question.MaxContentLength);
+        builder.Property(q => q.Content).IsRequired().HasMaxLength(Question.MaxContentLength);
 
-        builder.Property(q => q.QuestionType)
-            .IsRequired()
-            .HasConversion<int>();
+        builder.Property(q => q.QuestionType).IsRequired().HasConversion<int>();
 
-        builder.Property(q => q.CreatedAt)
-            .IsRequired();
+        builder.Property(q => q.CreatedAt).IsRequired();
 
-        builder.Property(q => q.RowVersion)
-            .IsRowVersion();
+        builder.Property(q => q.RowVersion).IsRowVersion();
 
-        builder.Property(q => q.UserId)
-            .IsRequired()
-            .HasMaxLength(450);
+        builder.Property(q => q.UserId).IsRequired().HasMaxLength(450);
 
         // Relacionamentos
-        builder.HasOne(q => q.Competition)
+        builder
+            .HasOne(q => q.Competition)
             .WithMany(c => c.Questions)
             .HasForeignKey(q => q.CompetitionId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(q => q.Exercise)
+        builder
+            .HasOne(q => q.Exercise)
             .WithMany(e => e.Questions)
             .HasForeignKey(q => q.ExerciseId)
             .OnDelete(DeleteBehavior.SetNull);
 
-        builder.HasOne(q => q.User)
+        builder
+            .HasOne(q => q.User)
             .WithMany(u => u.Questions)
             .HasForeignKey(q => q.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(q => q.Answer)
+        builder
+            .HasOne(q => q.Answer)
             .WithOne(a => a.Question)
             .HasForeignKey<Question>(q => q.AnswerId)
             .OnDelete(DeleteBehavior.SetNull);

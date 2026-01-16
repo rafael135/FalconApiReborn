@@ -19,19 +19,25 @@ public class BlockGroupEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("api/Competition/{competitionId}/block/{groupId}", [Authorize(Roles = "Teacher,Admin")] async (IMediator mediator, Guid competitionId, Guid groupId) =>
-        {
-            var command = new BlockGroupCommand(competitionId, groupId);
-            var result = await mediator.Send(command);
-            return Results.Ok(result);
-        })
-        .WithName("BlockGroup")
-        .WithTags("Competitions")
-        .WithSummary("Block a group in a competition.")
-        .WithDescription("Blocks a group from participating in the specified competition. Requires Teacher or Admin role.")
-        .Produces<BlockGroupResult>(StatusCodes.Status200OK)
-        .Produces(StatusCodes.Status401Unauthorized)
-        .Produces(StatusCodes.Status403Forbidden)
-        .Produces(StatusCodes.Status404NotFound);
+        app.MapPost(
+                "api/Competition/{competitionId}/block/{groupId}",
+                [Authorize(Roles = "Teacher,Admin")]
+                async (IMediator mediator, Guid competitionId, Guid groupId) =>
+                {
+                    var command = new BlockGroupCommand(competitionId, groupId);
+                    var result = await mediator.Send(command);
+                    return Results.Ok(result);
+                }
+            )
+            .WithName("BlockGroup")
+            .WithTags("Competitions")
+            .WithSummary("Block a group in a competition.")
+            .WithDescription(
+                "Blocks a group from participating in the specified competition. Requires Teacher or Admin role."
+            )
+            .Produces<BlockGroupResult>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound);
     }
 }

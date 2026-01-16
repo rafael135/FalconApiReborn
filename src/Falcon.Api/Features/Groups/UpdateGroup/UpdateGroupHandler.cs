@@ -18,14 +18,18 @@ public class UpdateGroupHandler : IRequestHandler<UpdateGroupCommand, UpdateGrou
     public UpdateGroupHandler(
         FalconDbContext dbContext,
         IHttpContextAccessor httpContextAccessor,
-        ILogger<UpdateGroupHandler> logger)
+        ILogger<UpdateGroupHandler> logger
+    )
     {
         _dbContext = dbContext;
         _httpContextAccessor = httpContextAccessor;
         _logger = logger;
     }
 
-    public async Task<UpdateGroupResult> Handle(UpdateGroupCommand request, CancellationToken cancellationToken)
+    public async Task<UpdateGroupResult> Handle(
+        UpdateGroupCommand request,
+        CancellationToken cancellationToken
+    )
     {
         // Validate input
         var errors = new Dictionary<string, string>();
@@ -39,17 +43,19 @@ public class UpdateGroupHandler : IRequestHandler<UpdateGroupCommand, UpdateGrou
             throw new FormException(errors);
 
         // Get logged-in user
-        var httpContext = _httpContextAccessor.HttpContext 
+        var httpContext =
+            _httpContextAccessor.HttpContext
             ?? throw new UnauthorizedAccessException("Usuário não autenticado");
 
-        var userId = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+        var userId =
+            httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
             ?? throw new UnauthorizedAccessException("ID do usuário não encontrado");
 
         // Get group with members
-        var group = await _dbContext.Groups
-            .Include(g => g.Users)
+        var group = await _dbContext
+            .Groups.Include(g => g.Users)
             .Include(g => g.Invites.Where(i => !i.Accepted))
-                .ThenInclude(i => i.User)
+            .ThenInclude(i => i.User)
             .FirstOrDefaultAsync(g => g.Id == request.GroupId, cancellationToken);
 
         if (group == null)
@@ -69,8 +75,8 @@ public class UpdateGroupHandler : IRequestHandler<UpdateGroupCommand, UpdateGrou
         // Remove members if requested
         if (request.MembersToRemove != null && request.MembersToRemove.Any())
         {
-            var membersToRemove = group.Users
-                .Where(u => request.MembersToRemove.Contains(u.RA))
+            var membersToRemove = group
+                .Users.Where(u => request.MembersToRemove.Contains(u.RA))
                 .ToList();
 
             foreach (var member in membersToRemove)
@@ -81,40 +87,37 @@ public class UpdateGroupHandler : IRequestHandler<UpdateGroupCommand, UpdateGrou
                     // Skip or throw? Let's skip.
                     continue;
                 }
-                
+
                 group.RemoveMember(member);
             }
         }
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Group {GroupId} renamed to {GroupName} by user {UserId}", 
-            group.Id, request.Name, userId);
+        _logger.LogInformation(
+            "Group {GroupId} renamed to {GroupName} by user {UserId}",
+            group.Id,
+            request.Name,
+            userId
+        );
 
         // Map to DTO
-        var membersDto = group.Users.Select(u => new UserSummaryDto(
-            u.Id,
-            u.Name,
-            u.Email!,
-            u.RA,
-            u.JoinYear,
-            u.Department
-        )).ToList();
+        var membersDto = group
+            .Users.Select(u => new UserSummaryDto(
+                u.Id,
+                u.Name,
+                u.Email!,
+                u.RA,
+                u.JoinYear,
+                u.Department
+            ))
+            .ToList();
 
-        var invitesDto = group.Invites.Select(i => new GroupInviteDto(
-            i.Id,
-            i.UserId,
-            i.GroupId,
-            i.Accepted
-        )).ToList();
+        var invitesDto = group
+            .Invites.Select(i => new GroupInviteDto(i.Id, i.UserId, i.GroupId, i.Accepted))
+            .ToList();
 
-        var groupDto = new GroupDto(
-            group.Id,
-            group.Name,
-            group.LeaderId,
-            membersDto,
-            invitesDto
-        );
+        var groupDto = new GroupDto(group.Id, group.Name, group.LeaderId, membersDto, invitesDto);
 
         return new UpdateGroupResult(groupDto);
     }

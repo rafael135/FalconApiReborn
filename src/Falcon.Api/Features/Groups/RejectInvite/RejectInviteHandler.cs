@@ -17,25 +17,33 @@ public class RejectInviteHandler : IRequestHandler<RejectInviteCommand, RejectIn
     public RejectInviteHandler(
         FalconDbContext dbContext,
         IHttpContextAccessor httpContextAccessor,
-        ILogger<RejectInviteHandler> logger)
+        ILogger<RejectInviteHandler> logger
+    )
     {
         _dbContext = dbContext;
         _httpContextAccessor = httpContextAccessor;
         _logger = logger;
     }
 
-    public async Task<RejectInviteResult> Handle(RejectInviteCommand request, CancellationToken cancellationToken)
+    public async Task<RejectInviteResult> Handle(
+        RejectInviteCommand request,
+        CancellationToken cancellationToken
+    )
     {
         // Get logged-in user
-        var httpContext = _httpContextAccessor.HttpContext 
+        var httpContext =
+            _httpContextAccessor.HttpContext
             ?? throw new UnauthorizedAccessException("Usuário não autenticado");
 
-        var userId = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+        var userId =
+            httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
             ?? throw new UnauthorizedAccessException("ID do usuário não encontrado");
 
         // Get invite
-        var invite = await _dbContext.GroupInvites
-            .FirstOrDefaultAsync(i => i.Id == request.InviteId, cancellationToken);
+        var invite = await _dbContext.GroupInvites.FirstOrDefaultAsync(
+            i => i.Id == request.InviteId,
+            cancellationToken
+        );
 
         if (invite == null)
         {
@@ -52,7 +60,11 @@ public class RejectInviteHandler : IRequestHandler<RejectInviteCommand, RejectIn
         _dbContext.GroupInvites.Remove(invite);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("User {UserId} rejected invite {InviteId}", userId, request.InviteId);
+        _logger.LogInformation(
+            "User {UserId} rejected invite {InviteId}",
+            userId,
+            request.InviteId
+        );
 
         return new RejectInviteResult(true, "Convite rejeitado com sucesso");
     }

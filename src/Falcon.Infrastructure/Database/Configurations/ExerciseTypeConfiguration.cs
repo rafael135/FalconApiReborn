@@ -18,11 +18,8 @@ public class ExerciseTypeConfiguration : IEntityTypeConfiguration<ExerciseType>
 
         builder.HasKey(et => et.Id);
 
-        builder.Property(et => et.Id)
-            .ValueGeneratedNever();
+        builder.Property(et => et.Id).ValueGeneratedNever();
 
-        builder.Property(et => et.Label)
-            .HasMaxLength(100)
-            .IsRequired();
+        builder.Property(et => et.Label).HasMaxLength(100).IsRequired();
     }
 }
