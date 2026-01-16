@@ -109,9 +109,12 @@ public static class DependencyInjection
                         new Microsoft.IdentityModel.Tokens.TokenValidationParameters
                         {
                             ValidateIssuerSigningKey = true,
-                            IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
-                                System.Text.Encoding.UTF8.GetBytes(configuration["Jwt:SecretKey"] ?? "")
-                            ),
+                            IssuerSigningKey =
+                                new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
+                                    System.Text.Encoding.UTF8.GetBytes(
+                                        configuration["Jwt:SecretKey"] ?? ""
+                                    )
+                                ),
                             ValidateIssuer = true,
                             ValidIssuer = configuration["Jwt:Issuer"],
                             ValidateAudience = true,
@@ -119,19 +122,23 @@ public static class DependencyInjection
                             ValidateLifetime = true,
                             ClockSkew = TimeSpan.Zero,
                         };
-                    options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
-                    {
-                        OnMessageReceived = context =>
+                    options.Events =
+                        new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
                         {
-                            var accessToken = context.Request.Query["token"];
-                            var path = context.HttpContext.Request.Path;
-                            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/competition"))
+                            OnMessageReceived = context =>
                             {
-                                context.Token = accessToken;
-                            }
-                            return Task.CompletedTask;
-                        }
-                    };
+                                var accessToken = context.Request.Query["token"];
+                                var path = context.HttpContext.Request.Path;
+                                if (
+                                    !string.IsNullOrEmpty(accessToken)
+                                    && path.StartsWithSegments("/hubs/competition")
+                                )
+                                {
+                                    context.Token = accessToken;
+                                }
+                                return Task.CompletedTask;
+                            },
+                        };
                 });
         }
 
@@ -198,7 +205,8 @@ public static class DependencyInjection
     /// </summary>
     public static IServiceCollection AddApiMassTransit(
         this IServiceCollection services,
-        Action<IRegistrationConfigurator> configureConsumers
+        Action<IRegistrationConfigurator> configureConsumers,
+        IConfiguration configuration
     )
     {
         services.AddMassTransit(bus =>
@@ -210,13 +218,16 @@ public static class DependencyInjection
             bus.UsingRabbitMq(
                 (context, cfg) =>
                 {
+                    string host = configuration.GetValue<string>("RabbitMQ:Host", "localhost");
+                    string username = configuration.GetValue<string>("RabbitMQ:Username", "guest");
+                    string password = configuration.GetValue<string>("RabbitMQ:Password", "guest");
                     cfg.Host(
-                        "localhost",
+                        host,
                         "/",
                         h =>
                         {
-                            h.Username("guest");
-                            h.Password("guest");
+                            h.Username(username);
+                            h.Password(password);
                         }
                     );
 
