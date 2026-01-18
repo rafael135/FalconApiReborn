@@ -16,11 +16,12 @@ public class GroupCannotHaveMoreThanMaxMembersRule : IBusinessRule
         _currentMemberCount = currentMemberCount;
     }
 
-    /// <summary>Returns true when the rule is violated.</summary>
+    /// <inheritdoc />
     public bool IsBroken()
     {
         return _currentMemberCount >= MaxMembers;
     }
 
+    /// <inheritdoc />
     public string Message => $"O grupo não pode ter mais de {MaxMembers} membros.";
 }

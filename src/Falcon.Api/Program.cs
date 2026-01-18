@@ -1,11 +1,13 @@
 using System.Reflection;
 using Falcon.Api.Extensions;
 using Falcon.Api.Features.Competitions.Hubs;
+using Falcon.Api.Features.Competitions.UpdateState;
 using Falcon.Api.Features.Submissions.Consumers;
 using Falcon.Api.Infrastructure;
 using Falcon.Infrastructure;
 using Microsoft.OpenApi;
 using Microsoft.OpenApi.Models;
+using Quartz;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -93,6 +95,24 @@ builder.Services.AddOpenApi(options =>
         }
     );
 });
+
+// Quartz for scheduled jobs
+builder.Services.AddQuartz(q =>
+{
+    JobKey jobKey = new JobKey("UpdateCompetitionStateJob");
+
+    q.AddJob<UpdateCompetitionStateJob>(opts => opts.WithIdentity(jobKey));
+
+    q.AddTrigger(options =>
+    {
+        options.ForJob(jobKey);
+        options.WithIdentity("UpdateCompetitionStateJob-trigger");
+        options.WithSimpleSchedule(x => x.WithIntervalInMinutes(1).RepeatForever());
+    });
+});
+
+// Add the Quartz.NET hosted service
+builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
 var app = builder.Build();
 

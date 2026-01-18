@@ -25,6 +25,9 @@ public class Answer : Entity
     /// <summary>Creation timestamp (UTC).</summary>
     public DateTime CreatedAt { get; private set; }
 
+    /// <summary>
+    /// Required by EF Core.
+    /// </summary>
 #pragma warning disable CS8618
     protected Answer() { }
 #pragma warning restore CS8618

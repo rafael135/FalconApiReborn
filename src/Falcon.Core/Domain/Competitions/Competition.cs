@@ -190,4 +190,53 @@ public class Competition : Entity
         ExerciseInCompetition exerciseInCompetition = new ExerciseInCompetition(this, exercise);
         _exercisesInCompetition.Add(exerciseInCompetition);
     }
+
+    /// <summary>
+    /// Updates the competition's <see cref="Status"/> based on the provided <paramref name="currentTime"/> and the competition's configured time windows.
+    /// </summary>
+    public void UpdateStatusBasedOnTime(DateTime currentTime)
+    {
+        if (
+            this.Status == CompetitionStatus.Finished
+            || this.Status == CompetitionStatus.ModelTemplate
+        )
+        {
+            return;
+        }
+
+        if (
+            this.Status == CompetitionStatus.Pending
+            && currentTime >= this.StartInscriptions
+            && currentTime <= this.EndInscriptions
+        )
+        {
+            this.Status = CompetitionStatus.OpenInscriptions;
+            return;
+        }
+
+        if (this.Status == CompetitionStatus.OpenInscriptions && currentTime > this.EndInscriptions)
+        {
+            this.Status = CompetitionStatus.ClosedInscriptions;
+            return;
+        }
+
+        if (
+            this.Status == CompetitionStatus.ClosedInscriptions
+            && currentTime >= this.StartTime
+            && currentTime <= (this.EndTime ?? DateTime.MaxValue)
+        )
+        {
+            this.Status = CompetitionStatus.Ongoing;
+            return;
+        }
+
+        if (
+            this.Status == CompetitionStatus.Ongoing
+            && currentTime > (this.EndTime ?? DateTime.MaxValue)
+        )
+        {
+            this.Status = CompetitionStatus.Finished;
+            return;
+        }
+    }
 }

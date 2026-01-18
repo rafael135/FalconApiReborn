@@ -16,6 +16,7 @@ public class BusinessRuleException : DomainException
         BrokenRule = brokenRule;
     }
 
+    /// <inheritdoc />
     public override string ToString()
     {
         return $"{BrokenRule.GetType().Name}: {BrokenRule.Message}";

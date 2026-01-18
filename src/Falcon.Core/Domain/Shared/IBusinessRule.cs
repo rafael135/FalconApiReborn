@@ -1,5 +1,8 @@
 namespace Falcon.Core.Domain.Shared;
 
+/// <summary>
+/// Defines a business rule within the domain.
+/// </summary>
 public interface IBusinessRule
 {
     /// <summary>

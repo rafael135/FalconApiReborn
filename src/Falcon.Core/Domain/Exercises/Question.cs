@@ -1,3 +1,4 @@
+using Falcon.Core.Domain.Competitions;
 using Falcon.Core.Domain.Shared.Enums;
 using Falcon.Core.Domain.Users;
 
@@ -15,7 +16,7 @@ public class Question : Entity
     public Guid CompetitionId { get; private set; }
 
     /// <summary>Competition navigation property.</summary>
-    public virtual Competitions.Competition Competition { get; private set; }
+    public virtual Competition Competition { get; private set; }
 
     /// <summary>Optional exercise identifier this question refers to.</summary>
     public Guid? ExerciseId { get; private set; }
@@ -53,7 +54,7 @@ public class Question : Entity
 
     /// <summary>Creates a new question associated with a competition (and optionally an exercise).</summary>
     public Question(
-        Competitions.Competition competition,
+        Competition competition,
         User user,
         string content,
         QuestionType questionType,

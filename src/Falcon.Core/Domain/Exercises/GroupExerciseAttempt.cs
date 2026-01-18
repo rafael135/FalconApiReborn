@@ -1,3 +1,4 @@
+using Falcon.Core.Domain.Groups;
 using Falcon.Core.Domain.Shared.Enums;
 
 namespace Falcon.Core.Domain.Exercises;
@@ -17,7 +18,7 @@ public class GroupExerciseAttempt : Entity
     public Guid GroupId { get; private set; }
 
     /// <summary>Group navigation property.</summary>
-    public virtual Groups.Group Group { get; private set; }
+    public virtual Group Group { get; private set; }
 
     /// <summary>Identifier of the competition context.</summary>
     public Guid CompetitionId { get; private set; }
@@ -43,6 +44,9 @@ public class GroupExerciseAttempt : Entity
     /// <summary>Judge response status.</summary>
     public JudgeSubmissionResponse JudgeResponse { get; private set; }
 
+    /// <summary>
+    /// Required by EF Core.
+    /// </summary>
 #pragma warning disable CS8618
     protected GroupExerciseAttempt() { }
 #pragma warning restore CS8618
@@ -50,7 +54,7 @@ public class GroupExerciseAttempt : Entity
     /// <summary>Creates a new group attempt with the provided metadata.</summary>
     public GroupExerciseAttempt(
         Exercise exercise,
-        Groups.Group group,
+        Group group,
         Competitions.Competition competition,
         string code,
         LanguageType language

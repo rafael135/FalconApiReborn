@@ -37,9 +37,12 @@ public class AttachedFile : Entity
     /// </summary>
     public virtual IReadOnlyCollection<Exercises.Exercise> Exercises => _exercises.AsReadOnly();
 
-#pragma warning disable CS8618
+    /// <summary>
+    /// Required by EF Core.
+    /// </summary>
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     protected AttachedFile() { }
-#pragma warning restore CS8618
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
     /// <summary>
     /// Creates a new attached file metadata instance.
