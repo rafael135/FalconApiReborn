@@ -1,7 +1,7 @@
 using System.Reflection;
 using Falcon.Api.Extensions;
 using Falcon.Api.Features.Competitions.Hubs;
-using Falcon.Api.Features.Competitions.UpdateState;
+using Falcon.Api.Features.Competitions.Services;
 using Falcon.Api.Features.Submissions.Consumers;
 using Falcon.Api.Infrastructure;
 using Falcon.Infrastructure;
@@ -25,6 +25,8 @@ builder.Services.AddApiMassTransit(
     },
     configuration
 );
+
+builder.Services.AddScoped<CompetitionScheduler>();
 
 // Add MediatR services - Searchs for handlers in the current assembly
 builder.Services.AddMediatR(cfg =>
@@ -97,19 +99,7 @@ builder.Services.AddOpenApi(options =>
 });
 
 // Quartz for scheduled jobs
-builder.Services.AddQuartz(q =>
-{
-    JobKey jobKey = new JobKey("UpdateCompetitionStateJob");
-
-    q.AddJob<UpdateCompetitionStateJob>(opts => opts.WithIdentity(jobKey));
-
-    q.AddTrigger(options =>
-    {
-        options.ForJob(jobKey);
-        options.WithIdentity("UpdateCompetitionStateJob-trigger");
-        options.WithSimpleSchedule(x => x.WithIntervalInMinutes(1).RepeatForever());
-    });
-});
+builder.Services.AddQuartz();
 
 // Add the Quartz.NET hosted service
 builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);

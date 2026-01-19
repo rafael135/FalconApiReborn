@@ -1,3 +1,4 @@
+using Falcon.Api.Features.Competitions.Services;
 using Falcon.Api.Features.Competitions.Shared;
 using Falcon.Core.Domain.Competitions;
 using Falcon.Core.Domain.Shared.Exceptions;
@@ -13,11 +14,17 @@ namespace Falcon.Api.Features.Competitions.PromoteTemplate;
 public class PromoteTemplateHandler : IRequestHandler<PromoteTemplateCommand, PromoteTemplateResult>
 {
     private readonly FalconDbContext _dbContext;
+    private readonly CompetitionScheduler _competitionScheduler;
     private readonly ILogger<PromoteTemplateHandler> _logger;
 
-    public PromoteTemplateHandler(FalconDbContext dbContext, ILogger<PromoteTemplateHandler> logger)
+    public PromoteTemplateHandler(
+        FalconDbContext dbContext,
+        CompetitionScheduler competitionScheduler,
+        ILogger<PromoteTemplateHandler> logger
+    )
     {
         _dbContext = dbContext;
+        _competitionScheduler = competitionScheduler;
         _logger = logger;
     }
 
@@ -93,6 +100,9 @@ public class PromoteTemplateHandler : IRequestHandler<PromoteTemplateCommand, Pr
             "Competition template {TemplateId} promoted to active competition",
             request.TemplateId
         );
+
+        // Schedule competition state changes
+        await _competitionScheduler.ScheduleCompetitionChanges(template);
 
         var competitionDto = new CompetitionDto(
             template.Id,
