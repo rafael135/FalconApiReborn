@@ -106,6 +106,3 @@ quartz:
 - Log job executions with `ILogger` including `CompetitionId` and job name.
 - Expose metrics (e.g., job duration, failure count) via your monitoring stack (Prometheus, Application Insights, etc.).
 
----
-
-This document is part of the TCC documentation set and should be referenced in `README` files and architecture docs.
