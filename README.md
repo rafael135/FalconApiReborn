@@ -24,6 +24,7 @@
 - [API Documentation](#-api-documentation)
 - [Real-Time Architecture](#-real-time-architecture)
 - [Background Processing](#-background-processing)
+- [Scheduling (Quartz.NET)](#-scheduling-quartznet)
 - [Testing](#-testing)
 - [Configuration](#-configuration)
 - [Deployment](#-deployment)
@@ -993,6 +994,15 @@ public interface ISubmitExerciseResult
     Guid CorrelationId { get; }
 }
 ```
+
+## ⏱️ Scheduling (Quartz.NET)
+
+The API uses **Quartz.NET** to schedule automatic competition state updates (for example: start/end inscriptions, start/end competition time). When a template is promoted to an active competition, the `PromoteTemplateHandler` calls `CompetitionScheduler.ScheduleCompetitionChanges`, which creates one-shot jobs (`Trigger.StartAt`) for each competition key date.
+
+- **Main job**: `ProcessCompetitionStateJob` — loads the competition and updates its status by calling the domain method `UpdateStatusBasedOnTime`.
+- **Where scheduled**: `CompetitionScheduler.ScheduleCompetitionChanges` (jobs grouped as `Competition-{competitionId}`).
+- **Current behavior**: Quartz is registered with `AddQuartz()` and uses the default in-memory store. One-shot triggers are lost if the process restarts without a persistent job store.
+
 
 ---
 

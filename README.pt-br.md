@@ -24,6 +24,7 @@
 - [Documentação da API](#-documentação-da-api)
 - [Arquitetura em Tempo Real](#-arquitetura-em-tempo-real)
 - [Processamento em Background](#-processamento-em-background)
+- [Agendamento (Quartz.NET)](#-agendamento-quartznet)
 - [Testes](#-testes)
 - [Configuração](#-configuração)
 - [Deploy](#-deploy)
@@ -1051,6 +1052,17 @@ public interface ISubmitExerciseResult
     Guid CorrelationId { get; }
 }
 ```
+
+## ⏱️ Agendamento (Quartz.NET)
+
+O projeto utiliza **Quartz.NET** na API para agendar atualizações automáticas do estado das competições (ex.: início/fim de inscrições, início/fim da competição). Quando um template é promovido para competição ativa, o `PromoteTemplateHandler` chama `CompetitionScheduler.ScheduleCompetitionChanges`, que cria jobs one-shot (`Trigger.StartAt`) para cada data-chave da competição.
+
+- **Job principal**: `ProcessCompetitionStateJob` — carrega a competição e executa a atualização de estado (chama `UpdateStatusBasedOnTime` do domínio).
+- **Onde é agendado**: `CompetitionScheduler.ScheduleCompetitionChanges` (group `Competition-{competitionId}`).
+- **Comportamento atual**: Quartz está registrado via `AddQuartz()` (in-memory por padrão). Jobs programados com triggers `StartAt` são perdidos em reinícios se não houver persistência.
+
+
+Leia `docs/COMPETITION_SCHEDULING.md` para detalhes de implantação, scripts de criação de tabelas do Quartz e configurações recomendadas.
 
 ---
 

@@ -226,7 +226,37 @@ connection.on("ReceiveRankingUpdate", (ranking) => {
     console.log("Ranking updated:", ranking);
 });
 ```
+## Competition Scheduling
 
+Adicionado para documentar o fluxo de agendamento de alterações de estado das competições usando **Quartz.NET**.
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant API
+    participant Scheduler as CompetitionScheduler
+    participant Quartz
+    participant Job as ProcessCompetitionStateJob
+    participant DB
+
+    Client->>API: POST /api/Competition/{id}/promote
+    API->>Scheduler: ScheduleCompetitionChanges(competition)
+    Scheduler->>Quartz: Schedule Job (StartAt runAt, JobData: CompetitionId)
+    Note right of Quartz: wait until runAt
+    Quartz->>Job: Execute(JobData: CompetitionId)
+    Job->>DB: Load competition & UpdateStatusBasedOnTime()
+    DB-->>Job: Persist
+    Note right of Job: (optional) SignalR notification not sent by default
+
+    Job->>API: (optional) invoke notification endpoints
+    API->>Client: (if implemented) send status update
+```
+
+**Notas importantes:**
+
+- Os jobs são agendados com triggers `StartAt` (one-shot) para datas específicas (StartInscriptions, EndInscriptions, StartTime, EndTime).
+- Jobs são agrupados por `Competition-{competitionId}`; para remover um agendamento use `CompetitionScheduler.DeleteSchedule`.
+- Atualmente o projeto registra Quartz sem JobStore persistente; para produção recomenda-se configurar **AdoJobStore (SQL Server)** e, se necessário, habilitar **clustering**.
 ## Vantagens da Arquitetura
 
 1. **Desacoplamento**: API não bloqueia aguardando avaliação do Judge
@@ -235,10 +265,3 @@ connection.on("ReceiveRankingUpdate", (ranking) => {
 4. **Real-time**: Clientes recebem atualizações instantâneas via SignalR
 5. **Broadcasting**: Atualização de ranking para todos os clientes simultaneamente
 6. **Rastreabilidade**: CorrelationId permite rastrear cada submissão
-
-## Próximos Passos
-
-- [ ] Implementar Questions/Answers via SignalR
-- [ ] Adicionar retry policies no MassTransit
-- [ ] Implementar dead-letter queue para falhas
-- [ ] Adicionar métricas e observabilidade

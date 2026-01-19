@@ -99,7 +99,29 @@ builder.Services.AddOpenApi(options =>
 });
 
 // Quartz for scheduled jobs
-builder.Services.AddQuartz();
+builder.Services.AddQuartz(q =>
+{
+    // Use DI-aware job factory
+    q.UseMicrosoftDependencyInjectionJobFactory();
+
+    // Use persistent AdoJobStore when configured (default: in-memory)
+    if (builder.Configuration.GetValue<bool>("Quartz:UsePersistentStore", false))
+    {
+        q.SchedulerId = "AUTO";
+        q.UsePersistentStore(s =>
+        {
+            s.UseSqlServer(sql =>
+            {
+                sql.ConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+            });
+
+            if (builder.Configuration.GetValue<bool>("Quartz:UseClustering", false))
+            {
+                s.UseClustering();
+            }
+        });
+    }
+});
 
 // Add the Quartz.NET hosted service
 builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
