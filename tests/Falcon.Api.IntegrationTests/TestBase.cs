@@ -53,30 +53,51 @@ public abstract class TestBase : IClassFixture<CustomWebApplicationFactory>, IDi
         string email = "student@example.com",
         string name = "Test Student",
         string ra = null!,
-        string password = "password123")
+        string password = "password123"
+    )
     {
         ra ??= Guid.NewGuid().ToString().Substring(0, 6);
-        return await AuthenticationHelper.CreateAuthenticatedStudentAsync(UserManager, email, name, ra, password);
+        return await AuthenticationHelper.CreateAuthenticatedStudentAsync(
+            UserManager,
+            email,
+            name,
+            ra,
+            password
+        );
     }
 
     protected async Task<(User User, string Token)> CreateTeacherAsync(
         string email = "teacher@example.com",
         string name = "Test Teacher",
         string ra = null!,
-        string password = "password123")
+        string password = "password123"
+    )
     {
         ra ??= Guid.NewGuid().ToString().Substring(0, 6);
-        return await AuthenticationHelper.CreateAuthenticatedTeacherAsync(UserManager, email, name, ra, password);
+        return await AuthenticationHelper.CreateAuthenticatedTeacherAsync(
+            UserManager,
+            email,
+            name,
+            ra,
+            password
+        );
     }
 
     protected async Task<(User User, string Token)> CreateAdminAsync(
         string email = "admin@example.com",
         string name = "Test Admin",
         string ra = null!,
-        string password = "password123")
+        string password = "password123"
+    )
     {
         ra ??= Guid.NewGuid().ToString().Substring(0, 6);
-        return await AuthenticationHelper.CreateAuthenticatedAdminAsync(UserManager, email, name, ra, password);
+        return await AuthenticationHelper.CreateAuthenticatedAdminAsync(
+            UserManager,
+            email,
+            name,
+            ra,
+            password
+        );
     }
 
     protected async Task<Group> CreateGroupAsync(User leader, string name = "Test Group")
@@ -94,14 +115,21 @@ public abstract class TestBase : IClassFixture<CustomWebApplicationFactory>, IDi
         string description = "Test Description",
         DateTime? startInscriptions = null,
         DateTime? endInscriptions = null,
-        DateTime? startTime = null)
+        DateTime? startTime = null
+    )
     {
         var now = DateTime.UtcNow;
         startInscriptions ??= now.AddDays(-1);
         endInscriptions ??= now.AddDays(1);
         startTime ??= now.AddDays(2);
 
-        var template = Competition.CreateTemplate(name, description, startInscriptions.Value, endInscriptions.Value, startTime.Value);
+        var template = Competition.CreateTemplate(
+            name,
+            description,
+            startInscriptions.Value,
+            endInscriptions.Value,
+            startTime.Value
+        );
         DbContext.Competitions.Add(template);
         await DbContext.SaveChangesAsync();
         return template;
@@ -114,7 +142,8 @@ public abstract class TestBase : IClassFixture<CustomWebApplicationFactory>, IDi
         int maxExercises = 3,
         int maxSubmissionSize = 10000,
         TimeSpan? duration = null,
-        TimeSpan? penalty = null)
+        TimeSpan? penalty = null
+    )
     {
         duration ??= TimeSpan.FromHours(2);
         penalty ??= TimeSpan.FromMinutes(10);
@@ -125,7 +154,8 @@ public abstract class TestBase : IClassFixture<CustomWebApplicationFactory>, IDi
             description,
             now.AddDays(-1),
             now.AddDays(1),
-            now.AddDays(2));
+            now.AddDays(2)
+        );
 
         DbContext.Competitions.Add(template);
         await DbContext.SaveChangesAsync();
@@ -137,7 +167,8 @@ public abstract class TestBase : IClassFixture<CustomWebApplicationFactory>, IDi
             duration.Value,
             TimeSpan.FromMinutes(30),
             TimeSpan.FromMinutes(15),
-            penalty.Value);
+            penalty.Value
+        );
 
         await DbContext.SaveChangesAsync();
         return template;
@@ -145,8 +176,9 @@ public abstract class TestBase : IClassFixture<CustomWebApplicationFactory>, IDi
 
     protected async Task<ExerciseType> GetOrCreateExerciseTypeAsync(string label = "Programming")
     {
-        var exerciseType = await DbContext.ExerciseTypes
-            .FirstOrDefaultAsync(et => et.Label == label);
+        var exerciseType = await DbContext.ExerciseTypes.FirstOrDefaultAsync(et =>
+            et.Label == label
+        );
 
         if (exerciseType == null)
         {
@@ -164,7 +196,8 @@ public abstract class TestBase : IClassFixture<CustomWebApplicationFactory>, IDi
         string title = "Test Exercise",
         string? description = "Test Description",
         int? exerciseTypeId = null,
-        TimeSpan? estimatedTime = null)
+        TimeSpan? estimatedTime = null
+    )
     {
         if (exerciseTypeId == null)
         {
@@ -184,7 +217,7 @@ public abstract class TestBase : IClassFixture<CustomWebApplicationFactory>, IDi
     {
         // Clear the change tracker to avoid conflicts with entities removed during the test
         DbContext.ChangeTracker.Clear();
-        
+
         DbContext.Logs.RemoveRange(DbContext.Logs);
         DbContext.Answers.RemoveRange(DbContext.Answers);
         DbContext.Questions.RemoveRange(DbContext.Questions);

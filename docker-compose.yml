@@ -1,16 +1,14 @@
-version: '3.8'
-
 services:
   # O Banco de Dados
-  #sqlserver:
-  #  image: mcr.microsoft.com/mssql/server:2022-latest
-  #  environment:
-  #    - ACCEPT_EULA=Y
-  #    - MSSQL_SA_PASSWORD=FalconStrongPassword!123 # Senha forte obrigatória
-  #  ports:
-  #    - "1433:1433"
-  #  volumes:
-  #    - sqlserver_data:/var/opt/mssql
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=FalconStrongPassword!123 # Senha forte obrigatória
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
 
   # A Fila
   rabbitmq:
@@ -19,5 +17,5 @@ services:
       - "15672:15672" # Dashboard (User: guest, Pass: guest)
       - "5672:5672"   # Protocolo AMQP
 
-#volumes:
-  #sqlserver_data:
+volumes:
+  sqlserver_data:

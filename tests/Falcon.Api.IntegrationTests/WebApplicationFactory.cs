@@ -1,4 +1,5 @@
 using System.Text;
+using Falcon.Core.Domain.Shared.Enums;
 using Falcon.Core.Interfaces;
 using Falcon.Infrastructure.Database;
 using Falcon.Infrastructure.Storage;
@@ -11,7 +12,6 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
@@ -147,7 +147,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                     x.CreateExerciseAsync(
                         It.IsAny<string>(),
                         It.IsAny<string>(),
-                        It.IsAny<List<Falcon.Core.Interfaces.TestCase>>()
+                        It.IsAny<List<TestCase>>()
                     )
                 )
                 .ReturnsAsync(Guid.NewGuid().ToString());
@@ -157,9 +157,9 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                     x.SubmitCodeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())
                 )
                 .ReturnsAsync(
-                    new Falcon.Core.Interfaces.JudgeSubmissionResult(
+                    new JudgeSubmissionResult(
                         Guid.NewGuid().ToString(),
-                        Falcon.Core.Domain.Shared.Enums.JudgeSubmissionResponse.Accepted,
+                        JudgeSubmissionResponse.Accepted,
                         TimeSpan.FromSeconds(1),
                         1024
                     )
@@ -344,9 +344,7 @@ internal class RoleSeederService : Microsoft.Extensions.Hosting.IHostedService
         {
             if (!await roleManager.RoleExistsAsync(roleName))
             {
-                await roleManager.CreateAsync(
-                    new Microsoft.AspNetCore.Identity.IdentityRole(roleName)
-                );
+                await roleManager.CreateAsync(new IdentityRole(roleName));
             }
         }
     }
