@@ -5,7 +5,7 @@
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2B%20DDD-brightgreen)](docs/SIGNALR_RABBITMQ_ARCHITECTURE.md)
 [![Docs: build-docs](https://github.com/rafael135/FalconApiReborn/actions/workflows/build-docs.yml/badge.svg?branch=main)](https://github.com/rafael135/FalconApiReborn/actions/workflows/build-docs.yml)
 
-**Falcon API Reborn** is a complete rewrite of the Falcon Competition platform backend, implementing modern software engineering practices with **Clean Architecture**, **Domain-Driven Design**, and **Vertical Slice Architecture**. This system provides robust infrastructure for real-time programming competitions with automatic code evaluation, asynchronous processing, and comprehensive management of users, groups, and exercises.
+**Falcon API Reborn** is a complete rewrite of the Falcon Competition platform backend, implementing modern software engineering practices with an overall architecture based on **Clean Architecture**, **Domain-Driven Design**, **asynchronous message-driven processing** (RabbitMQ + MassTransit), and **real-time communication** (SignalR). At the API endpoint level, it also uses a **feature-oriented organization** inspired by Vertical Slices. This system provides robust infrastructure for real-time programming competitions with automatic code evaluation, asynchronous processing, and comprehensive management of users, groups, and exercises.
 
 > 🔄 **Evolution**: This is a ground-up reimplementation of the original [FalconAPI](https://github.com/FalconCompetitions/FalconAPI), redesigned with modern architectural patterns and best practices.
 
@@ -38,8 +38,8 @@
 
 | Aspect | Previous (FalconAPI) | Current (Reborn) |
 |--------|---------------------|------------------|
-| **Architecture** | Traditional Layered (Controllers → Services → Repositories) | **Clean Architecture** + **Vertical Slices** |
-| **Organization** | By technical concern (all controllers together) | **By feature** (self-contained feature folders) |
+| **Architecture** | Traditional Layered (Controllers → Services → Repositories) | **Clean Architecture** + **Domain-Driven Design** + **Message-driven async processing** + **Real-time communication** |
+| **Organization** | By technical concern (all controllers together) | **By feature in API endpoints** (self-contained feature folders, vertical-slice-inspired) |
 | **Communication** | Direct service calls | **MediatR** (CQRS pattern) |
 | **Messaging** | Background queue with `ConcurrentQueue` | **RabbitMQ** + **MassTransit** |
 | **Endpoints** | ASP.NET MVC Controllers | **Minimal APIs** with auto-discovery |
@@ -68,9 +68,8 @@
 - **Entity Framework Core 10** - ORM with SQL Server support
 
 ### Architecture Patterns
-- **Clean Architecture** - Dependency inversion with clear boundaries
-- **Vertical Slice Architecture** - Feature-based organization
-- **Domain-Driven Design** - Rich domain models with business rules
+- **System architecture (overall)** - Clean Architecture + Domain-Driven Design + RabbitMQ/MassTransit for async processing + SignalR for real-time communication
+- **Feature-oriented API endpoint organization (Vertical Slice-inspired)** - Self-contained endpoint feature folders
 - **CQRS Pattern** - Command/Query separation via MediatR
 
 ### Messaging & Real-Time
@@ -137,9 +136,9 @@
               • Database Updates
 ```
 
-### Vertical Slice Architecture
+### Feature Organization for API Endpoints (Vertical Slice-inspired)
 
-Each feature is organized in a **self-contained folder** with all related concerns:
+API endpoint features are organized in **self-contained folders** with all related concerns:
 
 ```
 Features/
@@ -264,7 +263,7 @@ See [SIGNALR_RABBITMQ_ARCHITECTURE.md](docs/SIGNALR_RABBITMQ_ARCHITECTURE.md) fo
 FalconApiReborn/
   src/
     Falcon.Api/                           # Presentation Layer
-      Features/                           # Vertical Slices
+      Features/                           # API endpoint feature folders (vertical-slice-inspired)
         Admin/
         Auth/
           RegisterUser/
@@ -1230,7 +1229,7 @@ This project served as a comprehensive learning experience, covering modern soft
 ### Architectural Patterns & Design
 - **Clean Architecture**: Practical implementation with strict dependency rules and layer separation
 - **Domain-Driven Design (DDD)**: Rich domain models, business rules encapsulation, and ubiquitous language
-- **Vertical Slice Architecture**: Feature-based organization for better maintainability and team scalability
+- **Feature-oriented API endpoint organization (Vertical Slice-inspired)**: Feature-based endpoint structure for better maintainability and team scalability
 - **CQRS Pattern**: Command/Query separation using MediatR for clear intent and scalability
 
 ### Backend Technologies

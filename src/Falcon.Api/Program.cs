@@ -15,7 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add infrastructure services (now includes JWT authentication configuration)
 builder.Services.AddInfrastructure(builder.Configuration);
 
-var configuration = builder.Configuration;
+ConfigurationManager configuration = builder.Configuration;
 
 // Add MassTransit with API-specific consumers
 builder.Services.AddApiMassTransit(
@@ -98,6 +98,9 @@ builder.Services.AddOpenApi(options =>
     );
 });
 
+bool isTestingEnvironment =
+    builder.Environment.IsEnvironment("Testing") || builder.Environment.IsEnvironment("Test");
+
 // Quartz for scheduled jobs
 builder.Services.AddQuartz(q =>
 {
@@ -105,7 +108,7 @@ builder.Services.AddQuartz(q =>
     q.UseMicrosoftDependencyInjectionJobFactory();
 
     // Use persistent AdoJobStore when configured (default: in-memory)
-    if (builder.Configuration.GetValue<bool>("Quartz:UsePersistentStore", false))
+    if (!isTestingEnvironment && builder.Configuration.GetValue<bool>("Quartz:UsePersistentStore", false))
     {
         q.SchedulerId = "AUTO";
         q.UsePersistentStore(s =>
@@ -123,8 +126,19 @@ builder.Services.AddQuartz(q =>
     }
 });
 
-// Add the Quartz.NET hosted service
-builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+// Add the Quartz.NET hosted service outside test environments to avoid host lifecycle issues in tests
+if (!isTestingEnvironment)
+{
+    builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+}
+
+if (
+    !builder.Environment.IsEnvironment("Testing")
+    && !builder.Environment.IsEnvironment("Test")
+)
+{
+    await builder.Services.AddAdminUserAsync(configuration);
+}
 
 var app = builder.Build();
 

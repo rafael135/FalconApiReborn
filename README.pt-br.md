@@ -5,7 +5,7 @@
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2B%20DDD-brightgreen)](docs/SIGNALR_RABBITMQ_ARCHITECTURE.md)
 [![Docs: build-docs](https://github.com/rafael135/FalconApiReborn/actions/workflows/build-docs.yml/badge.svg?branch=main)](https://github.com/rafael135/FalconApiReborn/actions/workflows/build-docs.yml)
 
-**Falcon API Reborn** é uma reescrita completa do backend da plataforma Falcon Competition, implementando práticas modernas de engenharia de software com **Clean Architecture**, **Domain-Driven Design** e **Vertical Slice Architecture**. Este sistema fornece infraestrutura robusta para competições de programação em tempo real com avaliação automática de código, processamento assíncrono e gerenciamento abrangente de usuários, grupos e exercícios.
+**Falcon API Reborn** é uma reescrita completa do backend da plataforma Falcon Competition, implementando práticas modernas de engenharia de software com uma arquitetura global baseada em **Clean Architecture**, **Domain-Driven Design**, **processamento assíncrono orientado a mensagens** (RabbitMQ + MassTransit) e **comunicação em tempo real** (SignalR). No nível de endpoints da API, também utiliza uma **organização orientada por features** inspirada em Vertical Slices. Este sistema fornece infraestrutura robusta para competições de programação em tempo real com avaliação automática de código, processamento assíncrono e gerenciamento abrangente de usuários, grupos e exercícios.
 
 > 🔄 **Evolução**: Esta é uma reimplementação completa da [FalconAPI](https://github.com/FalconCompetitions/FalconAPI) original, redesenhada com padrões arquiteturais modernos e melhores práticas.
 
@@ -38,8 +38,8 @@
 
 | Aspecto | Anterior (FalconAPI) | Atual (Reborn) |
 |---------|----------------------|----------------|
-| **Arquitetura** | Camadas Tradicionais (Controllers → Services → Repositories) | **Clean Architecture** + **Vertical Slices** |
-| **Organização** | Por preocupação técnica (todos os controllers juntos) | **Por feature** (pastas de features auto-contidas) |
+| **Arquitetura** | Camadas Tradicionais (Controllers → Services → Repositories) | **Clean Architecture** + **Domain-Driven Design** + **processamento assíncrono orientado a mensagens** + **comunicação em tempo real** |
+| **Organização** | Por preocupação técnica (todos os controllers juntos) | **Por feature nos endpoints da API** (pastas auto-contidas, inspiradas em vertical slices) |
 | **Comunicação** | Chamadas diretas de serviço | **MediatR** (padrão CQRS) |
 | **Mensageria** | Fila em background com `ConcurrentQueue` | **RabbitMQ** + **MassTransit** |
 | **Endpoints** | Controllers ASP.NET MVC | **Minimal APIs** com auto-descoberta |
@@ -68,9 +68,8 @@
 - **Entity Framework Core 10** - ORM com suporte a SQL Server
 
 ### Padrões Arquiteturais
-- **Clean Architecture** - Inversão de dependências com limites claros
-- **Vertical Slice Architecture** - Organização baseada em features
-- **Domain-Driven Design** - Modelos de domínio ricos com regras de negócio
+- **Arquitetura do sistema (global)** - Clean Architecture + Domain-Driven Design + RabbitMQ/MassTransit para processamento assíncrono + SignalR para comunicação em tempo real
+- **Organização de endpoints da API orientada por features (inspirada em Vertical Slices)** - Pastas de features auto-contidas para endpoints
 - **Padrão CQRS** - Separação Command/Query via MediatR
 
 ### Mensageria e Tempo Real
@@ -137,9 +136,9 @@
               • Atualizações no Banco
 ```
 
-### Vertical Slice Architecture
+### Organização de Features para Endpoints da API (inspirada em Vertical Slices)
 
-Cada feature é organizada em uma **pasta auto-contida** com todas as preocupações relacionadas:
+As features de endpoints da API são organizadas em **pastas auto-contidas** com todas as preocupações relacionadas:
 
 ```
 Features/
@@ -264,7 +263,7 @@ Veja [SIGNALR_RABBITMQ_ARCHITECTURE.md](docs/SIGNALR_RABBITMQ_ARCHITECTURE.md) p
 FalconApiReborn/
   src/
     Falcon.Api/                           # Camada de Apresentação
-      Features/                           # Vertical Slices
+      Features/                           # Pastas de features dos endpoints da API (inspiradas em vertical slices)
         Admin/
         Auth/
           RegisterUser/
@@ -1250,7 +1249,7 @@ Este projeto serviu como uma experiência de aprendizado abrangente, cobrindo pr
 ### Padrões Arquiteturais & Design
 - **Clean Architecture**: Implementação prática com regras rígidas de dependência e separação de camadas
 - **Domain-Driven Design (DDD)**: Modelos de domínio ricos, encapsulamento de regras de negócio e linguagem ubíqua
-- **Vertical Slice Architecture**: Organização baseada em features para melhor manutenibilidade e escalabilidade de equipe
+- **Organização de endpoints da API orientada por features (inspirada em Vertical Slices)**: Estrutura por feature para melhor manutenibilidade e escalabilidade de equipe
 - **Padrão CQRS**: Separação Command/Query usando MediatR para intenção clara e escalabilidade
 
 ### Tecnologias Backend
