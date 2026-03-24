@@ -4,7 +4,7 @@
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2B%20DDD-brightgreen)](docs/SIGNALR_RABBITMQ_ARCHITECTURE.md)
 [![Messaging](https://img.shields.io/badge/Messaging-RabbitMQ-FF6600)](https://www.rabbitmq.com/)
 
-**Falcon API Reborn** is a complete architectural rewrite of the Falcon Competition backend. Moving away from traditional monolithic layers, this system was rebuilt from the ground up utilizing **Clean Architecture**, **Domain-Driven Design (DDD)**, and **Vertical Slice Architecture**. 
+**Falcon API Reborn** is a complete architectural rewrite of the Falcon Competition backend. Moving away from traditional monolithic layers, this system was rebuilt from the ground up utilizing **Clean Architecture**, **Domain-Driven Design (DDD)**, with API endpoint organization inspired by **Vertical Slice** principles (feature folders). 
 
 It provides a highly resilient, distributed infrastructure for real-time programming competitions, featuring asynchronous code evaluation, WebSocket broadcasting, and strict domain validation.
 
@@ -19,7 +19,7 @@ To understand the engineering impact of this rewrite, here is the architectural 
 | Aspect | Legacy Architecture | Reborn Architecture | Engineering Impact |
 |---------|----------------------|----------------|---------------------|
 | **Core Design** | Traditional N-Tier (Controllers → Services) | **Clean Architecture + DDD** | Business rules are strictly isolated from framework dependencies. |
-| **Organization** | By technical concern | **Vertical Slices** | Features are highly cohesive, making the codebase scalable across multiple teams. |
+| **Organization** | By technical concern | **Feature-organized endpoints (Vertical Slice-inspired)** | Features are highly cohesive, making the codebase scalable across multiple teams. |
 | **State Mutation** | Direct Service Calls | **CQRS via MediatR** | Strict separation of read/write operations, improving maintainability. |
 | **Processing** | In-memory `ConcurrentQueue` | **RabbitMQ + MassTransit** | Solved memory leaks and guaranteed message delivery under high load. |
 | **Real-time** | Polling | **SignalR WebSockets** | Reduced database load by broadcasting state changes instantly. |
@@ -61,7 +61,7 @@ sequenceDiagram
     API->>Client: Broadcast Ranking Update
 ```
 
-### 3. Vertical Slice Architecture
+### 3. API Feature Organization (Vertical Slice-inspired)
 Instead of scattering related code across different technical folders, every feature is completely self-contained. Adding a new feature means creating a new folder, not touching existing core files.
 
 ```text
@@ -78,7 +78,7 @@ Features/
 ## 🛠️ Tech Stack Overview
 
 * **Framework:** .NET 10, ASP.NET Core Minimal APIs
-* **Architecture:** Clean Architecture, DDD, CQRS (MediatR), Vertical Slices
+* **Architecture:** Clean Architecture, DDD, CQRS (MediatR), with feature-based API endpoint organization inspired by Vertical Slices
 * **Data & Persistence:** Entity Framework Core 10, SQL Server
 * **Messaging & Async:** RabbitMQ, MassTransit, Quartz.NET
 * **Real-Time:** SignalR
